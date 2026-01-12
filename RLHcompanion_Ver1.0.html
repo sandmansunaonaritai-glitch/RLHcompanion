@@ -1,0 +1,849 @@
+<!--RLHcompanion_Ver1.0-->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RLH Companion - Ultimate Integrated</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; overflow: hidden; }
+        .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #9ca3af; border-radius: 4px; }
+        
+        /* D66 Grid Styles */
+        .d66-grid-container { width: 100%; display: grid; grid-template-columns: repeat(6, 1fr); border: 1px solid #14b8a6; max-width: 180px; }
+        .d66-grid-cell { aspect-ratio: 1.1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; cursor: pointer; border: 1px solid #e5e7eb; position: relative; background: #fff; }
+        
+        /* 回数ごとの背景色 */
+        .cell-row-0 { background-color: #ccfbf1 !important; border-color: #2dd4bf; } /* 1回目：ターコイズ */
+        .cell-row-1 { background-color: #fef3c7 !important; border-color: #fbbf24; } /* 2回目：アンバー */
+        .cell-row-2 { background-color: #ffe4e6 !important; border-color: #fb7185; } /* 3回目：ローズ */
+        .d66-order-tag { position: absolute; font-size: 0.5rem; color: #374151; font-weight: 900; }
+
+        /* Record Table */
+        .record-table { border-collapse: collapse; font-size: 10px; width: 100%; table-layout: fixed; }
+        .record-table th, .record-table td { border: 1px solid #ccc; text-align: center; padding: 2px 0; height: 22px; }
+        .record-table th { background: #f9fafb; color: #667085; }
+        .record-table tr.active-row { background: #fffbeb; outline: 2px solid #f59e0b; outline-offset: -2px; }
+        .resource-input { padding: 0.1rem; font-size: 0.85rem; text-align: center; border-radius: 0.25rem; width: 2.8rem; border: 1px solid #d1d5db; }
+
+        /* Mobile Tab View */
+        @media (max-width: 1023px) {
+            .view-tab { display: none; }
+            .view-tab.active { display: flex; flex-direction: column; }
+            .tab-btn.active { background-color: #374151; color: white; border-bottom: 2px solid #6366f1; }
+        }
+       /* ヘルプモーダルのスタイル */
+       .modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); }
+       .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border-radius: 8px; width: 80%; max-width: 600px; max-height: 80vh; overflow-y: auto; }
+    </style>
+</head>
+<body class="h-screen flex flex-col">
+    <input type="file" id="uploadFile" accept=".json" class="hidden" onchange="handleFileUpload(event)">
+    <input type="file" id="csvUpload" accept=".csv" class="hidden" onchange="handleCsvUpload(event)">
+
+    <header class="bg-gray-800 text-white shadow-xl z-10 shrink-0">
+        <div class="p-2 px-4 flex flex-wrap items-center gap-4 border-b border-gray-700">
+            <h1 class="text-lg font-bold shrink-0 flex items-center">🎲 RLH Companion
+            <button onclick="toggleHelp(true)" class="ml-2 bg-gray-600 hover:bg-gray-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-sm">?</button>
+</h1>
+            <div class="flex items-center bg-gray-900 rounded-lg p-1 space-x-2 flex-grow max-w-3xl">
+                <input type="text" id="logTitle" placeholder="セッション名" class="bg-transparent border-none focus:ring-0 text-sm font-semibold px-2 flex-grow">
+                <button onclick="document.getElementById('uploadFile').click()" class="bg-green-700 hover:bg-green-600 text-[10px] py-1 px-2 rounded">読込</button>
+                <button onclick="downloadData()" class="bg-blue-700 hover:bg-blue-600 text-[10px] py-1 px-2 rounded">全体保存</button>
+                <button onclick="exportLogText()" class="bg-teal-600 hover:bg-teal-500 text-[10px] py-1 px-2 rounded">ログDL(txt)</button>
+                <button onclick="resetAllData()" class="bg-red-700 hover:bg-red-600 text-[10px] py-1 px-2 rounded">全体消去</button>
+            </div>
+        </div>
+<div class="p-2 px-4 flex flex-wrap gap-4 items-center bg-gray-700 text-[11px] text-white">
+    <div class="flex items-center space-x-2">
+        <span>回数:</span>
+        <input type="number" id="rollCount" value="1" class="w-8 rounded text-gray-900 px-1">
+        <span>修正値:</span>
+        <input type="number" id="skillValue" value="0" class="w-8 rounded text-gray-900 px-1 text-center">
+        <span>目標値:</span>
+        <input type="number" id="targetValue" value="3" class="w-8 rounded text-gray-900 px-1 text-center">
+        
+        <div class="flex items-center space-x-1 ml-2">
+            <button onclick="handleRlhRoll('skill')" class="bg-indigo-600 hover:bg-indigo-500 px-2 py-1 rounded font-bold text-[10px] whitespace-nowrap">技量判定</button>
+            <button onclick="handleRlhRoll('sub')" class="bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded font-bold text-[10px] whitespace-nowrap">能力判定</button>
+        </div>
+    </div>
+
+    <div class="flex items-center space-x-1 border-l border-gray-600 pl-4">
+        <span>修正:</span>
+        <input type="number" id="quickModValue" value="0" class="w-8 rounded text-gray-900 px-1 mr-1">
+        <button onclick="handleLocalRoll('1D3', '1D3')" class="bg-gray-600 hover:bg-gray-500 px-1.5 py-0.5 rounded">1D3</button>
+        <button onclick="handleLocalRoll('1D6', '1D6')" class="bg-yellow-600 hover:bg-yellow-500 px-1.5 py-0.5 rounded">1D6</button>
+        <button onclick="handleLocalRoll('D66', 'D66')" class="bg-orange-600 hover:bg-orange-500 px-1.5 py-0.5 rounded">D66</button>
+        <button onclick="handleLocalRoll('D33', 'D33')" class="bg-blue-600 hover:bg-blue-500 px-1.5 py-0.5 rounded">D33</button>
+        <button onclick="handleLocalRoll('Treasure', '宝物')" class="bg-green-600 hover:bg-green-500 px-1.5 py-0.5 rounded">宝物</button>
+        <button onclick="handleMagicTreasure()" class="bg-purple-600 hover:bg-purple-500 px-1.5 py-0.5 rounded">魔法の宝物</button>
+    </div>
+</div>    </header>
+
+    <nav class="lg:hidden flex bg-gray-200 border-b border-gray-300 shrink-0">
+        <button onclick="switchTab('main')" id="btn-tab-main" class="tab-btn active flex-1 py-3 text-xs font-bold">メイン/ログ</button>
+        <button onclick="switchTab('char')" id="btn-tab-char" class="tab-btn flex-1 py-3 text-xs font-bold">キャラシート</button>
+    </nav>
+
+    <main class="flex-1 flex overflow-hidden relative">
+        <section id="view-main" class="view-tab active w-full lg:w-2/3 flex flex-col p-4 bg-white overflow-hidden">
+            <details class="mb-4 border border-teal-600 rounded-lg bg-teal-50" open>
+                <summary class="p-1 font-bold text-teal-800 cursor-pointer text-[10px] bg-teal-100 rounded-t-lg flex justify-between items-center px-3">
+                    <span>D66 GRID & SCENARIO</span>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="event.preventDefault(); document.getElementById('csvUpload').click()" class="bg-slate-600 text-white px-2 rounded">CSV読込</button>
+                        <button onclick="event.preventDefault(); resetD66Area()" class="bg-red-600 text-white px-1.5 rounded">CLR</button>
+                    </div>
+                </summary>
+                <div class="p-2 bg-white flex flex-col space-y-2">
+                    <div class="flex space-x-1 border-b pb-2">
+                   	 <button onclick="playScenario('title')" class="bg-indigo-600 text-white text-[9px] px-2 py-1 rounded">タイトル</button>
+   			 <button onclick="playScenario('rule')" class="bg-slate-700 text-white text-[9px] px-2 py-1 rounded">特殊ルール</button>
+   			 <button onclick="playScenario('linear')" class="bg-orange-600 text-white text-[9px] px-2 py-1 rounded">一本道モード</button>
+ 			 <button onclick="playScenario('pro')" class="bg-gray-500 text-white text-[9px] px-2 py-1 rounded">プロローグ</button>
+    
+			 <button onclick="playScenario('start')" class="bg-blue-500 text-white text-[9px] px-2 py-1 rounded">開始</button>
+			 <button onclick="playScenario('mid')" class="bg-amber-500 text-white text-[9px] px-2 py-1 rounded">中間</button>
+			 <button onclick="playScenario('finish')" class="bg-rose-500 text-white text-[9px] px-2 py-1 rounded">最終</button>
+			 <button onclick="playScenario('clear')" class="bg-emerald-500 text-white text-[9px] px-2 py-1 rounded">達成</button>
+
+ 		   <span id="csvStatus" class="text-[9px] text-gray-400 self-center ml-2 italic">CSV未読込</span>
+		</div>                    
+                    <div class="overflow-x-auto">
+                        <table class="record-table">
+                            <thead>
+    <tr><th style="width: 50px;">回数</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th></tr>
+</thead>
+                            <tbody id="recordBody"></tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex items-center justify-center space-x-6">
+                        <div id="d66Grid" class="d66-grid-container"></div>
+                        <div class="text-[10px] text-teal-700 flex flex-col items-center">
+                            <span class="font-bold" id="rowLabel">Next (1回目)</span>
+                            <span id="d66NextNumber" class="text-lg font-black bg-teal-700 text-white rounded-full w-8 h-8 flex items-center justify-center">1</span>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <div id="logArea" class="flex-1 overflow-y-auto custom-scroll space-y-2 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-inner"></div>
+            
+            <div class="flex flex-col mt-3">
+                <textarea id="logInput" placeholder="ログ入力 (Enterで送信)" rows="2" class="w-full p-2 border border-gray-300 rounded-md text-sm resize-none focus:ring-2 focus:ring-blue-400 mb-2 shadow-sm"></textarea>
+                <div class="flex space-x-2 text-xs">
+                    <button onclick="addLogEntry('input')" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded shadow">送信</button>
+                    <button onclick="addLogEntry('separator')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">区切り線</button>
+                </div>
+            </div>
+        </section>
+
+<section id="view-char" class="view-tab w-full lg:w-1/3 flex flex-col p-4 bg-gray-200 overflow-y-auto custom-scroll border-l border-gray-300 lg:flex">
+    <div class="flex flex-col gap-2 mb-4">
+        <div class="flex items-center space-x-2">
+            <select id="charSelector" class="flex-grow p-1 border border-gray-300 rounded bg-white text-xs font-bold shadow-sm" onchange="switchCharacter(this.value)"></select>
+            <button onclick="addCharacter()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] p-2 rounded shadow">追加</button>
+        </div>
+        
+        <button onclick="downloadCharacterOnly()" class="bg-indigo-700 hover:bg-indigo-600 text-white text-[10px] py-1.5 rounded shadow font-bold">
+            🖫 表示中のキャラのみ保存
+        </button>
+    </div>
+
+    <div id="current-character-sheet" class="space-y-4 bg-white p-4 rounded-lg shadow flex-1"></div>
+</section>
+    </main>
+
+    <script>
+        const STORAGE_KEY = 'rlh_final_integrated_v1';
+        let appState = { 
+            logTitle: "セッション", logEntries: [], characters: {}, currentCharacterId: null, 
+            d66State: [
+                { grid: Array(36).fill(0), clickOrder: 1 },
+                { grid: Array(36).fill(0), clickOrder: 1 },
+                { grid: Array(36).fill(0), clickOrder: 1 }
+            ],
+            d66Table: Array.from({ length: 3 }, () => Array(13).fill("")), activeRow: 0
+        };
+        let scenarioMaster = [];
+        let logTimeout = null; // デバウンス用のタイマー変数
+        // --- Core Functions ---
+
+        function switchTab(tab) {
+            document.querySelectorAll('.view-tab').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + tab).classList.add('active');
+            document.getElementById('btn-tab-' + tab).classList.add('active');
+        }
+
+        function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); }
+        function loadData() {
+            const stored = localStorage.getItem(STORAGE_KEY);
+            if (stored) { 
+                try { 
+                    const parsed = JSON.parse(stored);
+                    appState = { ...appState, ...parsed };
+                } catch(e) { console.error(e); } 
+            }
+            if (Object.keys(appState.characters).length === 0) addCharacter('初期キャラクター');
+            if (!appState.currentCharacterId || !appState.characters[appState.currentCharacterId]) {
+                appState.currentCharacterId = Object.keys(appState.characters)[0];
+            }
+            renderAll();
+        }
+
+       // --- 1. handleCsvUpload の差し替え ---
+function handleCsvUpload(e) {
+    const f = e.target.files[0]; 
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = (ev) => {
+        // テキストを読み込み、高度なパース(parseCSV)に渡す
+        processCSV(ev.target.result);
+    };
+    r.readAsText(f);
+}
+
+// --- 2. 複雑なCSVを解析する補助関数 ---
+function parseCSV(text) {
+    const result = [];
+    let currentRow = [];
+    let currentToken = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const nextChar = text[i + 1];
+
+        if (char === '"') {
+            if (inQuotes && nextChar === '"') {
+                currentToken += '"';
+                i++;
+            } else {
+                inQuotes = !inQuotes;
+            }
+        } else if (char === ',' && !inQuotes) {
+            currentRow.push(currentToken.trim());
+            currentToken = "";
+        } else if ((char === '\r' || char === '\n') && !inQuotes) {
+            if (currentToken !== "" || currentRow.length > 0) {
+                currentRow.push(currentToken.trim());
+                result.push(currentRow);
+                currentRow = [];
+                currentToken = "";
+            }
+            if (char === '\r' && nextChar === '\n') i++;
+        } else {
+            currentToken += char;
+        }
+    }
+    if (currentToken !== "" || currentRow.length > 0) {
+        currentRow.push(currentToken.trim());
+        result.push(currentRow);
+    }
+    return result;
+}
+
+// --- 3. 解析したデータを scenarioMaster に格納する処理 ---
+function processCSV(text) {
+    const rows = parseCSV(text);
+    if (rows.length < 2) return;
+
+    // ヘッダー行を取得
+    const headers = rows[0].map(h => h.trim().toLowerCase());
+    
+    // データ行をオブジェクト化
+    scenarioMaster = rows.slice(1).map(row => {
+        const obj = {};
+        headers.forEach((header, index) => {
+            let value = row[index] || "";
+            // 前後の引用符を削除し、内部の二重引用符を戻す
+            value = value.replace(/^"(.*)"$/s, '$1').replace(/""/g, '"');
+            obj[header] = value;
+        });
+        
+        // turnを数値に変換 (失敗したら1にする)
+        obj.turn = parseInt(obj.turn) || 1;
+        // idを文字列として保持
+        if (obj.id) obj.id = obj.id.toString();
+        return obj;
+    });
+
+    // 画面上のステータス更新
+    const statusEl = document.getElementById('csvStatus');
+    if (statusEl) {
+        statusEl.textContent = "読込済 (" + scenarioMaster.length + "件)";
+        statusEl.className = "text-[9px] text-teal-600 self-center ml-2 font-bold";
+    }
+}
+
+function playScenario(type, id = null) {
+    const r = appState.activeRow;
+    const turn = r + 1;
+    const targetType = type.toLowerCase();
+
+    // --- 1. 特殊イベント（中間・最終）のタイル記録処理 ---
+    if (targetType === 'mid' || targetType === 'finish') {
+        const label = (targetType === 'mid') ? "中間" : "最終";
+        
+        // 現在の行(appState.d66Table[r])から最初の空き枠を探す
+        const emptyIdx = appState.d66Table[r].indexOf("");
+        if (emptyIdx !== -1) {
+            appState.d66Table[r][emptyIdx] = label;
+            // 画面更新と保存
+            renderAll(); 
+            saveData();
+        }
+    }
+
+    // --- 2. CSV（scenarioMaster）から該当するものを「すべて」検索 (.filterを使用) ---
+    // まず「現在の回数(turn)」で検索
+    let entries = scenarioMaster.filter(s => s.type === targetType && s.turn === turn && (id ? s.id === id : true));
+    
+    // 現在の回数で見つからず、かつ「全回数共通(turn:1)」の設定があるかもしれないので再検索
+    if (entries.length === 0 && turn !== 1) {
+        entries = scenarioMaster.filter(s => s.type === targetType && s.turn === 1 && (id ? s.id === id : true));
+    }
+
+    // --- 3. ログの日本語ラベル設定 ---
+    const labels = {
+        title: "タイトル",
+        rule: "特殊ルール",
+        linear: "一本道モード",
+        pro: "プロローグ",
+        start: "冒険のはじまり",
+        mid: "中間イベント",
+        clear: "冒険の達成",
+        finish: "最終イベント",
+        magictreasure: "魔法の宝物"
+    };
+
+    // --- 4. ログ出力処理 ---
+    if (targetType === 'd66' && id) {
+        // D66の場合：複数ヒットしていても、通常ダイス目は1つのため最初の1つ、または未登録を表示
+        const text = entries.length > 0 ? `\n${entries[0].text}` : "";
+        addLogEntry('system', 'RESULT', `出目：${id}${text}`);
+    } else {
+        // それ以外（タイトル、ルール、プロ等）：
+        const labelName = labels[targetType] || type.toUpperCase();
+        
+        // 複数ヒットしたすべてのテキストを改行でつなげる
+        const combinedText = entries.length > 0 
+            ? entries.map(e => `\n${e.text}`).join('') 
+            : "";
+            
+        addLogEntry('system', 'SCENARIO', `【${labelName}】${combinedText}`);
+    }
+
+    // --- 5. 最後に全体を再描画して保存 ---
+    renderAll();
+    saveData();
+}
+
+        // --- 魔法の宝物（CSV未登録時は1D6を振る） ---
+function handleMagicTreasure() {
+    const c = appState.characters[appState.currentCharacterId];
+    const name = c ? c.name : "？";
+    const turn = appState.activeRow + 1;
+
+    // 今の回数または1回目にある magictreasure のデータを取得
+    const entries = scenarioMaster.filter(s => s.type === 'magictreasure' && (s.turn === turn || s.turn === 1));
+    
+    let diceRange = 6; // デフォルトは1D6
+
+    if (entries.length > 0) {
+        // CSVにデータがある場合：IDの最大値を見てD3かD6か判別
+        const maxId = Math.max(...entries.map(s => parseInt(s.id) || 0));
+        diceRange = (maxId > 3) ? 6 : 3;
+    } else {
+        // CSVにデータがない場合：そのまま1D6
+        diceRange = 6;
+    }
+
+    const roll = Math.floor(Math.random() * diceRange) + 1;
+
+    addLogEntry('dice', '魔法の宝物', `[実行者: ${name}] 1D${diceRange}(${roll})`);
+
+    // CSVデータがある場合のみ playScenario を呼び出す
+    if (entries.length > 0) {
+        playScenario('magictreasure', roll.toString());
+    } 
+}
+        // --- D66 Grid logic ---
+
+        function renderD66Grid() {
+            const gridEl = document.getElementById('d66Grid');
+            gridEl.innerHTML = Array(36).fill(0).map((_, i) => {
+                let cls = "d66-grid-cell", tags = "";
+                appState.d66State.forEach((state, rIdx) => {
+                    if (state.grid[i] > 0) {
+                        cls += ` cell-row-${rIdx}`;
+                        tags += `<span class="d66-order-tag" style="top:${rIdx*5}px; right:1px;">${state.grid[i]}</span>`;
+                    }
+                });
+                return `<div class="${cls}" onclick="hD66(${i})"><span>${Math.floor(i/6)+1}${i%6+1}</span>${tags}</div>`;
+            }).join('');
+            document.getElementById('d66NextNumber').textContent = appState.d66State[appState.activeRow].clickOrder;
+            document.getElementById('rowLabel').textContent = `Next (${appState.activeRow + 1}回目)`;
+        }
+
+        function hD66(i) {
+            const r = appState.activeRow;
+            const val = `${Math.floor(i/6)+1}${(i%6)+1}`;
+            // 同じ行の中でのみキャンセル可能
+            if (appState.d66State[r].grid[i] > 0) {
+                const order = appState.d66State[r].grid[i];
+                appState.d66State[r].grid[i] = 0;
+                appState.d66State[r].grid = appState.d66State[r].grid.map(v => v > order ? v-1 : v);
+                appState.d66State[r].clickOrder--;
+                appState.d66Table[r] = appState.d66Table[r].map(c => c === val ? "" : c);
+            } else {
+                appState.d66State[r].grid[i] = appState.d66State[r].clickOrder++;
+                const emptyIdx = appState.d66Table[r].indexOf("");
+                if (emptyIdx !== -1) appState.d66Table[r][emptyIdx] = val;
+                playScenario('d66', val);
+            }
+            renderAll(); saveData();
+        }
+
+        function renderD66Table() {
+            const body = document.getElementById('recordBody');
+            body.innerHTML = appState.d66Table.map((row, rIdx) => `
+                <tr class="${appState.activeRow === rIdx ? 'active-row' : ''}">
+                    <td class="bg-gray-100 font-bold"><input type="radio" name="rowSel" ${appState.activeRow === rIdx ? 'checked' : ''} onchange="appState.activeRow=${rIdx}; renderAll(); saveData();"> ${rIdx+1}</td>
+                    ${row.map((cell, cIdx) => `<td onclick="clearTableCell(${rIdx},${cIdx})" class="cursor-pointer">${cell}</td>`).join('')}
+                </tr>`).join('');
+        }
+
+        function clearTableCell(r, c) {
+            const val = appState.d66Table[r][c];
+            if (val && !isNaN(val)) {
+                const i = (parseInt(val[0])-1)*6 + (parseInt(val[1])-1);
+                const order = appState.d66State[r].grid[i];
+                appState.d66State[r].grid[i] = 0;
+                appState.d66State[r].grid = appState.d66State[r].grid.map(v => v > order ? v-1 : v);
+                appState.d66State[r].clickOrder--;
+            }
+            appState.d66Table[r][c] = ""; renderAll(); saveData();
+        }
+
+
+
+        function resetD66Area() {
+            if(confirm("D66データをリセットしますか？")) {
+                appState.d66State = appState.d66State.map(() => ({ grid: Array(36).fill(0), clickOrder: 1 }));
+                appState.d66Table = [Array(13).fill(""), Array(13).fill(""), Array(13).fill("")];
+                renderAll(); saveData();
+            }
+        }
+
+        // --- Resource & Character Logic ---
+
+        function addCharacter(name='新規キャラ') {
+            const id = crypto.randomUUID();
+            appState.characters[id] = { id, name, deletedResources:[], 
+// createNewCharacter 等の初期化部分
+data: {
+    skill: 0,
+    // life を選択式構造に変更
+    life: { type: 'hp', label: '生命点', current: 10, max: 10 },
+    subAbility: { type: 'luck', label: '幸運', current: 10, max: 10 },
+    follower: { current: 0, max: 0 },
+    food: 2,
+    clue: 0,
+    gold: 10,
+    memo: ""
+}};
+            appState.currentCharacterId = id; renderAll(); saveData();
+        }
+
+       function onResChange(key, label, val, isMax=false) {
+            const c = appState.characters[appState.currentCharacterId];
+            if (!c) return;
+
+            // 変更前の値を記録（タイマーが動いていない時だけ取得）
+            if (!c._oldValues) c._oldValues = {};
+            const storageKey = `${key}_${isMax}`;
+            if (c._oldValues[storageKey] === undefined) {
+                c._oldValues[storageKey] = isMax ? c.data[key].max : (typeof c.data[key] === 'object' ? c.data[key].current : c.data[key]);
+            }
+
+            // データの更新（ここは即座に行う）
+            if(isMax) c.data[key].max = parseInt(val); 
+            else if(typeof c.data[key] === 'object') c.data[key].current = parseInt(val);
+            else c.data[key] = parseInt(val);
+            
+            saveData();
+
+            // ログ出力の予約（500ms以内に次の操作があればキャンセルして再予約）
+            clearTimeout(logTimeout);
+            logTimeout = setTimeout(() => {
+                const oldVal = c._oldValues[storageKey];
+                const newVal = parseInt(val);
+
+                if (oldVal != newVal) {
+                    addLogEntry('system', '', `[${c.name}] ${label}${isMax?'(最大)':''}: ${oldVal} -> ${newVal}`);
+                }
+                
+                // 記録をリセット
+                delete c._oldValues[storageKey];
+            }, 500); // 0.5秒間操作が止まったらログを出す
+        }
+
+function renderCurrentCharacterSheet() {
+    const c = appState.characters[appState.currentCharacterId]; if(!c) return;
+    const d = c.data;
+    let h = `<input type="text" value="${c.name}" class="w-full font-bold border-b mb-2 focus:outline-none" onchange="appState.characters['${c.id}'].name=this.value; renderCharacterSelector(); saveData();">`;
+    h += `<div class="grid grid-cols-2 gap-2 text-[10px]">`;
+
+    const resourceConfigs = [
+        {id:'skill', l:'技量点', bg:'yellow', type:'single'}, 
+        {id:'life', l:'生命点', bg:'red', type:'sub-life'}, 
+        {id:'subAbility', l:'能力', bg:'blue', type:'sub'}, 
+        {id:'follower', l:'従者', bg:'green', type:'dual'}, 
+        {id:'food', l:'食料', bg:'orange', type:'single'},
+        {id:'clue', l:'手がかり', bg:'indigo', type:'single'},
+        {id:'gold', l:'金貨', bg:'amber', type:'single'}
+    ];
+
+    resourceConfigs.forEach(res => {
+        if(c.deletedResources.includes(res.id)) return;
+        h += `<div class="bg-${res.bg}-50 border border-${res.bg}-200 p-1 rounded relative group">
+                <button onclick="appState.characters['${c.id}'].deletedResources.push('${res.id}'); renderCurrentCharacterSheet(); saveData();" class="absolute top-0 right-0 text-red-400 hidden group-hover:block px-1">×</button>`;
+
+        // --- 生命（プルダウン選択式） ---
+        if(res.type === 'sub-life') {
+            h += `<select class="font-bold bg-transparent" onchange="const c=appState.characters['${c.id}']; c.data.life.type=this.value; c.data.life.label=this.options[this.selectedIndex].text; renderCurrentCharacterSheet(); saveData();">
+                <option value="hp" ${d.life.type==='hp'?'selected':''}>生命点</option>
+                <option value="num" ${d.life.type==='num'?'selected':''}>人数</option>
+                <option value="app" ${d.life.type==='app'?'selected':''}>出現数</option>
+            </select>
+            <div class="flex items-center justify-center space-x-1 mt-1">
+                <input type="number" value="${d.life.current}" class="resource-input !w-10" onchange="onResChange('life','生命',this.value)">/
+                <input type="number" value="${d.life.max}" class="resource-input !w-10" onchange="onResChange('life','生命',this.value,true)">
+            </div>`;
+        }
+        // --- 能力（プルダウン選択式） ---
+        else if(res.type === 'sub') {
+            h += `<select class="font-bold bg-transparent" onchange="const c=appState.characters['${c.id}']; c.data.subAbility.type=this.value; c.data.subAbility.label=this.options[this.selectedIndex].text; renderCurrentCharacterSheet(); saveData();">
+                <option value="luck" ${d.subAbility.type==='luck'?'selected':''}>幸運</option>
+                <option value="str" ${d.subAbility.type==='str'?'selected':''}>筋力</option>
+                <option value="mag" ${d.subAbility.type==='mag'?'selected':''}>魔術</option>
+                <option value="dex" ${d.subAbility.type==='dex'?'selected':''}>器用</option>
+            </select>
+            <div class="flex items-center justify-center space-x-1 mt-1">
+                <input type="number" value="${d.subAbility.current}" class="resource-input !w-10" onchange="onResChange('subAbility','能力',this.value)">/
+                <input type="number" value="${d.subAbility.max}" class="resource-input !w-10" onchange="onResChange('subAbility','能力',this.value,true)">
+            </div>`;
+        }
+        else if(res.type === 'dual') {
+            h += `<span class="font-bold text-gray-600">${res.l}</span><div class="flex items-center justify-center space-x-1 mt-1"><input type="number" value="${d[res.id].current}" class="resource-input !w-10" onchange="onResChange('${res.id}','${res.l}',this.value)">/<input type="number" value="${d[res.id].max}" class="resource-input !w-10" onchange="onResChange('${res.id}','${res.l}',this.value,true)"></div>`;
+        } 
+        else {
+            h += `<span class="font-bold text-gray-600">${res.l}</span><div class="mt-1 flex justify-center"><input type="number" value="${d[res.id]}" class="resource-input w-full" onchange="onResChange('${res.id}','${res.l}',this.value)"></div>`;
+        }
+        h += `</div>`;
+    });
+
+    h += `</div><textarea class="w-full mt-2 text-[10px] border h-20 p-1 rounded" placeholder="メモ・所持品" onchange="appState.characters['${c.id}'].data.memo=this.value; saveData();">${d.memo || ""}</textarea>
+    <div class="flex flex-col gap-1 mt-2"><button onclick="appState.characters['${c.id}'].deletedResources=[]; renderCurrentCharacterSheet(); saveData();" class="text-[9px] text-gray-400">項目リセット</button><button onclick="deleteChar()" class="text-[9px] text-red-400">キャラ削除</button></div>`;
+    document.getElementById('current-character-sheet').innerHTML = h;
+}
+
+        // --- Dice & Logs ---
+
+        function handleRlhRoll(mode) {
+            const c = appState.characters[appState.currentCharacterId];
+            if(!c) return;
+
+            let baseValue = 0;
+            let label = "";
+
+            if (mode === 'skill') {
+                baseValue = c.data.skill || 0;
+                label = "技量";
+            } else {
+                // 現在選択されている能力値（幸運・筋力など）の「現在値」を取得
+                baseValue = c.data.subAbility.current || 0;
+                label = c.data.subAbility.label || "能力";
+            }
+            
+            // 上部の修正値ボックスの値
+            const modInput = document.getElementById('skillValue'); 
+            const modValue = modInput ? parseInt(modInput.value) : 0;
+            
+            // 合計修正値 (x)
+            const sk = baseValue + modValue;
+            
+            const n = parseInt(document.getElementById('rollCount').value);
+            const tg = parseInt(document.getElementById('targetValue').value);
+            
+            let s=0, f=0, cr=0, fum=0, details=[];
+            for(let i=0; i<n; i++){
+                const r = Math.floor(Math.random()*6)+1, tot = r+sk;
+                let res= (r===6)?"【クリ】":(r===1)?"【ファン】":(tot>=tg)?"成功":"失敗";
+                if(r===6){s++;cr++;}else if(r===1){f++;fum++;}else if(tot>=tg){s++;}else{f++;}
+                details.push(`#${i+1}: 1D6(${r})+${sk}=${tot} -> ${res}`);
+            }
+            
+            addLogEntry('dice', `${label}判定`, 
+                `[判定者: ${c.name}]\n` +
+                `使用数値: ${label}(${baseValue}) + 修正(${modValue}) = 計+${sk}\n` +
+                `${n}RLH >= ${tg}\n` +
+                `${details.join('\n')}\n` +
+                `成功:${s} 失敗:${f} (C:${cr}/F:${fum})`
+            );
+        }
+
+        function handleLocalRoll(cmd, label) {
+            const c = appState.characters[appState.currentCharacterId];
+            // 修正値（quickModValue）を取得
+            const mod = parseInt(document.getElementById('quickModValue').value) || 0;
+            let res = "";
+
+            if(cmd==='1D3') { 
+                const r = Math.floor(Math.random()*3)+1; 
+                res = `1D3(${r})+${mod}=${r+mod}`; 
+            }
+            else if(cmd==='1D6') { 
+                const r = Math.floor(Math.random()*6)+1; 
+                res = `1D6(${r})+${mod}=${r+mod}`; 
+            }
+            else if(cmd==='D33') {
+                const r1 = Math.floor(Math.random()*3)+1;
+                const r2 = Math.floor(Math.random()*3)+1;
+                res = `D33[${r1},${r2}](${r1*10+r2})+${mod}=${(r1*10+r2)+mod}`;
+            }
+            else if(cmd==='D66') { 
+                const r1=Math.floor(Math.random()*6)+1, r2=Math.floor(Math.random()*6)+1; 
+                res=`D66[${r1},${r2}](${r1*10+r2})+${mod}=${(r1*10+r2)+mod}`; 
+            }
+            else if(cmd==='Treasure'){
+    const r = Math.floor(Math.random()*6)+1;
+    const total = r + mod; // ダイス目＋修正値の合計
+    let detail = "";
+    let isCsvData = false;
+
+    // --- 1. CSV(scenarioMaster) から合計値(total)で検索 ---
+    const csvEntry = scenarioMaster.find(s => s.type === 'treasure' && s.id === total.toString());
+
+    if (csvEntry) {
+        // 【CSVにデータがあった場合】
+        detail = csvEntry.text;
+        isCsvData = true;
+    } else {
+        // 【CSVにデータがなかった場合】黄昏の騎士準拠
+        if (total <= 1) {
+                    detail = "金貨1枚";
+                } else if (total === 2) {
+                    const d = Math.floor(Math.random()*6)+1;
+                    detail = `1D6(${d})枚の金貨`;
+                } else if (total === 3) {
+                    const d1 = Math.floor(Math.random()*6)+1;
+                    const d2 = Math.floor(Math.random()*6)+1;
+                    let sum = d1 + d2;
+                    let lowLimit = "";
+                    if (sum < 5) { sum = 5; lowLimit = "(下限5枚適用)"; }
+                    detail = `2D6[${d1},${d2}](${d1+d2}) -> ${sum}枚の金貨 ${lowLimit}`;
+                } else if (total === 4) {
+                    const a1 = Math.floor(Math.random()*6)+1;
+                    const a2 = Math.floor(Math.random()*6)+1;
+                    detail = `アクセサリー1個 (価値: 1D6[${a1}]×1D6[${a2}] = ${a1*a2}枚の金貨)`;
+                } else if (total === 5) {
+                    const d = Math.floor(Math.random()*6)+1;
+                    let value = d * 5;
+                    let lowLimit = "";
+                    if (value < 15) { value = 15; lowLimit = "(下限15枚適用)"; }
+                    detail = `宝石・小1個 (価値: 1D6(${d})×5 = ${d*5} -> ${value}枚の金貨 ${lowLimit})`;
+                } else if (total === 6) {
+                    const d1 = Math.floor(Math.random()*6)+1;
+                    const d2 = Math.floor(Math.random()*6)+1;
+                    let value = (d1 + d2) * 5;
+                    let lowLimit = "";
+                    if (value < 30) { value = 30; lowLimit = "(下限30枚適用)"; }
+                    detail = `宝石・大1個 (価値: 2D6[${d1},${d2}](${d1+d2})×5 = ${(d1+d2)*5} -> ${value}枚の金貨 ${lowLimit})`;
+                } else {
+                    detail = "★★★ 魔法の宝物表をロールしてください ★★★";
+                }
+    }
+
+    // ログに「修正値込みの合計」と「元のダイス目」を明記する
+    const modText = mod !== 0 ? `(${r}${mod >= 0 ? '+' : ''}${mod})` : "";
+    res = `宝物結果：${total}${modText}\n内容：${detail}`;
+    
+    addLogEntry('dice', label, `[実行者: ${c.name}]\n${res}`);
+    return;
+}
+
+            // Treasure以外のダイス（1D6など）のログ出力
+            addLogEntry('dice', label, `[実行者: ${c.name}]\n${res}`);
+        }
+
+        function addLogEntry(type, title='', content='') {
+            const e = { type, content: type==='dice'?`【${title}】\n${content}`:content, time: new Date().toLocaleTimeString() };
+            if(type==='input') { const i=document.getElementById('logInput'); if(!i.value.trim()) return; e.content=i.value; i.value=''; }
+            appState.logEntries.push(e); renderLogArea(); saveData();
+        }
+
+        function renderLogArea() {
+            const a = document.getElementById('logArea');
+            a.innerHTML = appState.logEntries.map((e, idx) => {
+                if(e.type==='separator') return `<div class="border-t-2 border-purple-200 my-4 relative group"><button onclick="deleteLog(${idx})" class="absolute -top-3 right-0 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] hidden group-hover:block">×</button></div>`;
+                return `<div class="p-2 border rounded text-xs relative group ${e.type==='dice'?'bg-indigo-50':e.type==='system'?'bg-gray-100':'bg-white'}">
+                    <div class="flex justify-between text-[9px] text-gray-400"><span>${e.time}</span><div class="opacity-0 group-hover:opacity-100"><button onclick="editLog(${idx})">✎</button> <button onclick="deleteLog(${idx})">×</button></div></div>
+                    <div class="whitespace-pre-wrap">${e.content}</div></div>`;
+            }).join('');
+            a.scrollTop = a.scrollHeight;
+        }
+
+        // --- Utils ---
+        
+        // 【ここに追加！】ヘルプモーダルの開閉
+        function toggleHelp(show) {
+            const modal = document.getElementById('helpModal');
+            if (modal) {
+                modal.style.display = show ? 'block' : 'none';
+            }
+        }
+ 
+        function deleteLog(i){ appState.logEntries.splice(i,1); renderLogArea(); saveData(); }
+        function editLog(i){ const n=prompt("編集",appState.logEntries[i].content); if(n!==null){appState.logEntries[i].content=n; renderLogArea(); saveData();}}
+        function deleteChar() { if(Object.keys(appState.characters).length > 1 && confirm("削除？")){ delete appState.characters[appState.currentCharacterId]; appState.currentCharacterId = Object.keys(appState.characters)[0]; renderAll(); saveData(); }}
+        function switchCharacter(id) { appState.currentCharacterId = id; renderCurrentCharacterSheet(); }
+        function renderCharacterSelector() { document.getElementById('charSelector').innerHTML = Object.entries(appState.characters).map(([id,c])=>`<option value="${id}" ${id===appState.currentCharacterId?'selected':''}>${c.name}</option>`).join(''); }
+        function renderAll() { 
+            document.getElementById('logTitle').value = appState.logTitle; 
+            renderD66Grid(); renderD66Table(); renderLogArea(); renderCharacterSelector(); renderCurrentCharacterSheet(); 
+        }
+        // ログをテキスト形式で保存
+        function exportLogText() {
+            const title = document.getElementById('logTitle').value || "session_log"; // タイトル取得
+            let t = `SESSION: ${title}\n\n`;
+            appState.logEntries.forEach(e => t += `[${e.time}] ${e.content}\n`);
+            const b = new Blob([t], {type:'text/plain'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(b);
+            a.download = `${title}.txt`; // ファイル名に反映
+            a.click();
+        }
+// 表示中のキャラのみ保存
+        function downloadCharacterOnly() {
+            const c = appState.characters[appState.currentCharacterId];
+            if (!c) return;
+            // キャラデータであるフラグ(isSingleChar)を立てる
+            const exportData = { ...c, isSingleChar: true };
+            const b = new Blob([JSON.stringify(exportData, null, 2)], {type:'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(b);
+            a.download = `CHAR_${c.name}.json`;
+            a.click();
+        }
+
+        // ファイル読込（全体保存JSONとキャラ単体JSONを自動判別）
+        function handleFileUpload(e) { 
+            const f = e.target.files[0];
+            if (!f) return;
+            const r = new FileReader(); 
+            r.onload = (ev) => { 
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    
+                    // キャラクター単体データの場合
+                    if (data.isSingleChar || (data.id && data.data)) {
+                        appState.characters[data.id] = data;
+                        appState.currentCharacterId = data.id;
+                        alert(`キャラクター「${data.name}」を読み込み・更新しました。`);
+                    } 
+                    // 全体セーブデータの場合
+                    else {
+                        appState = { ...appState, ...data };
+                        alert("セッション全体データを読み込みました。");
+                    }
+                    
+                    renderAll(); 
+                    saveData();
+                } catch (err) { 
+                    alert("読み込みに失敗しました。ファイル形式が正しくありません。");
+                }
+            }; 
+            r.readAsText(f); 
+            e.target.value = ''; 
+        }
+        function resetAllData(){ if(confirm("全消去？")){localStorage.removeItem(STORAGE_KEY); location.reload();}}
+        document.getElementById('logInput').addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); addLogEntry('input'); }});
+        window.onload = loadData;
+    </script>
+<div id="helpModal" class="modal" onclick="toggleHelp(false)">
+    <div class="modal-content custom-scroll" onclick="event.stopPropagation()">
+        <div class="flex justify-between items-center border-b pb-2 mb-4">
+            <h2 class="text-xl font-bold text-gray-800">RLH Companion 使い方ガイド</h2>
+            <button onclick="toggleHelp(false)" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+        </div>
+        <div class="text-sm text-gray-700 space-y-5 leading-relaxed">
+            
+            <section class="bg-gray-50 p-3 rounded border border-gray-200">
+                <h3 class="font-bold text-gray-800 mb-2">ライセンス表記</h3>
+                <p class="text-[11px]">作者：成田砂男</p>
+                <p class="text-[11px]">これはFT書房による一人用TRPG「ローグライクハーフ」を快適に遊ぶための【非公式】プレイ補助ツールです。公式基本ルールは、BOOTHにてPDFを無料配布しています。</p>
+                <div class="mt-2 text-[11px] space-y-1">
+                    <p>頒布元: <a href="https://ftbooks.booth.pm/items/4671946" target="_blank" class="text-blue-600 underline">BOOTH 商品ページ</a></p>
+                    <p>ライセンスロゴ: <a href="https://ftbooks.xyz/ftnews/article/RLH-100.jpg" target="_blank" class="text-blue-600 underline">RLH-100.jpg</a></p>
+                </div>
+            </section>
+
+            <section>
+                <h3 class="font-bold text-indigo-700 border-l-4 border-indigo-700 pl-2 mb-2">1. キャラクター管理</h3>
+                <p>画面右側の「キャラシート」セクションで操作します。</p>
+                <ul class="list-disc ml-5 mt-1 space-y-1">
+                    <li><b>追加:</b> 「追加」ボタンで新規作成。</li>
+                    <li><b>数値更新:</b> 技量、生命、金貨等を変更可。連打してもログは最後にまとめて記録されます。</li>
+                    <li><b>能力値切替:</b> 「能力」ドロップダウンで幸運・筋力・魔術・器用を管理。</li>
+                    <li><b>個別保存:</b> 表示中のキャラ1人分をJSON保存。</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3 class="font-bold text-indigo-700 border-l-4 border-indigo-700 pl-2 mb-2">2. 判定とダイスロール</h3>
+                <p>画面上部のグレーバーのボタンを使用します。</p>
+                <ul class="list-disc ml-5 mt-1 space-y-1">
+                    <li><b>技量判定:</b> 技量点 ＋ 上部修正値。</li>
+                    <li><b>能力判定:</b> 選択中の能力現在値 ＋ 上部修正値。</li>
+                    <li><b>汎用ダイス:</b> 1D3/1D6/D66/D33。左の「修正」ボックスが加算されます。</li>
+                    <li><b>宝物ロール:</b> 7以上は「魔法の宝物」ボタンで振ってください。</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3 class="font-bold text-indigo-700 border-l-4 border-indigo-700 pl-2 mb-2">3. D66 GRID とシナリオ進行</h3>
+                <p>中央のGRIDエリアを使用します。</p>
+                <ul class="list-disc ml-5 mt-1 space-y-1">
+                    <li><b>GRID入力:</b> クリックでマスが点灯（1〜3回目まで色分け）。</li>
+                    <li><b>CSV連携:</b> 読み込み済なら出目に対応するテキストがログに自動出力。</li>
+                    <li><b>イベント:</b> 「中間」「最終」で特殊ログを挿入。</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3 class="font-bold text-indigo-700 border-l-4 border-indigo-700 pl-2 mb-2">4. ログとデータの保存</h3>
+                <ul class="list-disc ml-5 mt-1 space-y-1">
+                    <li><b>ログDL:</b> セッション名を冠したtxt保存。</li>
+                    <li><b>全体保存:</b> キャラ・GRID・ログをJSON保存。</li>
+                    <li><b>読込:</b> 全体、またはキャラ単体JSONを復元。</li>
+                </ul>
+            </section>
+
+            <section class="text-[11px] text-gray-500 pt-2 border-t">
+                <p><b>バージョン:</b> 1.0</p>
+            </section>
+
+        </div>
+        <button onclick="toggleHelp(false)" class="mt-6 w-full bg-gray-800 text-white py-2 rounded-lg font-bold">閉じる</button>
+    </div>
+</div>
+</body>
+</html>
