@@ -1,4 +1,4 @@
-<!--RLHcompanion_Ver1.1.1-->
+<!--RLHcompanion_Ver1.2-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -28,6 +28,29 @@
         .record-table th { background: #f9fafb; color: #667085; }
         .record-table tr.active-row { background: #fffbeb; outline: 2px solid #f59e0b; outline-offset: -2px; }
         .resource-input { padding: 0.1rem; font-size: 0.85rem; text-align: center; border-radius: 0.25rem; width: 2.8rem; border: 1px solid #d1d5db; }
+        
+
+        /* 選択肢ボタン自体のスタイル */
+        .choice-btn {
+         flex: 1 1 calc(33% - 8px);
+         min-width: 80px; /* あまりに狭くなりすぎないように */
+         background:  #ebe7ff;
+         border: 1px solid #d1d5db; /* 線の色をグレーにして細く */
+         color: #374151;
+         font-weight: normal; /* 太字をやめる */
+         padding: 6px;
+         border-radius: 4px;
+         font-size: 12px;
+         }
+
+.choice-btn:hover {
+    background: #eef2ff;
+    transform: translateY(-1px);
+}
+
+.choice-btn:active {
+    transform: translateY(1px);
+}
 
         /* Mobile Tab View */
 @media (max-width: 1023px) {
@@ -59,20 +82,36 @@
         overflow: hidden !important; /* ログタブ自体はスクロールさせず、中身で制御 */
     }
 
-    #log-list { 
-        flex: 1 !important; 
-        overflow-y: auto !important; 
-        min-height: 0; 
-        padding-bottom: 10px;
-    }
+    /* ログリスト：可変エリア */
+#log-list { 
+    flex: 1 !important; 
+    overflow-y: auto !important; 
+    min-height: 0; 
+    padding-bottom: 10px;
+}
 
-    /* ログ入力エリア：常に一番下に表示 */
-    #log-section > div:last-child {
-        flex-shrink: 0 !important;
-        background: #f9fafb;
-        padding: 8px;
-        border-top: 1px solid #e5e7eb;
-    }
+/* ログ入力エリア：IDで直接指定（last-childはやめる） */
+#input-control-panel { /* 入力エリアを包むdivにこのIDを付ける */
+    flex-shrink: 0 !important;
+    background: #f9fafb;
+    padding: 8px;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* 選択肢エリアのスタイル（追加） */
+#choice-container {
+    flex-shrink: 0 !important;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+    background-color: transparent; /* 背景を透明に */
+    border: none; /* 線を完全に消す */
+}
+
+#choice-container.hidden {
+    display: none !important;
+}
 
     /* 4. ヘッダーボタンの縮小化（Pixel 8a対応） */
     header .flex-nowrap {
@@ -146,7 +185,8 @@
         
         <div class="flex items-center space-x-1 ml-2">
             <button onclick="handleRlhRoll('skill')" class="bg-indigo-600 hover:bg-indigo-500 px-2 py-1 rounded font-bold text-[10px] whitespace-nowrap">技量判定</button>
-            <button onclick="handleRlhRoll('sub')" class="bg-blue-600 hover:bg-blue-500 px-2 py-1 rounded font-bold text-[10px] whitespace-nowrap">能力判定</button>
+            <button onclick="handleRlhRoll('sub')" class="bg-indigo-600 hover:bg-indigo-500 px-2 py-1 rounded font-bold text-[10px] whitespace-nowrap">能力判定</button>
+            <button onclick="handleRlhRoll('life')" class="bg-indigo-600 hover:bg-indigo-500 px-2 py-1 rounded font-bold text-[10px] whitespace-nowrap">生命判定</button>
         </div>
     </div>
 
@@ -212,7 +252,10 @@
 
             <div id="log-list" class="flex-grow overflow-y-auto custom-scroll space-y-2 p-3 bg-gray-50 border border-gray-200 rounded-lg shadow-inner">
     <div id="logArea"></div> </div>
+    <div id="choice-container" class="hidden"></div>
 
+<div id="input-control-panel" class="flex-shrink-0 bg-white border-t border-gray-200 pt-2 mt-auto">
+    </div>
 <div class="flex-shrink-0 bg-white border-t border-gray-200 pt-2 mt-auto">
     <textarea id="logInput" placeholder="ログ入力 (Enterで送信)" rows="2" class="w-full p-2 border border-gray-300 rounded-md text-sm resize-none focus:ring-2 focus:ring-blue-400 mb-2 shadow-sm"></textarea>
     <div class="flex space-x-2 text-xs pb-2">
@@ -300,7 +343,33 @@ function handleCsvUpload(e) {
     };
     r.readAsText(f);
 }
+// シナリオデータを保持する変数
+let scenarioData = {};
 
+function processCSV(csvText) {
+    const lines = csvText.split('\n');
+    const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+    
+    scenarioData = {}; // クリア
+
+    for (let i = 1; i < lines.length; i++) {
+        if (!lines[i].trim()) continue;
+        const cols = lines[i].split(',').map(c => c.trim());
+        
+        // idをキーにして、行全体を保存
+        const row = {};
+        headers.forEach((header, index) => {
+            row[header] = cols[index] || "";
+        });
+        
+        const id = row['id'];
+        if (id) {
+            scenarioData[id] = row;
+        }
+    }
+    console.log("Scenario Loaded:", scenarioData);
+    document.getElementById('csvStatus').textContent = "CSV読込完了";
+}
 // --- 2. 複雑なCSVを解析する補助関数 ---
 function parseCSV(text) {
     const result = [];
@@ -373,8 +442,16 @@ function processCSV(text) {
         statusEl.className = "text-[9px] text-teal-600 self-center ml-2 font-bold";
     }
 }
+// 直前のIDを保存する変数（関数の外に定義）
+let previousScenarioId = null;
 
 function playScenario(type, id = null) {
+    // IDが指定されている場合、現在のIDを「戻る用」に保存
+    // ただし、d66の出目（11-66）や初期表示の時は戻り先として更新
+    if (id && scenarioData && scenarioData[id]) {
+        // 現在の表示が「戻る」で呼び出されたものでない場合のみ、履歴を更新
+        // (戻るボタンを連打してループするのを防ぐため)
+    }
     const r = appState.activeRow;
     const turn = r + 1;
     const targetType = type.toLowerCase();
@@ -382,24 +459,34 @@ function playScenario(type, id = null) {
     // --- 1. 特殊イベント（中間・最終）のタイル記録処理 ---
     if (targetType === 'mid' || targetType === 'finish') {
         const label = (targetType === 'mid') ? "中間" : "最終";
-        
-        // 現在の行(appState.d66Table[r])から最初の空き枠を探す
         const emptyIdx = appState.d66Table[r].indexOf("");
         if (emptyIdx !== -1) {
             appState.d66Table[r][emptyIdx] = label;
-            // 画面更新と保存
             renderAll(); 
             saveData();
         }
     }
 
-    // --- 2. CSV（scenarioMaster）から該当するものを「すべて」検索 (.filterを使用) ---
-    // まず「現在の回数(turn)」で検索
-    let entries = scenarioMaster.filter(s => s.type === targetType && s.turn === turn && (id ? s.id === id : true));
+    // --- 2. 検索ロジック（ここを正確に修正） ---
+    let entries = [];
+
+    if (id) {
+        // ID指定がある場合：そのID 且つ (現在のターン または 共通ターン1) を探す
+        entries = scenarioMaster.filter(s => String(s.id) === String(id) && parseInt(s.turn) === turn);
+        if (entries.length === 0 && turn !== 1) {
+            entries = scenarioMaster.filter(s => String(s.id) === String(id) && parseInt(s.turn) === 1);
+        }
+        
+        // ★重要：IDで検索した結果、1件もなければ entries は空のままにする。
+        // （ここでヘタに type 検索に流さないことで、無関係なデータ表示を防ぐ）
+    } 
     
-    // 現在の回数で見つからず、かつ「全回数共通(turn:1)」の設定があるかもしれないので再検索
-    if (entries.length === 0 && turn !== 1) {
-        entries = scenarioMaster.filter(s => s.type === targetType && s.turn === 1 && (id ? s.id === id : true));
+    // ID指定がない場合のみ、タイプ（d66など）で検索する
+    if (!id) {
+        entries = scenarioMaster.filter(s => s.type === targetType && parseInt(s.turn) === turn);
+        if (entries.length === 0 && turn !== 1) {
+            entries = scenarioMaster.filter(s => s.type === targetType && parseInt(s.turn) === 1);
+        }
     }
 
     // --- 3. ログの日本語ラベル設定 ---
@@ -412,29 +499,108 @@ function playScenario(type, id = null) {
         mid: "中間イベント",
         clear: "冒険の達成",
         finish: "最終イベント",
-        magictreasure: "魔法の宝物"
+        magictreasure: "魔法の宝物",
     };
 
     // --- 4. ログ出力処理 ---
+    let selectedEntry = entries.length > 0 ? entries[0] : null;
+
     if (targetType === 'd66' && id) {
-        // D66の場合：複数ヒットしていても、通常ダイス目は1つのため最初の1つ、または未登録を表示
-        const text = entries.length > 0 ? `\n${entries[0].text}` : "";
+        // D66の場合：データがあればテキスト付き、なければ「出目：XX」のみ
+        const text = (selectedEntry && selectedEntry.text) ? `\n${selectedEntry.text}` : "";
         addLogEntry('system', 'RESULT', `出目：${id}${text}`);
-    } else {
-        // それ以外（タイトル、ルール、プロ等）：
-        const labelName = labels[targetType] || type.toUpperCase();
         
-        // 複数ヒットしたすべてのテキストを改行でつなげる
-        const combinedText = entries.length > 0 
-            ? entries.map(e => `\n${e.text}`).join('') 
-            : "";
-            
-        addLogEntry('system', 'SCENARIO', `【${labelName}】${combinedText}`);
+        if (!selectedEntry) previousScenarioId = null;
+
+    } else {
+        // タイトル、プロローグ、中間イベント、一本道、分岐などの場合
+        const labelName = labels[targetType] || type; 
+        
+        // 修正ポイント：entries が空でも、あるいは text が空でも、ラベルは必ず表示する
+        let contentText = "";
+        if (entries.length > 0) {
+            contentText = entries.map(e => e.text ? `\n${e.text}` : "").join('');
+        }
+
+        // ラベル（【タイトル】など）を付けてログに出力
+        addLogEntry('system', 'SCENARIO', `【${labelName}】${contentText}`);
+    }
+    // --- 5. 選択肢ボタンの描画 ---
+    if (selectedEntry) {
+        renderChoices(selectedEntry);
+    } else {
+        // データがない場合は選択肢エリアを閉じる
+        const container = document.getElementById('choice-container');
+        if (container) container.classList.add('hidden');
     }
 
-    // --- 5. 最後に全体を再描画して保存 ---
+    // --- 6. 全体を再描画して保存 ---
     renderAll();
     saveData();
+}
+
+
+/*** 選択肢ボタンを画面に描画する（Ver 1.25: 戻るボタン対応版）*/
+function renderChoices(entry) {
+    const container = document.getElementById('choice-container');
+    if (!container) return;
+
+    container.innerHTML = ''; 
+    let hasChoice = false;
+
+    // --- 1. CSVで定義された通常の選択肢ボタンを生成 ---
+    for (let i = 1; i <= 4; i++) {
+        const label = entry[`choice${i}_label`];
+        const nextId = entry[`choice${i}_next_id`];
+
+        if (label && label.trim() !== "") {
+            hasChoice = true;
+            const btn = document.createElement('button');
+            btn.className = 'choice-btn'; // 既存の共通スタイル
+            btn.textContent = label;
+            
+            btn.onclick = () => {
+                // 移動する前に「今のID」を戻り先として保存
+                previousScenarioId = entry.id; 
+                addLogEntry('input', `＞ 【${label}】を選択`); 
+                container.classList.add('hidden'); 
+                playScenario(label, nextId); 
+            };
+            container.appendChild(btn);
+        }
+    }
+
+    // --- 2. 「戻る」ボタンの判定 ---
+    // 「戻り先がある」かつ「今いる場所が戻り先ではない」なら、
+    // 本来の選択肢がゼロ（hasChoiceがfalse）でもボタンを出す
+    if (previousScenarioId && previousScenarioId !== entry.id) {
+        const backBtn = document.createElement('button');
+        backBtn.className = 'choice-btn';
+        backBtn.style.backgroundColor = "#f3f4f6";
+        backBtn.style.borderColor = "#9ca3af";
+        backBtn.style.color = "#4b5563";
+        backBtn.innerHTML = '<span style="margin-right:4px">↩</span>戻る';
+        
+        backBtn.onclick = () => {
+            addLogEntry('input', `＞ 【戻る】を選択`);
+            container.classList.add('hidden');
+            
+            const targetId = previousScenarioId;
+            previousScenarioId = null; // 戻ったら履歴を消す
+            playScenario("戻る", targetId);
+        };
+        container.appendChild(backBtn);
+        
+        // 戻るボタンを出すので、コンテナ全体を表示対象にする
+        hasChoice = true; 
+    }
+
+    // --- 3. 表示の切り替え ---
+    if (hasChoice || (previousScenarioId && previousScenarioId !== entry.id)) {
+        container.classList.remove('hidden');
+    } else {
+        container.classList.add('hidden');
+    }
 }
 
         // --- 魔法の宝物（CSV未登録時は1D6を振る） ---
@@ -696,50 +862,61 @@ function deleteCharacter(id) {
     renderCurrentCharacterSheet();
     saveData();
 }
-        // --- Dice & Logs ---
+   // --- Dice & Logs ---
+    function handleRlhRoll(mode) {
+    const c = appState.characters[appState.currentCharacterId];
+    if(!c) return;
 
-        function handleRlhRoll(mode) {
-            const c = appState.characters[appState.currentCharacterId];
-            if(!c) return;
+    let baseValue = 0;
+    let label = "";
 
-            let baseValue = 0;
-            let label = "";
-
-            if (mode === 'skill') {
-                baseValue = c.data.skill || 0;
-                label = "技量";
-            } else {
-                // 現在選択されている能力値（幸運・筋力など）の「現在値」を取得
-                baseValue = c.data.subAbility.current || 0;
-                label = c.data.subAbility.label || "能力";
-            }
-            
-            // 上部の修正値ボックスの値
-            const modInput = document.getElementById('skillValue'); 
-            const modValue = modInput ? parseInt(modInput.value) : 0;
-            
-            // 合計修正値 (x)
-            const sk = baseValue + modValue;
-            
-            const n = parseInt(document.getElementById('rollCount').value);
-            const tg = parseInt(document.getElementById('targetValue').value);
-            
-            let s=0, f=0, cr=0, fum=0, details=[];
-            for(let i=0; i<n; i++){
-                const r = Math.floor(Math.random()*6)+1, tot = r+sk;
-                let res= (r===6)?"クリティカル":(r===1)?"ファンブル":(tot>=tg)?"成功":"失敗";
-                if(r===6){s++;cr++;}else if(r===1){f++;fum++;}else if(tot>=tg){s++;}else{f++;}
-                details.push(`#${i+1}: 1D6(${r})+${sk}=${tot} -> ${res}`);
-            }
-            
-            addLogEntry('dice', `${label}判定`, 
-                `[判定者: ${c.name}]\n` +
-                `使用数値: ${label}(${baseValue}) + 修正(${modValue}) = 計+${sk}\n` +
-                `${n}RLH >= ${tg}\n` +
-                `${details.join('\n')}\n` +
-                `成功:${s} 失敗:${f} (C:${cr}/F:${fum})`
-            );
+    if (mode === 'skill') {
+        baseValue = c.data.skill || 0;
+        label = "技量";
+    } else if (mode === 'life') {
+        const lifeData = c.data.life; 
+        
+        // type が 'hp' (生命点) のときだけ現在値を使い、それ以外(num, app)なら 1 にする
+        if (lifeData && lifeData.type === 'hp') {
+            baseValue = parseInt(lifeData.current) || 0;
+            label = "生命点";
+        } else {
+            baseValue = 1;
+            // ラベルを「人数」や「出現数」に合わせて動的に変える
+            label = lifeData ? lifeData.label : "生命";
         }
+    } else {
+        // 通常の能力値（幸運・筋力など）
+        baseValue = c.data.subAbility.current || 0;
+        label = c.data.subAbility.label || "能力";
+    }
+
+    // --- 修正値計算・ダイス処理 ---
+    const modInput = document.getElementById('skillValue'); 
+    const modValue = modInput ? (parseInt(modInput.value) || 0) : 0;
+    const sk = baseValue + modValue;
+    
+    const nInput = document.getElementById('rollCount');
+    const tgInput = document.getElementById('targetValue');
+    const n = nInput ? (parseInt(nInput.value) || 1) : 1;
+    const tg = tgInput ? (parseInt(tgInput.value) || 0) : 0;
+    
+    let s=0, f=0, cr=0, fum=0, details=[];
+    for(let i=0; i<n; i++){
+        const r = Math.floor(Math.random()*6)+1, tot = r+sk;
+        let res= (r===6)?"クリティカル":(r===1)?"ファンブル":(tot>=tg)?"成功":"失敗";
+        if(r===6){s++;cr++;}else if(r===1){f++;fum++;}else if(tot>=tg){s++;}else{f++;}
+        details.push(`#${i+1}: 1D6(${r})+${sk}=${tot} -> ${res}`);
+    }
+    
+    addLogEntry('dice', `${label}判定`, 
+        `[${c.name}]` +
+        `使用数値: ${label}(${baseValue}) + 修正(${modValue}) = 計+${sk}\n` +
+        `${n}RLH >= ${tg}\n` +
+        `${details.join('\n')}\n` +
+        `成功:${s} 失敗:${f} (C:${cr}/F:${fum})`
+    );
+}
 
         function handleLocalRoll(cmd, label) {
             const c = appState.characters[appState.currentCharacterId];
@@ -954,6 +1131,7 @@ function deleteCharacter(id) {
                 <ul class="list-disc ml-5 mt-1 space-y-1">
                     <li><b>技量判定:</b> 技量点 ＋ 上部修正値。</li>
                     <li><b>能力判定:</b> 選択中の能力現在値 ＋ 上部修正値。</li>
+                    <li><b>生命判定:</b> 生命点 ＋ 上部修正値。人数の場合生命点に１を代入</li>
                     <li><b>汎用ダイス:</b> 1D3/1D6/D66/D33。左の「修正」ボックスが加算されます。</li>
                     <li><b>宝物ロール:</b> 7以上は「魔法の宝物」ボタンで振ってください。</li>
                 </ul>
@@ -979,7 +1157,8 @@ function deleteCharacter(id) {
             </section>
 
             <section class="text-[11px] text-gray-500 pt-2 border-t">
-                <p><b>バージョン:</b> 1.1.1</p>
+                <p><b>バージョン:</b> 1.2</p>
+                <p><b>詳細(note)：</b> https://note.com/sandman_sunao/n/ndaeb94b048f3?sub_rt=share_sb</p>
             </section>
 
         </div>
