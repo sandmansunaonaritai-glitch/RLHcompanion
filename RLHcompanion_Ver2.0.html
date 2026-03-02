@@ -1,4 +1,4 @@
-<!--RLHcompanion_Ver1.2-->
+<!--RLHcompanion_Ver2.0-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RLH Companion</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
    
    <style>/* ①スタイルとレイアウト */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
@@ -28,6 +30,50 @@
         .drop-bottom { border-bottom: 3px solid #6366f1 !important; }
         .drag-handle { cursor: grab; }
         .drag-handle:active { cursor: grabbing; }
+
+        /* Enemy Panel */
+        #enemy-panel { transition: background-color 0.3s; }
+        .enemy-card {
+            min-width: 260px;
+            width: 260px;
+            flex-shrink: 0;
+            transition: all 0.2s ease-in-out;
+        }
+        .enemy-card.active {
+            box-shadow: 0 0 0 3px #fb923c; /* orange-400 */
+            border-color: #fb923c;
+        }
+        /* Mode toggle switch */
+        .mode-toggle-label {
+            position: relative; display: inline-block;
+            width: 60px; height: 20px;
+        }
+        .mode-toggle-label input { opacity: 0; width: 0; height: 0; }
+        .mode-toggle-slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #be123c; /* rose-700 */
+            transition: .4s; border-radius: 24px;
+        }
+        .mode-toggle-slider:before {
+            position: absolute; content: ""; height: 14px; width: 14px;
+            left: 3px; bottom: 3px; background-color: white;
+            transition: .4s; border-radius: 50%;
+        }
+        input:checked + .mode-toggle-slider { background-color: #0284c7; /* sky-600 */ }
+        input:checked + .mode-toggle-slider:before { transform: translateX(40px); }
+        .mode-toggle-text {
+            color: white; position: absolute;
+            transform: translateY(-50%); top: 50%;
+            font-size: 9px; font-weight: bold; pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 1;
+        }
+        .mode-toggle-label input:checked ~ .mode-text-strong { opacity: 0; }
+        .mode-toggle-label input:not(:checked) ~ .mode-text-weak { opacity: 0; }
+        .mode-text-strong { right: 6px; }
+        .mode-text-weak { left: 6px; }
+
+
 
         /* Record Table */
         .record-table { border-collapse: collapse; font-size: 10px; width: 100%; min-width: 600px; table-layout: fixed; }
@@ -77,6 +123,7 @@
         /* 3. ログタブ専用の設定（入力欄を下に固定、ログだけスクロール） */
         #log-section.active {
         overflow: hidden !important; /* ログタブ自体はスクロールさせず、中身で制御 */
+        padding: 0 !important; /* モバイルではパディングを削除して画面を広く使う */
         }
 
             /* ログリスト：可変エリア */
@@ -85,14 +132,25 @@
             overflow-y: auto !important; 
             min-height: 0; 
             padding-bottom: 10px;
+            border-radius: 0 !important; /* 角丸解除 */
+            border-left: none !important; border-right: none !important; /* 左右ボーダー解除 */
             }
 
             /* ログ入力エリア：IDで直接指定 */
             #input-control-panel { /* 入力エリアを包むdivにこのIDを付ける */
             flex-shrink: 0 !important;
-            background: #f9fafb;
             padding: 8px;
             border-top: 1px solid #e5e7eb;
+            padding-bottom: max(8px, env(safe-area-inset-bottom)); /* iPhone等のホームバー対応 */
+            z-index: 10;
+            }
+
+            /* D66エリアの高さ制限（モバイルのみ） */
+            #log-section details {
+            max-height: 40vh; /* 画面の40%までに制限 */
+            overflow-y: auto; /* それ以上はスクロール */
+            margin-bottom: 0 !important;
+            border-radius: 0 !important;
             }
 
             /* 選択肢エリアのスタイル */
@@ -297,7 +355,65 @@
        body.theme-sepia .record-table tr.active-row { background-color: #d7ccc8 !important; }
        body.theme-sepia .choice-btn { background-color: #bcaaa4 !important; color: #3e2723 !important; border-color: #a1887f !important; }
        body.theme-sepia #view-char div.border-blue-300.bg-blue-50 { background-color: #d7ccc8 !important; border-color: #bcaaa4 !important; }
-       body.theme-sepia #view-char div.border-blue-300.bg-blue-50 span { color: #5d4037 !important; }
+       body.theme-sepia #view-char div.border-blue-300.bg-blue-50 span { color: #5d4037 !important; } 
+
+       /* Enemy Panel Themes */
+       body.theme-night #enemy-panel { background-color: #1e293b !important; border-color: #334155 !important; }
+       body.theme-night .enemy-card { background-color: #0f172a !important; border-color: #334155 !important; }
+       body.theme-night .enemy-card.active { box-shadow: 0 0 0 3px #f97316 !important; border-color: #f97316 !important; } /* orange-500 */
+       body.theme-night .mode-toggle-slider { background-color: #881337 !important; }
+       body.theme-night input:checked + .mode-toggle-slider { background-color: #0369a1 !important; }
+
+       body.theme-sepia #enemy-panel { background-color: #d3c6a6 !important; border-color: #a1887f !important; }
+       body.theme-sepia .enemy-card { background-color: #fdf6e3 !important; border-color: #d3c6a6 !important; }
+       body.theme-sepia .enemy-card.active { box-shadow: 0 0 0 3px #d97706 !important; border-color: #d97706 !important; } /* amber-600 */
+       body.theme-sepia .mode-toggle-slider { background-color: #9f1239 !important; }
+       body.theme-sepia input:checked + .mode-toggle-slider { background-color: #00695c !important; }
+
+       /* Result Modal Styles */
+       #resultModal .modal-content {
+           background: transparent; box-shadow: none; border: none;
+           display: flex; justify-content: center; align-items: center;
+           padding: 0; margin: 0; width: 100%; height: 100%; pointer-events: none;
+           flex-direction: column; gap: 10px;
+       }
+       #result-paper {
+           pointer-events: auto;
+           width: 95%; max-width: 400px; min-height: auto; max-height: 80vh;
+           overflow-y: auto;
+           background: radial-gradient(circle, #fdf5e6 0%, #f5deb3 100%);
+           position: relative;
+           padding: 20px;
+           box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+           font-family: 'Noto Serif JP', serif;
+           color: #3e2723;
+           display: flex; flex-direction: column; align-items: center;
+           text-align: center;
+       }
+       /* 透かし画像 */
+       #result-paper::before {
+           content: ""; position: absolute; top: 50%; left: 50%;
+           transform: translate(-50%, -50%);
+           width: 80%; height: 80%;
+           background-image: url('https://ftbooks.xyz/ftnews/article/RLH-100.jpg');
+           background-repeat: no-repeat; background-position: center; background-size: contain;
+           opacity: 0.1; pointer-events: none; z-index: 0;
+       }
+       /* 枠線 */
+       #result-paper.success { border: 8px double #d4af37; outline: 2px solid #b8860b; outline-offset: -12px; }
+       #result-paper.failure { border: 8px double #a9a9a9; outline: 2px solid #696969; outline-offset: -12px; filter: sepia(0.3); }
+       
+       .result-title { font-size: 1.5rem; font-weight: 900; margin-bottom: 0.5rem; z-index: 1; text-shadow: 1px 1px 0px rgba(255,255,255,0.8); white-space: nowrap; }
+       .result-char-name { font-size: 1.2rem; font-weight: bold; border-bottom: 2px solid #3e2723; padding-bottom: 5px; margin-bottom: 15px; width: 100%; z-index: 1; }
+       .result-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; text-align: left; font-size: 0.9rem; margin-bottom: 15px; z-index: 1; }
+       .result-stat-item { border-bottom: 1px dotted #a1887f; padding: 2px 0; display: flex; justify-content: space-between; }
+       .result-stat-val { font-weight: bold; }
+       .result-treasure-list { width: 100%; text-align: left; font-size: 0.8rem; margin-top: 10px; max-height: 100px; overflow-y: auto; border: 1px solid #d7ccc8; padding: 5px; background: rgba(255,255,255,0.3); z-index: 1; }
+       .result-quote { margin-top: auto; font-style: italic; font-size: 0.9rem; padding: 15px; background: rgba(255,255,255,0.4); border-radius: 4px; width: 100%; z-index: 1; }
+       .result-rank { font-size: 1.5rem; font-weight: 900; color: #8b0000; margin: 10px 0; z-index: 1; text-shadow: 1px 1px 0 #fff; }
+       
+       /* 保存ボタン等 */
+       .result-actions { margin-top: 10px; display: flex; gap: 10px; z-index: 10; pointer-events: auto; }
     </style>
 </head>
 
@@ -323,6 +439,7 @@
             <div class="flex flex-nowrap gap-1 shrink-0">
                 <button onclick="document.getElementById('uploadFile').click()" class="bg-green-700 hover:bg-green-600 text-[10px] py-1 px-2 rounded whitespace-nowrap">読込</button>
                 <button onclick="downloadData()" class="bg-blue-700 hover:bg-blue-600 text-[10px] py-1 px-2 rounded whitespace-nowrap">保存</button>
+                <button onclick="showSessionResult()" class="bg-amber-600 hover:bg-amber-500 text-[10px] py-1 px-2 rounded whitespace-nowrap font-bold">戦績</button>
                 <button onclick="exportLogText()" class="bg-teal-600 hover:bg-teal-500 text-[10px] py-1 px-2 rounded whitespace-nowrap">ログDL</button>
                 <button onclick="resetAllData()" class="bg-red-700 hover:bg-red-600 text-[10px] py-1 px-2 rounded whitespace-nowrap">消去</button>
             </div>
@@ -333,25 +450,33 @@
             <button onclick="toggleSettings(true)" class="bg-gray-600 hover:bg-gray-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm shadow-sm">⚙️</button>
         </div>
     </div>
-    <div class="p-2 px-4 flex flex-wrap gap-4 items-center bg-gray-700 text-[11px] text-white">
-    <div class="flex items-center space-x-2">
+    <div class="p-2 px-2 flex flex-nowrap gap-2 items-center bg-gray-700 text-[11px] text-white overflow-x-auto">
+    <div class="flex items-center space-x-1 shrink-0">
         <span>回数:</span>
-        <input type="number" id="rollCount" value="1" class="w-8 rounded text-gray-900 px-1">
+        <input type="number" id="rollCount" value="1" class="w-8 rounded text-gray-900 px-1 text-center">
         <span>修正値:</span>
         <input type="number" id="skillValue" value="0" class="w-8 rounded text-gray-900 px-1 text-center">
         <span>目標値:</span>
-        <input type="number" id="targetValue" value="3" class="w-8 rounded text-gray-900 px-1 text-center">
+        <input type="number" id="targetValue" value="3" class="w-8 rounded text-gray-900 px-1 text-center" onchange="updateActiveEnemyTv(this.value)">
     </div>
 
-    <div class="flex items-center space-x-1 border-l border-gray-600 pl-4">
+    <div class="flex items-center space-x-1 border-l border-gray-600 pl-2 ml-1 shrink-0">
         <span>修正:</span>
-        <input type="number" id="quickModValue" value="0" class="w-8 rounded text-gray-900 px-1 mr-1">
-        <button onclick="handleLocalRoll('1D3', '1D3')" class="bg-gray-600 hover:bg-gray-500 px-1.5 py-0.5 rounded">1D3</button>
-        <button onclick="handleLocalRoll('1D6', '1D6')" class="bg-yellow-600 hover:bg-yellow-500 px-1.5 py-0.5 rounded">1D6</button>
-        <button onclick="handleLocalRoll('D66', 'D66')" class="bg-orange-600 hover:bg-orange-500 px-1.5 py-0.5 rounded">D66</button>
-        <button onclick="handleLocalRoll('D33', 'D33')" class="bg-blue-600 hover:bg-blue-500 px-1.5 py-0.5 rounded">D33</button>
-        <button onclick="handleLocalRoll('Treasure', '宝物')" class="bg-green-600 hover:bg-green-500 px-1.5 py-0.5 rounded">宝物</button>
-        <button onclick="handleMagicTreasure()" class="bg-purple-600 hover:bg-purple-500 px-1.5 py-0.5 rounded">魔法の宝物</button>
+        <input type="number" id="quickModValue" value="0" class="w-8 rounded text-gray-900 px-1 mr-1 text-center">
+        
+        <select class="text-gray-900 rounded px-1 py-0.5 w-14 text-[10px] font-bold cursor-pointer focus:outline-none" onchange="handleDiceSelect(this)">
+            <option value="" selected hidden>1D6</option>
+            <option value="1D6">1D6</option>
+            <option value="1D3">1D3</option>
+            <option value="D66">D66</option>
+            <option value="D33">D33</option>
+        </select>
+
+        <select class="text-gray-900 rounded px-1 py-0.5 w-20 text-[10px] font-bold cursor-pointer focus:outline-none" onchange="handleTreasureSelect(this)">
+            <option value="" selected hidden>宝物</option>
+            <option value="Treasure">宝物</option>
+            <option value="MagicTreasure">魔法の宝物</option>
+        </select>
     </div>
     </div> 
     </header>
@@ -360,6 +485,17 @@
         <button onclick="switchTab('main')" id="btn-tab-main" class="tab-btn active flex-1 py-2 text-xs font-bold">メイン/ログ</button>
         <button onclick="switchTab('char')" id="btn-tab-char" class="tab-btn flex-1 py-2 text-xs font-bold">キャラシート</button>
     </nav>
+    <!-- Enemy Panel -->
+    <section id="enemy-panel" class="shrink-0 bg-slate-200 p-2 border-b border-slate-300 shadow-inner">
+        <div class="flex items-center gap-2">
+            <div id="enemy-container" class="flex-1 flex gap-2 overflow-x-auto custom-scroll pb-2">
+                <!-- Enemy cards will be rendered here -->
+            </div>
+            <div class="flex flex-col gap-1">
+                <button onclick="addEnemy()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] px-3 py-2 rounded whitespace-nowrap">＋</button>
+            </div>
+        </div>
+    </section>
     <!--Log Section-->
     <main class="flex-1 flex overflow-hidden relative">
         <section id="log-section" class="view-tab active w-full lg:w-2/3 flex flex-col p-4 bg-white overflow-hidden">
@@ -428,7 +564,7 @@
 <script>
         const STORAGE_KEY = 'rlh_final_integrated_v1';
     // --- appState: このアプリの**全データ（心臓部） ---
-        let appState = { theme: 'colorful', showToastNotifications: true,
+        let appState = { theme: 'colorful', showToastNotifications: true, enemies: [], activeEnemyId: null,
             logTitle: "セッション", logEntries: [], characters: {}, currentCharacterId: null, 
             d66State: [
                 { grid: Array(36).fill(0), clickOrder: 1 },
@@ -468,6 +604,7 @@
                 catch(e) { console.error(e); } 
             }
 
+            if (!appState.enemies) appState.enemies = [];
             // --- データ整合性チェック (D66テーブルの列数不足を修正) ---
             if (appState.d66Table) {
                 // 行数が足りない場合
@@ -869,8 +1006,6 @@
         porter: { name: '荷物持ち', icon: '🎒', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦わない従者' },
         lantern: { name: 'ランタン持ち', icon: '🏮', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'luck', subLabel: '幸運', subVal: 0, subMax: 0, memo: '戦わない従者' },
         tachi_mochi: { name: '太刀持ち', icon: '🗡️', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦わない従者' },
-        strong_creature: { name: '強いクリーチャー', icon: '👹', level: 4, skill: 0, life: 7, lifeMax: 7, lifeType: 'hp', lifeLabel: '生命', subType: 'num', subLabel: '攻撃数', subVal: 1, subMax: 1, memo: '' },
-        weak_creature: { name: '弱いクリーチャー', icon: '👻', level: 4, skill: 0, life: 3, lifeMax: 3, lifeType: 'app', lifeLabel: '出現数', subType: 'luck', subLabel: '幸運', subVal: 0, subMax: 0, memo: '' }
     };
 
     function addFromPreset(key) {
@@ -882,12 +1017,6 @@
         let deleted = [];
         if (key !== 'pc') {
             deleted = ['follower', 'food', 'clue', 'gold'];
-        }
-        if (key === 'strong_creature' || key === 'weak_creature') {
-            deleted.push('skill');
-            if (key === 'weak_creature') {
-                deleted.push('subAbility');
-            }
         }
 
         appState.characters[newId] = {
@@ -1243,8 +1372,6 @@ function renderCurrentCharacterSheet() {
             <option value="porter">🎒 荷物持ち</option>
             <option value="lantern">🏮 ランタン持ち</option>
             <option value="tachi_mochi">🗡️ 太刀持ち</option>
-            <option value="strong_creature">👹 強いクリーチャー</option>
-            <option value="weak_creature">👻 弱いクリーチャー</option>
         </select>
     </div>`;
 
@@ -1498,6 +1625,20 @@ function renderCurrentCharacterSheet() {
         );
     }
 
+    function handleDiceSelect(el) {
+        const val = el.value;
+        if(!val) return;
+        handleLocalRoll(val, val);
+        el.value = ""; el.blur();
+    }
+    function handleTreasureSelect(el) {
+        const val = el.value;
+        if(!val) return;
+        if(val==='Treasure') handleLocalRoll('Treasure', '宝物');
+        else if(val==='MagicTreasure') handleMagicTreasure();
+        el.value = ""; el.blur();
+    }
+
     //handleLocalRoll（その他帆ロールの判定計算）
     function handleLocalRoll(cmd, label) {
         const c = appState.characters[appState.currentCharacterId];
@@ -1602,14 +1743,17 @@ function renderCurrentCharacterSheet() {
 
     //log
     function renderLogArea() {
-        const a = document.getElementById('logArea');
-        a.innerHTML = appState.logEntries.map((e, idx) => {
+        const logAreaEl = document.getElementById('logArea');
+        const logListEl = document.getElementById('log-list'); // スクロールを制御する親要素を取得
+        logAreaEl.innerHTML = appState.logEntries.map((e, idx) => {
                 if(e.type==='separator') return `<div class="border-t-2 border-purple-200 my-4 relative group"><button onclick="deleteLog(${idx})" class="absolute -top-3 right-0 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] hidden group-hover:block">×</button></div>`;
                 return `<div class="p-2 border rounded text-xs relative group ${e.type==='dice'?'bg-indigo-50':e.type==='system'?'bg-gray-100':'bg-white'}">
                     <div class="flex justify-between text-[9px] text-gray-400"><span>${e.time}</span><div class="opacity-0 group-hover:opacity-100"><button onclick="editLog(${idx})">✎</button> <button onclick="deleteLog(${idx})">×</button></div></div>
                     <div class="whitespace-pre-wrap">${e.content}</div></div>`;
         }).join('');
-        a.scrollTop = a.scrollHeight;
+        if (logListEl) {
+            logListEl.scrollTop = logListEl.scrollHeight; // 正しいスクロールコンテナを一番下までスクロール
+        }
     }
 
     function deleteLog(i){ appState.logEntries.splice(i,1); renderLogArea(); saveData(); }
@@ -1618,12 +1762,12 @@ function renderCurrentCharacterSheet() {
     function renderCharacterSelector() { document.getElementById('charSelector').innerHTML = Object.entries(appState.characters).map(([id,c])=>`<option value="${id}" ${id===appState.currentCharacterId?'selected':''}>${c.name}</option>`).join(''); }
     function renderAll() { 
         document.getElementById('logTitle').value = appState.logTitle; 
-        renderD66Grid(); renderD66Table(); renderLogArea();  renderCurrentCharacterSheet(); 
+        renderD66Grid(); renderD66Table(); renderLogArea(); renderEnemyPanel(); renderCurrentCharacterSheet(); 
     }
     // セッション全体の保存
     function downloadData() {
         const title = document.getElementById('logTitle').value || "session";
-        const blob = new Blob([JSON.stringify(appState, null, 2)], {type: 'application/json'});
+        const blob = new Blob([JSON.stringify(appState, (key, value) => key.startsWith('_') ? undefined : value, 2)], {type: 'application/json'});
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
@@ -1684,10 +1828,190 @@ function renderCurrentCharacterSheet() {
         r.readAsText(f); 
         e.target.value = ''; 
     }
-    function resetAllData(){ if(confirm("全消去しますか？")){localStorage.removeItem(STORAGE_KEY); location.reload();}}
+    function resetAllData(){ if(confirm("全消去しますか？")){ appState.enemies = []; appState.activeEnemyId = null; localStorage.removeItem(STORAGE_KEY); location.reload();}}
     document.getElementById('logInput').addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); addLogEntry('input'); }});
     window.onload = loadData;
         
+    // ------------------------
+    // --- Enemy Panel Logic --
+    // ------------------------
+    function renderEnemyPanel() {
+        const container = document.getElementById('enemy-container');
+        if (!container) return;
+
+        if (appState.enemies.length === 0) {
+            container.innerHTML = `<div class="text-xs text-slate-500 italic self-center w-full text-center">敵はいません。「＋」ボタンで追加してください。</div>`;
+            return;
+        }
+
+        container.innerHTML = appState.enemies.map(enemy => {
+            const isActive = enemy.id === appState.activeEnemyId;
+            const isStrong = enemy.mode === 'strong';
+            const hpLabel = isStrong ? '生命点' : '出現数';
+            const currentVal = isStrong ? enemy.hp : enemy.count;
+            const valKey = isStrong ? 'hp' : 'count';
+
+            return `
+            <div class="enemy-card bg-white border rounded-lg p-2 shadow-md flex flex-col gap-2 ${isActive ? 'active' : ''}" onclick="setActiveEnemy('${enemy.id}')">
+                <div class="flex justify-between items-center gap-1">
+                    <input type="text" class="font-bold text-sm bg-transparent border-b border-transparent hover:border-slate-300 focus:border-slate-400 focus:outline-none flex-1 min-w-0" value="${enemy.name}" onchange="updateEnemy('${enemy.id}', 'name', this.value, false)" onclick="event.stopPropagation()">
+                    
+                    <label class="mode-toggle-label shrink-0" onclick="event.stopPropagation()">
+                        <input type="checkbox" ${!isStrong ? 'checked' : ''} onchange="toggleEnemyMode('${enemy.id}', this)" onclick="event.stopPropagation()">
+                        <span class="mode-toggle-slider"></span>
+                        <span class="mode-toggle-text mode-text-strong">強い</span>
+                        <span class="mode-toggle-text mode-text-weak">弱い</span>
+                    </label>
+
+                    <div class="flex shrink-0">
+                        <button title="勝利" onclick="winBattle('${enemy.id}'); event.stopPropagation()" class="w-6 h-6 flex items-center justify-center hover:bg-amber-100 rounded-full">🏆</button>
+                        <button title="削除" onclick="removeEnemy('${enemy.id}'); event.stopPropagation()" class="w-6 h-6 flex items-center justify-center hover:bg-red-100 rounded-full text-red-500">❌</button>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-1 text-xs justify-between">
+                    <!-- Level -->
+                    <div class="flex items-center gap-1">
+                        <span class="font-bold text-slate-500 text-[10px] whitespace-nowrap">Lv</span>
+                        <input type="number" class="w-8 border rounded text-center bg-white" value="${enemy.level}" onchange="updateEnemy('${enemy.id}', 'level', this.value)" onclick="event.stopPropagation()">
+                        <button title="目標値連動" onclick="toggleEnemyLink('${enemy.id}'); event.stopPropagation()" class="text-xs ${enemy.isLinked ? 'opacity-100 text-blue-600' : 'opacity-30'}">🔗</button>
+                    </div>
+
+                    <!-- HP/Count -->
+                    <div class="flex items-center gap-1">
+                        <span class="font-bold text-slate-500 text-[10px] whitespace-nowrap">${hpLabel}</span>
+                        <button onclick="updateEnemyStat('${enemy.id}', '${valKey}', -1); event.stopPropagation();" class="bg-slate-100 hover:bg-slate-200 border rounded w-5 h-5 flex items-center justify-center text-[10px]">-1</button>
+                        <input type="number" class="w-8 text-center bg-white border rounded" value="${currentVal}" onchange="updateEnemy('${enemy.id}', '${valKey}', this.value)" onclick="event.stopPropagation();">
+                    </div>
+
+                    <!-- Attacks -->
+                    <div class="flex items-center gap-1">
+                        <span class="font-bold text-slate-500 text-[10px] whitespace-nowrap">攻撃回数</span>
+                        <input type="number" class="w-8 text-center bg-white border rounded" value="${enemy.attacks}" onchange="updateEnemy('${enemy.id}', 'attacks', this.value)" onclick="event.stopPropagation();">
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function addEnemy(mode = 'strong') {
+        const newId = 'enemy_' + Date.now();
+        const newEnemy = {
+            id: newId,
+            name: mode === 'strong' ? '強い敵' : '弱い敵',
+            mode: mode,
+            level: 4,
+            tv: 4,
+            isLinked: true,
+            hp: 10, hpMax: 10,
+            count: 5,
+            attacks: mode === 'strong' ? 1 : 5,
+        };
+        appState.enemies.push(newEnemy);
+        setActiveEnemy(newId);
+    }
+
+    function removeEnemy(id) {
+        appState.enemies = appState.enemies.filter(e => e.id !== id);
+        if (appState.activeEnemyId === id) {
+            appState.activeEnemyId = null;
+            document.getElementById('targetValue').value = 3; // デフォルトに戻す
+        }
+        renderEnemyPanel();
+        saveData();
+    }
+
+    function winBattle(id) {
+        const enemy = appState.enemies.find(e => e.id === id);
+        if (enemy) {
+            addLogEntry('system', '戦果', `[戦果] ${enemy.name}との戦闘に勝利！`);
+            removeEnemy(id);
+        }
+    }
+
+    function setActiveEnemy(id) {
+        if (appState.activeEnemyId === id) {
+            appState.activeEnemyId = null;
+            document.getElementById('targetValue').value = 3; // デフォルトに戻す
+        } else {
+            appState.activeEnemyId = id;
+            const enemy = appState.enemies.find(e => e.id === id);
+            if (enemy) {
+                document.getElementById('targetValue').value = enemy.tv;
+            }
+        }
+        renderEnemyPanel();
+        saveData();
+    }
+
+    function updateActiveEnemyTv(value) {
+        if (appState.activeEnemyId) {
+            const enemy = appState.enemies.find(e => e.id === appState.activeEnemyId);
+            if (enemy) {
+                const newTv = parseInt(value) || 0;
+                if (enemy.tv !== newTv) {
+                    enemy.tv = newTv;
+                    saveData();
+                }
+            }
+        }
+    }
+
+    function updateEnemy(id, key, value, isNumber = true) {
+        const enemy = appState.enemies.find(e => e.id === id);
+        if (!enemy) return;
+        const val = isNumber ? parseInt(value) || 0 : value;
+        enemy[key] = val;
+
+        if (key === 'level' && enemy.isLinked) {
+            enemy.tv = val;
+            if (enemy.id === appState.activeEnemyId) {
+                document.getElementById('targetValue').value = val;
+            }
+        }
+        if (key === 'count' && enemy.mode === 'weak') enemy.attacks = val;
+
+        renderEnemyPanel();
+        saveData();
+    }
+
+    function toggleEnemyMode(id, checkbox) {
+        const enemy = appState.enemies.find(e => e.id === id);
+        if (!enemy) return;
+        enemy.mode = checkbox.checked ? 'weak' : 'strong';
+        enemy.attacks = (enemy.mode === 'weak') ? enemy.count : 1;
+        renderEnemyPanel();
+        saveData();
+    }
+
+    function toggleEnemyLink(id) {
+        const enemy = appState.enemies.find(e => e.id === id);
+        if (enemy) enemy.isLinked = !enemy.isLinked;
+        renderEnemyPanel();
+        saveData();
+    }
+
+    function updateEnemyStat(id, key, delta) {
+        const enemy = appState.enemies.find(e => e.id === id);
+        if (enemy) {
+            const oldVal = enemy[key] || 0;
+            const newVal = Math.max(0, oldVal + delta);
+            enemy[key] = newVal;
+            
+            // If weak mode and updating count, sync attacks
+            if (enemy.mode === 'weak' && key === 'count') enemy.attacks = newVal;
+
+            // 減少時のみログ出力
+            if (delta < 0 && oldVal !== newVal) {
+                const label = key === 'hp' ? '生命' : '出現数';
+                addLogEntry('system', '', `[${enemy.name}] ${label}: ${oldVal} -> ${newVal}`);
+            }
+
+            renderEnemyPanel();
+            saveData();
+        }
+    }
+
     // ヘルプモーダルの開閉
     function toggleHelp(show) {
         const modal = document.getElementById('helpModal');
@@ -1771,7 +2095,222 @@ function renderCurrentCharacterSheet() {
         }
         saveData(); // currentCharacterId の変更を保存
     }
+
+    // ------------------------
+    // --- Session Result Logic ---
+    // ------------------------
+    function showSessionResult() {
+        const charId = appState.currentCharacterId;
+        const char = appState.characters[charId];
+        if (!char) return alert("キャラクターを選択してください");
+
+        // 1. ログ解析範囲の特定（「冒険のはじまり」以降、なければ全ログ）
+        let startIndex = 0;
+        for (let i = appState.logEntries.length - 1; i >= 0; i--) {
+            if (appState.logEntries[i].content.includes("【冒険のはじまり】")) {
+                startIndex = i;
+                break;
+            }
+        }
+        const targetLogs = appState.logEntries.slice(startIndex);
+
+        // 2. 集計
+        let stats = {
+            wins: 0,
+            critical: 0,
+            fumble: 0,
+            gold: 0,
+            treasures: [],
+            magicTreasureCount: 0,
+            tileCounts: { 10:0, 20:0, 30:0, 40:0, 50:0, 60:0 }
+        };
+
+        targetLogs.forEach(log => {
+            const c = log.content;
+            // 勝利数
+            if (c.includes("[戦果]")) stats.wins++;
+            
+            // クリティカル/ファンブル (実行者が現在のキャラの場合のみ)
+            if (c.includes(`[実行者: ${char.name}]`) || c.includes(`[${char.name}]`)) {
+                // executeRollのログ形式 "C:x/F:x" を探す
+                const match = c.match(/C:(\d+)\/F:(\d+)/);
+                if (match) {
+                    stats.critical += parseInt(match[1]);
+                    stats.fumble += parseInt(match[2]);
+                } else {
+                    // 単純なキーワード検索（予備）
+                    if (c.includes("クリティカル")) stats.critical++;
+                    if (c.includes("ファンブル")) stats.fumble++;
+                }
+            }
+
+            // 金貨
+            const goldMatch1 = c.match(/(\d+)枚の金貨/g);
+            if (goldMatch1) {
+                goldMatch1.forEach(m => stats.gold += parseInt(m.match(/\d+/)[0]));
+            }
+
+            // お宝リスト
+            if (log.type === 'dice' && (c.includes("【宝物】") || c.includes("【魔法の宝物】"))) {
+                const lines = c.split('\n');
+                lines.forEach(line => {
+                    if (line.startsWith("内容：") || line.startsWith("〈")) {
+                        stats.treasures.push(line.replace("内容：", "").trim());
+                    }
+                });
+            }
+
+            // 魔法の宝物回数
+            if (c.includes("【魔法の宝物】")) stats.magicTreasureCount++;
+
+            // タイル傾向
+            const tileMatch = c.match(/出目：(\d+)/);
+            if (tileMatch) {
+                const val = parseInt(tileMatch[1]);
+                const range = Math.floor(val / 10) * 10;
+                if (stats.tileCounts[range] !== undefined) stats.tileCounts[range]++;
+            }
+        });
+
+        // 3. 称号選定
+        let title = "新進気鋭の冒険者";
+        const maxTileRange = Object.keys(stats.tileCounts).reduce((a, b) => stats.tileCounts[a] > stats.tileCounts[b] ? a : b);
+        
+        const tiers = [
+            { check: () => stats.critical >= 10, titles: ["天運の体現者", "神の指先を持つ者", "奇跡の観測者"] },
+            { check: () => stats.fumble >= 10, titles: ["絶望を切り抜ける者", "歩く大惨事", "冥府の愛し子"] },
+            { check: () => stats.wins >= 15, titles: ["一騎当千の猛者", "死地を求める狂戦士"] },
+            { check: () => stats.magicTreasureCount >= 3, titles: ["星に導かれし者", "至高の鑑定士", "運命の蒐集家"] },
+            { check: () => stats.gold >= 100, titles: ["黄金の探求者", "富を築きし者", "成金冒険者"] },
+            { check: () => stats.critical >= 6, titles: ["ダイスに愛されし者", "一撃必殺の英雄"] },
+            { check: () => stats.fumble >= 6, titles: ["数奇な運命の持ち主", "死神に好かれた男", "不運の星の下に"] },
+            { check: () => stats.critical === 0 && stats.fumble === 0 && targetLogs.length > 5, titles: ["中庸の極み", "波風立てぬプロ"] },
+            { check: () => stats.wins >= 10, titles: ["修羅場を潜る者", "戦場を渡り歩くもの"] },
+            { check: () => maxTileRange == 60 && stats.tileCounts[60] > 0, titles: ["大物狩りの勇士", "強者を挫く者"] },
+            { check: () => maxTileRange == 10 && stats.tileCounts[10] > 0, titles: ["扉を開く者", "秘めたるを明かす者"] },
+            { check: () => maxTileRange == 40 && stats.tileCounts[40] > 0, titles: ["危難の専門家", "罠を突き進む者"] },
+            { check: () => stats.wins <= 2 && targetLogs.length > 10, titles: ["隠密の達人", "戦いを避ける知恵者"] }
+        ];
+
+        for (const tier of tiers) {
+            if (tier.check()) {
+                title = tier.titles[Math.floor(Math.random() * tier.titles.length)];
+                break;
+            }
+        }
+
+        // 4. 成功/失敗判定 & デザイン
+        const lastLog = targetLogs.length > 0 ? targetLogs[targetLogs.length - 1].content : "";
+        const isFail = /死亡|全滅|倒れた|失敗/.test(lastLog);
+        const resultClass = isFail ? "failure" : "success";
+        const resultIcon = isFail ? "💀" : "✨";
+
+        // 5. HTML生成
+        const modal = document.getElementById('resultModal');
+        const paper = document.getElementById('result-paper');
+        
+        paper.className = resultClass;
+        paper.innerHTML = `
+            <div class="result-title">${resultIcon} SESSION RESULT ${resultIcon}</div>
+            <div class="text-sm mb-2 font-bold text-gray-600">${document.getElementById('logTitle').value}</div>
+            <div class="result-char-name">${char.name} (Lv.${char.data.level})</div>
+            <div class="result-rank">称号：${title}</div>
+            
+            <div class="result-stats-grid">
+                <div class="result-stat-item"><span>勝利数</span><span class="result-stat-val">${stats.wins}</span></div>
+                <div class="result-stat-item"><span>獲得金貨</span><span class="result-stat-val">${stats.gold}枚</span></div>
+                <div class="result-stat-item"><span>クリティカル</span><span class="result-stat-val">${stats.critical}回</span></div>
+                <div class="result-stat-item"><span>ファンブル</span><span class="result-stat-val">${stats.fumble}回</span></div>
+                <div class="result-stat-item"><span>魔法の宝物</span><span class="result-stat-val">${stats.magicTreasureCount}回</span></div>
+                <div class="result-stat-item"><span>最多出目帯</span><span class="result-stat-val">${maxTileRange}番台</span></div>
+            </div>
+
+            <div class="text-xs font-bold w-full text-left">獲得お宝抜粋:</div>
+            <div class="result-treasure-list">
+                ${stats.treasures.length ? stats.treasures.map(t => `・${t}`).join('<br>') : 'なし'}
+            </div>
+
+            <div class="result-quote">"${lastLog.split('\n').pop().substring(0, 60)}${lastLog.length > 60 ? '...' : ''}"</div>
+        `;
+
+        // 6. シェアボタン設定
+        const shareText = `【RLH戦績】\nシナリオ: ${document.getElementById('logTitle').value}\nPC: ${char.name} (Lv.${char.data.level})\n称号: ${title}\n#ローグライクハーフ #RLHCompanion`;
+        const shareBtn = document.getElementById('btn-share-result');
+        if(shareBtn) {
+            shareBtn.onclick = (e) => {
+                e.stopPropagation();
+                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`, '_blank');
+                handleShareResult();
+            };
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    function saveResultImage() {
+        const paper = document.getElementById('result-paper');
+        // 一時的にスタイルを変更して全体をキャプチャ可能にする
+        const originalMaxHeight = paper.style.maxHeight;
+        const originalOverflow = paper.style.overflow;
+        paper.style.maxHeight = 'none';
+        paper.style.overflow = 'visible';
+
+        html2canvas(paper, { scale: 2, useCORS: true }).then(canvas => {
+            paper.style.maxHeight = originalMaxHeight;
+            paper.style.overflow = originalOverflow;
+            const link = document.createElement('a');
+            link.download = `result_${document.getElementById('logTitle').value}.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        }).catch(err => {
+            paper.style.maxHeight = originalMaxHeight;
+            paper.style.overflow = originalOverflow;
+            alert('画像の保存に失敗しました。\n' + err);
+        });
+    }
+
+    async function handleShareResult() {
+        const paper = document.getElementById('result-paper');
+        if(!paper) return;
+        
+        // スタイル一時変更（全体キャプチャ用）
+        const originalMaxHeight = paper.style.maxHeight;
+        const originalOverflow = paper.style.overflow;
+        paper.style.maxHeight = 'none';
+        paper.style.overflow = 'visible';
+
+        try {
+            const canvas = await html2canvas(paper, { scale: 2, useCORS: true });
+            // スタイル復元
+            paper.style.maxHeight = originalMaxHeight;
+            paper.style.overflow = originalOverflow;
+
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], "result.png", { type: "image/png" });
+                const shareData = { text: '#ローグライクハーフ #RLHCompanion', files: [file] };
+
+                if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+                    try { await navigator.share(shareData); } catch (err) { if (err.name !== 'AbortError') console.error(err); }
+                } else {
+                    // フォールバック: 画像保存 + テキストのみツイート画面
+                    const link = document.createElement('a');
+                    link.download = `result_${document.getElementById('logTitle').value}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                    alert("画像共有未対応のブラウザです。\n画像を保存しましたので、手動で添付してください。");
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('#ローグライクハーフ #RLHCompanion')}`, '_blank');
+                }
+            });
+        } catch(e) {
+            paper.style.maxHeight = originalMaxHeight;
+            paper.style.overflow = originalOverflow;
+            alert("画像生成エラー: " + e);
+        }
+    }
 </script>
+
+
+
 
 <div id="helpModal" class="modal" onclick="toggleHelp(false)">
     <div class="modal-content custom-scroll" onclick="event.stopPropagation()">
@@ -1863,6 +2402,20 @@ function renderCurrentCharacterSheet() {
             </label>
         </div>
         <button onclick="toggleSettings(false)" class="w-full bg-gray-600 text-white py-2 rounded-lg font-bold shadow hover:bg-gray-700">閉じる</button>
+    </div>
+</div>
+
+<!-- Result Modal -->
+<div id="resultModal" class="modal" onclick="document.getElementById('resultModal').style.display='none'">
+    <div class="modal-content">
+        <div id="result-paper" onclick="event.stopPropagation()">
+            <!-- Content injected by JS -->
+        </div>
+        <div style="display:flex; gap:10px; pointer-events: auto;">
+            <button id="btn-share-result" class="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded shadow">Xでシェア</button>
+            <button onclick="saveResultImage()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow">画像を保存</button>
+            <button onclick="document.getElementById('resultModal').style.display='none'" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded shadow">閉じる</button>
+        </div>
     </div>
 </div>
 </body>
