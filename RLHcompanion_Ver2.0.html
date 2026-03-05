@@ -108,14 +108,20 @@
         overflow: hidden; /* 外側はスクロールさせない */
         }
 
+        /* mainエリアを縦並びにする（モバイル） */
+        main {
+            flex-direction: column !important;
+        }
+
         /* 2. タブエリアの基本設定 */
         .view-tab { display: none !important; }
         .view-tab.active { 
         display: flex !important; 
         flex-direction: column; 
         width: 100% !important; /* ヘッダーとタブボタンの高さを引いた残りを設定 */
-        height: calc(100dvh - 140px) !important; 
-        height: 100% !important; 
+        flex: 1 !important;     /* 親要素(main)に合わせて伸縮 */
+        height: auto !important; /* 固定高さを解除 */
+        min-height: 0 !important; /* Flexboxでの縮小を許可 */
         overflow-y: auto !important; /* 基本はここでスクロールを許可 */
         -webkit-overflow-scrolling: touch;
         }
