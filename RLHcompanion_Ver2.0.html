@@ -39,6 +39,12 @@
             flex-shrink: 0;
             transition: all 0.2s ease-in-out;
         }
+        .round-card {
+            min-width: 45px;
+            width: 45px;
+            flex-shrink: 0;
+            transition: all 0.2s ease-in-out;
+        }
         .enemy-card.active {
             box-shadow: 0 0 0 3px #fb923c; /* orange-400 */
             border-color: #fb923c;
@@ -365,12 +371,14 @@
 
        /* Enemy Panel Themes */
        body.theme-night #enemy-panel { background-color: #1e293b !important; border-color: #334155 !important; }
+       body.theme-night .round-card { background-color: #0f172a !important; border-color: #334155 !important; }
        body.theme-night .enemy-card { background-color: #0f172a !important; border-color: #334155 !important; }
        body.theme-night .enemy-card.active { box-shadow: 0 0 0 3px #f97316 !important; border-color: #f97316 !important; } /* orange-500 */
        body.theme-night .mode-toggle-slider { background-color: #881337 !important; }
        body.theme-night input:checked + .mode-toggle-slider { background-color: #0369a1 !important; }
 
        body.theme-sepia #enemy-panel { background-color: #d3c6a6 !important; border-color: #a1887f !important; }
+       body.theme-sepia .round-card { background-color: #fdf6e3 !important; border-color: #d3c6a6 !important; }
        body.theme-sepia .enemy-card { background-color: #fdf6e3 !important; border-color: #d3c6a6 !important; }
        body.theme-sepia .enemy-card.active { box-shadow: 0 0 0 3px #d97706 !important; border-color: #d97706 !important; } /* amber-600 */
        body.theme-sepia .mode-toggle-slider { background-color: #9f1239 !important; }
@@ -414,7 +422,7 @@
        .result-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; width: 100%; text-align: left; font-size: 0.85rem; margin-bottom: 10px; z-index: 1; }
        .result-stat-item { border-bottom: 1px dotted #a1887f; padding: 1px 0; display: flex; justify-content: space-between; }
        .result-stat-val { font-weight: bold; }
-       .result-treasure-list { width: 100%; text-align: left; font-size: 0.8rem; margin-top: 5px; flex-grow: 1; overflow-y: auto; border: 1px solid #d7ccc8; padding: 5px; background: rgba(255,255,255,0.3); z-index: 1; }
+       .result-treasure-list { width: 100%; text-align: left; font-size: 0.75rem; margin-top: 5px; flex-grow: 1; overflow-y: auto; border: 1px solid #d7ccc8; padding: 5px; background: rgba(255,255,255,0.3); z-index: 1; }
        .result-quote { margin-top: auto; font-style: italic; font-size: 0.85rem; padding: 10px; background: rgba(255,255,255,0.4); border-radius: 4px; width: 100%; z-index: 1; }
        .result-rank { font-size: 1.3rem; font-weight: 900; color: #8b0000; margin: 5px 0; z-index: 1; text-shadow: 1px 1px 0 #fff; }
        
@@ -570,7 +578,7 @@
 <script>
         const STORAGE_KEY = 'rlh_final_integrated_v1';
     // --- appState: このアプリの**全データ（心臓部） ---
-        let appState = { theme: 'colorful', showToastNotifications: true, settings: { soundEnabled: true, volume: 50 }, enemies: [], activeEnemyId: null,
+        let appState = { theme: 'colorful', showToastNotifications: true, settings: { soundEnabled: true, volume: 50 }, enemies: [], activeEnemyId: null, currentRound: 0,
             logTitle: "セッション", logEntries: [], characters: {}, currentCharacterId: null, 
             d66State: [
                 { grid: Array(36).fill(0), clickOrder: 1 },
@@ -630,6 +638,7 @@
             }
 
             if (!appState.enemies) appState.enemies = [];
+            if (!appState.currentRound) appState.currentRound = 0;
             // --- データ整合性チェック (D66テーブルの列数不足を修正) ---
             if (appState.d66Table) {
                 // 行数が足りない場合
@@ -1909,12 +1918,24 @@ function renderCurrentCharacterSheet() {
         const container = document.getElementById('enemy-container');
         if (!container) return;
 
-        if (appState.enemies.length === 0) {
+        if (!appState.enemies || appState.enemies.length === 0) {
             container.innerHTML = `<div class="text-xs text-slate-500 italic self-center w-full text-center">敵はいません。「＋」ボタンで追加してください。</div>`;
             return;
         }
 
-        container.innerHTML = appState.enemies.map(enemy => {
+        // ラウンド管理カードを生成
+        const roundCardHTML = `
+            <div class="round-card bg-white border rounded-lg p-1 shadow-md flex flex-col items-center justify-between h-full">
+                <span class="text-[7px]  text-slate-500 leading-none mt-0.5">RND</span>
+                <span class="text-xl font-black text-slate-700 leading-none my-0.5">${appState.currentRound || 0}</span>
+                <div class="flex flex-col gap-1 w-full">
+                    <button onclick="incrementRound()" class="bg-rose-500 hover:bg-rose-600 text-white font-bold rounded w-full h-4 flex items-center justify-center shadow-sm text-xs">+</button>
+                    <button onclick="decrementRound()" class="bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold rounded w-full h-3 flex items-center justify-center text-[8px]">-</button>
+                </div>
+            </div>
+        `;
+
+        const enemyCardsHTML = appState.enemies.map(enemy => {
             const isActive = enemy.id === appState.activeEnemyId;
             const isStrong = enemy.mode === 'strong';
             const hpLabel = isStrong ? '生命点' : '出現数';
@@ -1962,9 +1983,15 @@ function renderCurrentCharacterSheet() {
                 </div>
             </div>`;
         }).join('');
+
+        container.innerHTML = roundCardHTML + enemyCardsHTML;
     }
 
     function addEnemy(mode = 'strong') {
+        // 最初の敵を追加する際にラウンドをリセット
+        if (appState.enemies.length === 0) {
+            appState.currentRound = 0;
+        }
         const newId = 'enemy_' + Date.now();
         const newEnemy = {
             id: newId,
@@ -1986,6 +2013,10 @@ function renderCurrentCharacterSheet() {
         if (appState.activeEnemyId === id) {
             appState.activeEnemyId = null;
             document.getElementById('targetValue').value = 3; // デフォルトに戻す
+        }
+        // 敵が0になったらラウンドをリセット
+        if (appState.enemies.length === 0) {
+            appState.currentRound = 0;
         }
         renderEnemyPanel();
         saveData();
@@ -2077,6 +2108,23 @@ function renderCurrentCharacterSheet() {
                 addLogEntry('system', '', `[${enemy.name}] ${label}: ${oldVal} -> ${newVal}`);
             }
 
+            renderEnemyPanel();
+            saveData();
+        }
+    }
+
+    // --- Round Management ---
+    function incrementRound() {
+        if (appState.currentRound === undefined) appState.currentRound = 0;
+        appState.currentRound++;
+        addLogEntry('system', 'ラウンド進行', `第 ${appState.currentRound} ラウンド`);
+        renderEnemyPanel();
+        saveData();
+    }
+
+    function decrementRound() {
+        if (appState.currentRound && appState.currentRound > 0) {
+            appState.currentRound--;
             renderEnemyPanel();
             saveData();
         }
@@ -2203,7 +2251,6 @@ function renderCurrentCharacterSheet() {
             gold: 0,
             treasures: [],
             magicTreasureCount: 0,
-            visitedTiles: [],
             tileCounts: { 10:0, 20:0, 30:0, 40:0, 50:0, 60:0 }
         };
 
@@ -2244,29 +2291,38 @@ function renderCurrentCharacterSheet() {
 
             // 魔法の宝物回数
             if (c.includes("【魔法の宝物】")) stats.magicTreasureCount++;
+        });
 
-            // タイル傾向
-            const tileMatch = c.match(/出目：(\d+)/);
-            if (tileMatch) {
-                const val = parseInt(tileMatch[1]);
-                stats.visitedTiles.push(val);
-                const range = Math.floor(val / 10) * 10;
-                if (stats.tileCounts[range] !== undefined) stats.tileCounts[range]++;
+        // D66テーブルからタイル集計（周回ごとに表示）
+        let visitedTilesLines = [];
+        appState.d66Table.forEach((row, idx) => {
+            const tiles = row.filter(c => c !== "");
+            if (tiles.length > 0) {
+                visitedTilesLines.push(`[${idx+1}] ${tiles.join('＞')}`);
+                // 称号判定用の集計
+                tiles.forEach(t => {
+                    if (/^\d+$/.test(t)) {
+                        const val = parseInt(t);
+                        const range = Math.floor(val / 10) * 10;
+                        if (stats.tileCounts[range] !== undefined) stats.tileCounts[range]++;
+                    }
+                });
             }
         });
+        const visitedTilesStr = visitedTilesLines.length > 0 ? visitedTilesLines.join('\n') : 'なし';
 
         // 3. 称号選定
         let title = "新進気鋭の冒険者";
         const maxTileRange = Object.keys(stats.tileCounts).reduce((a, b) => stats.tileCounts[a] > stats.tileCounts[b] ? a : b);
         
         const tiers = [
-            { check: () => stats.critical >= 10, titles: ["天運の体現者", "神の指先を持つ者", "奇跡の観測者"] },
-            { check: () => stats.fumble >= 10, titles: ["絶望を切り抜ける者", "歩く大惨事", "冥府の愛し子"] },
-            { check: () => stats.wins >= 15, titles: ["一騎当千の猛者", "死地を求める狂戦士"] },
-            { check: () => stats.magicTreasureCount >= 3, titles: ["星に導かれし者", "至高の鑑定士", "運命の蒐集家"] },
+            { check: () => stats.critical >= 10, titles: ["天運の体現者", "神の指先を持つ者", "奇跡の観測者", "因果を覆す者", "神域の豪運"] },
+            { check: () => stats.fumble >= 10, titles: ["絶望を切り抜ける者", "歩く大惨事", "冥府の愛し子", "死神を追い越したもの"] },
+            { check: () => stats.wins >= 15, titles: ["一騎当千の猛者", "死地を求める狂戦士", "戦場を喰らう牙", "修羅場に笑う者"] },
+            { check: () => stats.magicTreasureCount >= 3, titles: ["星に導かれし者", "至高の鑑定士", "運命の蒐集家", "黄金の風を呼ぶ者"] },
             { check: () => stats.gold >= 100, titles: ["黄金の探求者", "富を築きし者", "成金冒険者"] },
-            { check: () => stats.critical >= 6, titles: ["ダイスに愛されし者", "一撃必殺の英雄"] },
-            { check: () => stats.fumble >= 6, titles: ["数奇な運命の持ち主", "死神に好かれた男", "不運の星の下に"] },
+            { check: () => stats.critical >= 6, titles: ["ダイスに愛されし者", "一撃必殺の英雄", "追い風の旅人"] },
+            { check: () => stats.fumble >= 6, titles: ["数奇な運命の持ち主", "死神に好かれた男", "不運の星の下に", "逆境の徒"] },
             { check: () => stats.critical === 0 && stats.fumble === 0 && targetLogs.length > 5, titles: ["中庸の極み", "波風立てぬプロ"] },
             { check: () => stats.wins >= 10, titles: ["修羅場を潜る者", "戦場を渡り歩くもの"] },
             { check: () => maxTileRange == 60 && stats.tileCounts[60] > 0, titles: ["大物狩りの勇士", "強者を挫く者"] },
@@ -2314,7 +2370,8 @@ function renderCurrentCharacterSheet() {
 ・ 戦闘勝利：${stats.wins} 回
 ・ 判定：Crit ${stats.critical}回 / Fum ${stats.fumble}回
 ・ 魔法の宝物ロール：${stats.magicTreasureCount} 回
-・ 通過タイル：${stats.visitedTiles.length > 0 ? stats.visitedTiles.join(', ') : 'なし'}
+・ 通過タイル：
+${visitedTilesStr}
 
 ■ 獲得したお宝（全リスト）
 ${treasureText}
@@ -2350,6 +2407,11 @@ ${treasureText}
                 <div class="result-stat-item"><span>最多出目帯</span><span class="result-stat-val">${maxTileRange}番台</span></div>
             </div>
 
+            <div class="text-xs font-bold w-full text-left mt-1">通過タイル:</div>
+            <div class="result-treasure-list" style="flex-grow: 0; overflow: visible; margin-bottom: 5px;">
+                ${visitedTilesStr.replace(/\n/g, '<br>')}
+            </div>
+
             <div class="text-xs font-bold w-full text-left">獲得お宝抜粋:</div>
             <div class="result-treasure-list">
                 ${stats.treasures.length ? stats.treasures.map(t => `・${t}`).join('<br>') : 'なし'}
@@ -2364,8 +2426,7 @@ ${treasureText}
         if(shareBtn) {
             shareBtn.onclick = (e) => {
                 e.stopPropagation();
-                window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`, '_blank');
-                handleShareResult();
+                handleShareResult(shareText);
             };
         }
 
@@ -2394,43 +2455,72 @@ ${treasureText}
         });
     }
 
-    async function handleShareResult() {
-        const paper = document.getElementById('result-paper');
-        if(!paper) return;
+    function handleShareResult(shareText) {
+        // Create a modal overlay
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.backgroundColor = 'rgba(0,0,0,0.6)';
+        overlay.style.display = 'flex';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.zIndex = '10000';
+        overlay.onclick = () => document.body.removeChild(overlay);
+
+        // Create the modal content box
+        const modalBox = document.createElement('div');
+        modalBox.style.background = '#fff';
+        modalBox.style.padding = '20px';
+        modalBox.style.borderRadius = '8px';
+        modalBox.style.textAlign = 'center';
+        modalBox.style.maxWidth = '90%';
+        modalBox.style.width = '400px';
+        modalBox.style.color = '#333';
+        modalBox.onclick = (e) => e.stopPropagation();
+
+        // Add the content
+        modalBox.innerHTML = `
+            <h3 style="font-weight: bold; font-size: 1.1em; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">【シェアのやり方】</h3>
+            <p style="text-align: left; line-height: 1.6; margin-bottom: 20px;">
+                下の「画像を保存」を押してください。<br><br>
+                「Xを開く」を押すと投稿画面が開きます。<br><br>
+                保存した画像を添付して投稿してください！
+            </p>
+        `;
+
+        // Create a button container
+        const buttonContainer = document.createElement('div');
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '10px';
+        buttonContainer.style.justifyContent = 'center';
+
+        // Create "Save Image" button
+        const saveBtn = document.createElement('button');
+        saveBtn.textContent = '画像を保存';
+        saveBtn.className = 'bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow';
+        saveBtn.onclick = () => {
+            saveResultImage();
+        };
+
+        // Create "Open X" button
+        const openXBtn = document.createElement('button');
+        openXBtn.textContent = 'Xを開く';
+        openXBtn.className = 'bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded shadow';
+        openXBtn.onclick = () => {
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`, '_blank');
+            document.body.removeChild(overlay); // Close modal after opening twitter
+        };
         
-        // スタイル一時変更（全体キャプチャ用）
-        const originalMaxHeight = paper.style.maxHeight;
-        const originalOverflow = paper.style.overflow;
-        paper.style.maxHeight = 'none';
-        paper.style.overflow = 'visible';
+        buttonContainer.appendChild(saveBtn);
+        buttonContainer.appendChild(openXBtn);
+        
+        modalBox.appendChild(buttonContainer);
 
-        try {
-            const canvas = await html2canvas(paper, { scale: 2, useCORS: true });
-            // スタイル復元
-            paper.style.maxHeight = originalMaxHeight;
-            paper.style.overflow = originalOverflow;
-
-            canvas.toBlob(async (blob) => {
-                const file = new File([blob], "result.png", { type: "image/png" });
-                const shareData = { text: '#ローグライクハーフ #RLHCompanion', files: [file] };
-
-                if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
-                    try { await navigator.share(shareData); } catch (err) { if (err.name !== 'AbortError') console.error(err); }
-                } else {
-                    // フォールバック: 画像保存 + テキストのみツイート画面
-                    const link = document.createElement('a');
-                    link.download = `result_${document.getElementById('logTitle').value}.png`;
-                    link.href = canvas.toDataURL();
-                    link.click();
-                    alert("画像共有未対応のブラウザです。\n画像を保存しましたので、手動で添付してください。");
-                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent('#ローグライクハーフ #RLHCompanion')}`, '_blank');
-                }
-            });
-        } catch(e) {
-            paper.style.maxHeight = originalMaxHeight;
-            paper.style.overflow = originalOverflow;
-            alert("画像生成エラー: " + e);
-        }
+        overlay.appendChild(modalBox);
+        document.body.appendChild(overlay);
     }
 
     // ------------------------
