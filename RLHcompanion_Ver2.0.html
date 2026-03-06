@@ -39,6 +39,12 @@
             flex-shrink: 0;
             transition: all 0.2s ease-in-out;
         }
+        .round-card {
+            min-width: 45px;
+            width: 45px;
+            flex-shrink: 0;
+            transition: all 0.2s ease-in-out;
+        }
         .enemy-card.active {
             box-shadow: 0 0 0 3px #fb923c; /* orange-400 */
             border-color: #fb923c;
@@ -365,12 +371,14 @@
 
        /* Enemy Panel Themes */
        body.theme-night #enemy-panel { background-color: #1e293b !important; border-color: #334155 !important; }
+       body.theme-night .round-card { background-color: #0f172a !important; border-color: #334155 !important; }
        body.theme-night .enemy-card { background-color: #0f172a !important; border-color: #334155 !important; }
        body.theme-night .enemy-card.active { box-shadow: 0 0 0 3px #f97316 !important; border-color: #f97316 !important; } /* orange-500 */
        body.theme-night .mode-toggle-slider { background-color: #881337 !important; }
        body.theme-night input:checked + .mode-toggle-slider { background-color: #0369a1 !important; }
 
        body.theme-sepia #enemy-panel { background-color: #d3c6a6 !important; border-color: #a1887f !important; }
+       body.theme-sepia .round-card { background-color: #fdf6e3 !important; border-color: #d3c6a6 !important; }
        body.theme-sepia .enemy-card { background-color: #fdf6e3 !important; border-color: #d3c6a6 !important; }
        body.theme-sepia .enemy-card.active { box-shadow: 0 0 0 3px #d97706 !important; border-color: #d97706 !important; } /* amber-600 */
        body.theme-sepia .mode-toggle-slider { background-color: #9f1239 !important; }
@@ -570,7 +578,7 @@
 <script>
         const STORAGE_KEY = 'rlh_final_integrated_v1';
     // --- appState: このアプリの**全データ（心臓部） ---
-        let appState = { theme: 'colorful', showToastNotifications: true, settings: { soundEnabled: true, volume: 50 }, enemies: [], activeEnemyId: null,
+        let appState = { theme: 'colorful', showToastNotifications: true, settings: { soundEnabled: true, volume: 50 }, enemies: [], activeEnemyId: null, currentRound: 0,
             logTitle: "セッション", logEntries: [], characters: {}, currentCharacterId: null, 
             d66State: [
                 { grid: Array(36).fill(0), clickOrder: 1 },
@@ -630,6 +638,7 @@
             }
 
             if (!appState.enemies) appState.enemies = [];
+            if (!appState.currentRound) appState.currentRound = 0;
             // --- データ整合性チェック (D66テーブルの列数不足を修正) ---
             if (appState.d66Table) {
                 // 行数が足りない場合
@@ -1261,7 +1270,7 @@ function renderCurrentCharacterSheet() {
                 <!-- Drag Handle (Hoverで表示) -->
                 <div draggable="true" ondragstart="handleDragStart(event, '${id}')" ondragend="handleDragEnd(event)" 
                      class="absolute right-1 top-1/2 -translate-y-1/2 p-1 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-gray-700 drag-handle"
-                     title="ドラッグして並び替え">
+                      title="ドラッグして並び替え">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </div>
             </summary>
@@ -1909,12 +1918,24 @@ function renderCurrentCharacterSheet() {
         const container = document.getElementById('enemy-container');
         if (!container) return;
 
-        if (appState.enemies.length === 0) {
+        if (!appState.enemies || appState.enemies.length === 0) {
             container.innerHTML = `<div class="text-xs text-slate-500 italic self-center w-full text-center">敵はいません。「＋」ボタンで追加してください。</div>`;
             return;
         }
 
-        container.innerHTML = appState.enemies.map(enemy => {
+        // ラウンド管理カードを生成
+        const roundCardHTML = `
+            <div class="round-card bg-white border rounded-lg p-1 shadow-md flex flex-col items-center justify-between h-full">
+                <span class="text-[6px]  text-slate-500 leading-none mt-0.5">RND</span>
+                <span class="text-xl font-black text-slate-700 leading-none my-0.5">${appState.currentRound || 0}</span>
+                <div class="flex flex-col gap-1 w-full">
+                    <button onclick="incrementRound()" class="bg-rose-500 hover:bg-rose-600 text-white font-bold rounded w-full h-3 flex items-center justify-center shadow-sm text-xs">+</button>
+                    <button onclick="decrementRound()" class="bg-slate-200 hover:bg-slate-300 text-slate-600 font-bold rounded w-full h-3 flex items-center justify-center text-[8px]">-</button>
+                </div>
+            </div>
+        `;
+
+        const enemyCardsHTML = appState.enemies.map(enemy => {
             const isActive = enemy.id === appState.activeEnemyId;
             const isStrong = enemy.mode === 'strong';
             const hpLabel = isStrong ? '生命点' : '出現数';
@@ -1962,9 +1983,15 @@ function renderCurrentCharacterSheet() {
                 </div>
             </div>`;
         }).join('');
+
+        container.innerHTML = roundCardHTML + enemyCardsHTML;
     }
 
     function addEnemy(mode = 'strong') {
+        // 最初の敵を追加する際にラウンドをリセット
+        if (appState.enemies.length === 0) {
+            appState.currentRound = 0;
+        }
         const newId = 'enemy_' + Date.now();
         const newEnemy = {
             id: newId,
@@ -1986,6 +2013,10 @@ function renderCurrentCharacterSheet() {
         if (appState.activeEnemyId === id) {
             appState.activeEnemyId = null;
             document.getElementById('targetValue').value = 3; // デフォルトに戻す
+        }
+        // 敵が0になったらラウンドをリセット
+        if (appState.enemies.length === 0) {
+            appState.currentRound = 0;
         }
         renderEnemyPanel();
         saveData();
@@ -2077,6 +2108,23 @@ function renderCurrentCharacterSheet() {
                 addLogEntry('system', '', `[${enemy.name}] ${label}: ${oldVal} -> ${newVal}`);
             }
 
+            renderEnemyPanel();
+            saveData();
+        }
+    }
+
+    // --- Round Management ---
+    function incrementRound() {
+        if (appState.currentRound === undefined) appState.currentRound = 0;
+        appState.currentRound++;
+        addLogEntry('system', 'ラウンド進行', `第 ${appState.currentRound} ラウンド`);
+        renderEnemyPanel();
+        saveData();
+    }
+
+    function decrementRound() {
+        if (appState.currentRound && appState.currentRound > 0) {
+            appState.currentRound--;
             renderEnemyPanel();
             saveData();
         }
