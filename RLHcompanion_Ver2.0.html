@@ -17,6 +17,7 @@
         
         /* D66 Grid Styles */
         .d66-grid-container { width: 100%; display: grid; grid-template-columns: repeat(6, 1fr); border: 1px solid #14b8a6; max-width: 180px; }
+        .d66-grid-container { width: 100%; display: grid; border: 1px solid #14b8a6; max-width: 240px; }
         .d66-grid-cell { aspect-ratio: 1.1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; cursor: pointer; border: 1px solid #e5e7eb; position: relative; background: #fff; }
         
         /* 回数ごとの背景色 */
@@ -269,14 +270,14 @@
        body.theme-night #view-char .bg-gray-500:hover, body.theme-night #view-char .bg-orange-500:hover, body.theme-night #view-char .bg-emerald-500:hover, body.theme-night #view-char .bg-purple-500:hover, body.theme-night #view-char .bg-red-600:hover { background-color: #475569 !important; }
 
        /* 2. 主要アクション (Blue) */
-       body.theme-night .bg-blue-700, body.theme-night .bg-green-700, body.theme-night .bg-teal-600,
+              body.theme-night .bg-blue-700, body.theme-night .bg-green-700, body.theme-night .bg-teal-600, body.theme-night .bg-amber-600,
        /* シナリオ進行ボタン */
        body.theme-night #log-section .bg-indigo-600, body.theme-night #log-section .bg-slate-700, body.theme-night #log-section .bg-orange-600, body.theme-night #log-section .bg-gray-500, body.theme-night #log-section .bg-blue-500, body.theme-night #log-section .bg-amber-500, body.theme-night #log-section .bg-rose-500, body.theme-night #log-section .bg-emerald-500,
        /* キャラシートの「能」ボタン */
        body.theme-night #view-char .bg-orange-600, body.theme-night #view-char .bg-emerald-600, body.theme-night #view-char .bg-gray-600, body.theme-night #view-char .bg-purple-600, body.theme-night #view-char .bg-blue-600 {
            background-color: #1d4ed8 !important; color: #eff6ff !important; border-color: #1e40af !important;
        }
-       body.theme-night .bg-blue-700:hover, body.theme-night .bg-green-700:hover, body.theme-night .bg-teal-600:hover,
+             body.theme-night .bg-blue-700:hover, body.theme-night .bg-green-700:hover, body.theme-night .bg-teal-600:hover, body.theme-night .bg-amber-600:hover,
        body.theme-night #log-section .bg-indigo-600:hover, body.theme-night #log-section .bg-slate-700:hover, body.theme-night #log-section .bg-orange-600:hover, body.theme-night #log-section .bg-gray-500:hover, body.theme-night #log-section .bg-blue-500:hover, body.theme-night #log-section .bg-amber-500:hover, body.theme-night #log-section .bg-rose-500:hover, body.theme-night #log-section .bg-emerald-500:hover,
        body.theme-night #view-char .bg-orange-600:hover, body.theme-night #view-char .bg-emerald-600:hover, body.theme-night #view-char .bg-gray-600:hover, body.theme-night #view-char .bg-purple-600:hover, body.theme-night #view-char .bg-blue-600:hover { background-color: #1e40af !important; }
 
@@ -287,6 +288,15 @@
        body.theme-night .bg-red-700:hover { background-color: #7f1d1d !important; }
 
        /* --- Specific Components --- */
+       /* Progress Bar Tracks in Night Mode */
+       body.theme-night .bg-rose-100 { background-color: #881337 !important; border-color: #9f1239 !important; color: #fecdd3 !important; }
+       body.theme-night .bg-emerald-100 { background-color: #064e3b !important; border-color: #065f46 !important; color: #a7f3d0 !important; }
+       body.theme-night .bg-red-100 { background-color: #7f1d1d !important; border-color: #991b1b !important; color: #fecaca !important; }
+       body.theme-night .bg-purple-100 { background-color: #581c87 !important; border-color: #6b21a8 !important; color: #e9d5ff !important; }
+       body.theme-night .bg-teal-100 { background-color: #134e4a !important; border-color: #115e59 !important; color: #99f6e4 !important; }
+       body.theme-night .bg-yellow-100 { background-color: #713f12 !important; border-color: #854d0e !important; color: #fde68a !important; }
+       body.theme-night .bg-blue-100 { background-color: #1e3a8a !important; border-color: #1e40af !important; color: #bfdbfe !important; }
+
        body.theme-night details > summary.bg-teal-100 { background-color: #0f172a !important; border-bottom: 1px solid #334155 !important; }
        body.theme-night .d66-grid-cell { background-color: #1e293b !important; border-color: #334155 !important; color: #e2e8f0 !important; }
        body.theme-night .cell-row-0 { background-color: #134e4a !important; color: #ccfbf1 !important; border-color: #115e59 !important; }
@@ -341,14 +351,14 @@
        body.theme-sepia #view-char .bg-gray-500:hover, body.theme-sepia #view-char .bg-orange-500:hover, body.theme-sepia #view-char .bg-emerald-500:hover, body.theme-sepia #view-char .bg-purple-500:hover, body.theme-sepia #view-char .bg-red-600:hover { background-color: #a1887f !important; }
 
        /* 2. 主要アクション (Teal) */
-       body.theme-sepia .bg-blue-700, body.theme-sepia .bg-green-700, body.theme-sepia .bg-teal-600,
+              body.theme-sepia .bg-blue-700, body.theme-sepia .bg-green-700, body.theme-sepia .bg-teal-600, body.theme-sepia .bg-amber-600,
        /* シナリオ進行ボタン */
        body.theme-sepia #log-section .bg-indigo-600, body.theme-sepia #log-section .bg-slate-700, body.theme-sepia #log-section .bg-orange-600, body.theme-sepia #log-section .bg-gray-500, body.theme-sepia #log-section .bg-blue-500, body.theme-sepia #log-section .bg-amber-500, body.theme-sepia #log-section .bg-rose-500, body.theme-sepia #log-section .bg-emerald-500,
        /* キャラシートの「能」ボタン */
        body.theme-sepia #view-char .bg-orange-600, body.theme-sepia #view-char .bg-emerald-600, body.theme-sepia #view-char .bg-gray-600, body.theme-sepia #view-char .bg-purple-600, body.theme-sepia #view-char .bg-blue-600 {
            background-color: #00695c !important; color: #e0f2f1 !important; border-color: #004d40 !important;
        }
-       body.theme-sepia .bg-blue-700:hover, body.theme-sepia .bg-green-700:hover, body.theme-sepia .bg-teal-600:hover,
+       body.theme-sepia .bg-blue-700:hover, body.theme-sepia .bg-green-700:hover, body.theme-sepia .bg-teal-600:hover, body.theme-sepia .bg-amber-600:hover,
        body.theme-sepia #log-section .bg-indigo-600:hover, body.theme-sepia #log-section .bg-slate-700:hover, body.theme-sepia #log-section .bg-orange-600:hover, body.theme-sepia #log-section .bg-gray-500:hover, body.theme-sepia #log-section .bg-blue-500:hover, body.theme-sepia #log-section .bg-amber-500:hover, body.theme-sepia #log-section .bg-rose-500:hover, body.theme-sepia #log-section .bg-emerald-500:hover,
        body.theme-sepia #view-char .bg-orange-600:hover, body.theme-sepia #view-char .bg-emerald-600:hover, body.theme-sepia #view-char .bg-gray-600:hover, body.theme-sepia #view-char .bg-purple-600:hover, body.theme-sepia #view-char .bg-blue-600:hover { background-color: #004d40 !important; }
 
@@ -360,6 +370,9 @@
 
        /* --- Specific Components --- */
        body.theme-sepia details > summary.bg-teal-100 { background-color: #eaddc5 !important; border-bottom: 1px solid #d3c6a6 !important; }
+       body.theme-sepia .progress-bar-track.bg-blue-100 { background-color: #d3c6a6 !important; border-color: #a1887f !important; }
+       body.theme-sepia .progress-bar-fill.bg-blue-600 { background-color: #854d0e !important; }
+
        body.theme-sepia .d66-grid-cell { background-color: #fdf6e3 !important; border-color: #d3c6a6 !important; color: #5d4037 !important; }
        body.theme-sepia .cell-row-0 { background-color: #e0f2f1 !important; color: #004d40 !important; border-color: #b2dfdb !important; }
        body.theme-sepia .cell-row-1 { background-color: #fff8e1 !important; color: #ff6f00 !important; border-color: #ffecb3 !important; }
@@ -374,6 +387,7 @@
        body.theme-night .round-card { background-color: #0f172a !important; border-color: #334155 !important; }
        body.theme-night .enemy-card { background-color: #0f172a !important; border-color: #334155 !important; }
        body.theme-night .enemy-card.active { box-shadow: 0 0 0 3px #f97316 !important; border-color: #f97316 !important; } /* orange-500 */
+       body.theme-night .round-card .bg-rose-500 { background-color: #334155 !important; color: #f1f5f9 !important; border-color: #475569 !important; }
        body.theme-night .mode-toggle-slider { background-color: #881337 !important; }
        body.theme-night input:checked + .mode-toggle-slider { background-color: #0369a1 !important; }
 
@@ -381,6 +395,7 @@
        body.theme-sepia .round-card { background-color: #fdf6e3 !important; border-color: #d3c6a6 !important; }
        body.theme-sepia .enemy-card { background-color: #fdf6e3 !important; border-color: #d3c6a6 !important; }
        body.theme-sepia .enemy-card.active { box-shadow: 0 0 0 3px #d97706 !important; border-color: #d97706 !important; } /* amber-600 */
+       body.theme-sepia .round-card .bg-rose-500 { background-color: #bcaaa4 !important; color: #3e2723 !important; border-color: #a1887f !important; }
        body.theme-sepia .mode-toggle-slider { background-color: #9f1239 !important; }
        body.theme-sepia input:checked + .mode-toggle-slider { background-color: #00695c !important; }
 
@@ -428,6 +443,17 @@
        
        /* 保存ボタン等 */
        .result-actions { margin-top: 10px; display: flex; gap: 10px; z-index: 10; pointer-events: auto; }
+
+       /* Slot System Styles */
+       .slot-badge { display: inline-flex; align-items: center; padding: 2px 8px; margin: 2px; background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 12px; font-size: 10px; cursor: pointer; color: #3730a3; font-weight: bold; user-select: none; transition: all 0.2s; min-height: 20px; }
+       .slot-badge:hover { background: #c7d2fe; }
+       .slot-badge.empty { background: #f9fafb; border-color: #e5e7eb; color: #9ca3af; font-weight: normal; border-style: dashed; }
+       .equip-row { display: flex; align-items: center; margin-bottom: 4px; font-size: 11px; }
+       .equip-label { width: 40px; font-weight: bold; color: #6b7280; flex-shrink: 0; text-align: right; margin-right: 6px; }
+       .inv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 5px; }
+       .inv-slot { aspect-ratio: 2/1; border: 1px dashed #d1d5db; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 9px; cursor: pointer; background: #f9fafb; color: #9ca3af; text-align: center; padding: 2px; overflow: hidden; word-break: break-all; line-height: 1.1; transition: all 0.2s; }
+       .inv-slot:hover { border-color: #6366f1; background: #f3f4f6; }
+       .inv-slot.filled { border: 1px solid #cbd5e1; background: #fff; color: #374151; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
     </style>
 </head>
 
@@ -517,8 +543,8 @@
                 <summary class="p-1 font-bold text-teal-800 cursor-pointer text-[10px] bg-teal-100 rounded-t-lg flex justify-between items-center px-3">
                     <span>D66 GRID & SCENARIO</span>
                     <div class="flex items-center space-x-2">
-                        <button onclick="event.preventDefault(); document.getElementById('csvUpload').click()" class="bg-slate-600 text-white px-2 rounded">CSV読込</button>
-                        <button onclick="event.preventDefault(); resetD66Area()" class="bg-red-600 text-white px-1.5 rounded">CLR</button>
+                        <button onclick="event.preventDefault(); document.getElementById('csvUpload').click()" class="bg-slate-600 text-white px-2 rounded"title="シナリオcsv読み込み">CSV読込</button>
+                        <button onclick="event.preventDefault(); resetD66Area()" class="bg-red-600 text-white px-1.5 rounded" title="シナリオ削除">CLR</button>
                     </div>
                 </summary>
                 <div class="p-2 bg-white flex flex-col space-y-2">
@@ -578,7 +604,8 @@
 <script>
         const STORAGE_KEY = 'rlh_final_integrated_v1';
     // --- appState: このアプリの**全データ（心臓部） ---
-        let appState = { theme: 'colorful', showToastNotifications: true, settings: { soundEnabled: true, volume: 50 }, enemies: [], activeEnemyId: null, currentRound: 0,
+        let appState = { theme: 'colorful', showToastNotifications: true, settings: { soundEnabled: true, volume: 50 }, 
+            d66GridSettings: { rows: 6, cols: 6 }, enemies: [], activeEnemyId: null, currentRound: 0,
             logTitle: "セッション", logEntries: [], characters: {}, currentCharacterId: null, 
             d66State: [
                 { grid: Array(36).fill(0), clickOrder: 1 },
@@ -617,6 +644,20 @@
                     // 設定オブジェクトの初期化（旧データ互換）
                     if (!appState.settings) {
                         appState.settings = { soundEnabled: true, volume: 50 };
+                    }
+                    if (!appState.d66GridSettings) {
+                        appState.d66GridSettings = { rows: 6, cols: 6 };
+                    }
+                    // グリッドサイズとデータ配列の整合性チェック
+                    const expectedSize = appState.d66GridSettings.rows * appState.d66GridSettings.cols;
+                    if (appState.d66State && appState.d66State[0].grid.length !== expectedSize) {
+                        console.warn("D66 grid size mismatch. Resetting D66 data.");
+                        appState.d66State = appState.d66State.map(() => ({
+                            grid: Array(expectedSize).fill(0),
+                            clickOrder: 1
+                        }));
+                        // テーブルもリセットした方が安全
+                        appState.d66Table = [Array(13).fill(""), Array(13).fill(""), Array(13).fill("")];
                     }
                 } 
                 catch(e) { console.error(e); } 
@@ -969,17 +1010,46 @@
     // ------------------------
     // --- D66 Grid logic -----
     // ------------------------
+    function updateD66GridSize() {
+        const rows = parseInt(document.getElementById('d66Rows').value) || 6;
+        const cols = parseInt(document.getElementById('d66Cols').value) || 6;
+
+        if (rows === appState.d66GridSettings.rows && cols === appState.d66GridSettings.cols) {
+            return; // 変更がない場合は何もしない
+        }
+
+        if (confirm(`グリッドサイズを ${rows}x${cols} に変更しますか？\n現在のグリッドデータとテーブルはリセットされます。`)) {
+            appState.d66GridSettings.rows = rows;
+            appState.d66GridSettings.cols = cols;
+            const newSize = rows * cols;
+            
+            appState.d66State = appState.d66State.map(() => ({
+                grid: Array(newSize).fill(0),
+                clickOrder: 1
+            }));
+            
+            appState.d66Table = [Array(13).fill(""), Array(13).fill(""), Array(13).fill("")];
+
+            renderAll();
+            saveData();
+        }
+    }
+
     function renderD66Grid() {
+        const { rows, cols } = appState.d66GridSettings;
         const gridEl = document.getElementById('d66Grid');
-        gridEl.innerHTML = Array(36).fill(0).map((_, i) => {
+        gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+        const totalCells = rows * cols;
+
+        gridEl.innerHTML = Array(totalCells).fill(0).map((_, i) => {
             let cls = "d66-grid-cell", tags = "";
                 appState.d66State.forEach((state, rIdx) => {
-                    if (state.grid[i] > 0) {
+                    if (state.grid[i] > 0) { // state.grid[i] が存在するかチェック
                         cls += ` cell-row-${rIdx}`;
                         tags += `<span class="d66-order-tag" style="top:${rIdx*5}px; right:1px;">${state.grid[i]}</span>`;
                     }
                 });
-                return `<div class="${cls}" onclick="hD66(${i})"><span>${Math.floor(i/6)+1}${i%6+1}</span>${tags}</div>`;
+                return `<div class="${cls}" onclick="hD66(${i})"><span>${Math.floor(i/cols)+1}${i%cols+1}</span>${tags}</div>`;
             }).join('');
             document.getElementById('d66NextNumber').textContent = appState.d66State[appState.activeRow].clickOrder;
             document.getElementById('rowLabel').textContent = `Next (${appState.activeRow + 1}回目)`;
@@ -987,8 +1057,9 @@
 
         // --- hD66: D66グリッドをクリックしたときの処理 ---
         function hD66(i) {
+            const { cols } = appState.d66GridSettings;
             const r = appState.activeRow;
-            const val = `${Math.floor(i/6)+1}${(i%6)+1}`;
+            const val = `${Math.floor(i/cols)+1}${(i%cols)+1}`;
             // 同じ行の中でのみキャンセル可能
             if (appState.d66State[r].grid[i] > 0) {
                 const order = appState.d66State[r].grid[i];
@@ -1016,13 +1087,19 @@
         }
 
         function clearTableCell(r, c) {
+            const { cols } = appState.d66GridSettings;
             const val = appState.d66Table[r][c];
             if (val && !isNaN(val)) {
-                const i = (parseInt(val[0])-1)*6 + (parseInt(val[1])-1);
-                const order = appState.d66State[r].grid[i];
-                appState.d66State[r].grid[i] = 0;
-                appState.d66State[r].grid = appState.d66State[r].grid.map(v => v > order ? v-1 : v);
-                appState.d66State[r].clickOrder--;
+                // グリッド状態のクリア（標準的な2桁の出目の場合のみ対応）
+                if (val.length === 2) {
+                    const i = (parseInt(val[0])-1)*cols + (parseInt(val[1])-1);
+                    if (appState.d66State[r].grid[i] && appState.d66State[r].grid[i] > 0) {
+                        const order = appState.d66State[r].grid[i];
+                        appState.d66State[r].grid[i] = 0;
+                        appState.d66State[r].grid = appState.d66State[r].grid.map(v => v > order ? v-1 : v);
+                        appState.d66State[r].clickOrder--;
+                    }
+                }
             }
             appState.d66Table[r][c] = ""; renderAll(); saveData();
         }
@@ -1030,6 +1107,9 @@
         function resetD66Area() {
             if(confirm("D66データと読み込んだシナリオをリセットしますか？")) {
                 appState.d66State = appState.d66State.map(() => ({ grid: Array(36).fill(0), clickOrder: 1 }));
+                appState.d66GridSettings = { rows: 6, cols: 6 };
+                const newSize = appState.d66GridSettings.rows * appState.d66GridSettings.cols;
+                appState.d66State = appState.d66State.map(() => ({ grid: Array(newSize).fill(0), clickOrder: 1 }));
                 appState.d66Table = [Array(13).fill(""), Array(13).fill(""), Array(13).fill("")];
                 
                 // シナリオデータのクリア
@@ -1050,15 +1130,15 @@
     // --- Resource & Character Logic ---
     // ------------------------
     const PRESETS = {
-        pc: { name: '主人公', icon: '👤', level: 10, skill: 0, life: 4, lifeMax: 4, lifeType: 'hp', lifeLabel: '生命', subType: 'luck', subLabel: '幸運', subVal: 2, subMax: 2, follower: 7, food: 2, gold: 10, clue: 0, memo: '' },
-        soldier: { name: '兵士', icon: '⚔️', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦う従者' },
-        swordsman: { name: '剣士', icon: '⚔️', level: 4, skill: 1, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦う従者' },
-        archer: { name: '弓兵', icon: '🏹', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'dex', subLabel: '器用', subVal: 0, subMax: 0, rangedMod: 1, meleeMod: -1, memo: '戦う従者：遠隔攻撃+1、近接攻撃-1' },
-        mage: { name: '魔術師', icon: '🧙', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'mag', subLabel: '魔術', subVal: 1, subMax: 1, memo: '戦う従者：人数＝魔術点' },
-        scout: { name: '斥候', icon: '🕯️', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'dex', subLabel: '器用', subVal: 0, subMax: 0, memo: '戦わない従者' },
-        porter: { name: '荷物持ち', icon: '🎒', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦わない従者' },
-        lantern: { name: 'ランタン持ち', icon: '🏮', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'luck', subLabel: '幸運', subVal: 0, subMax: 0, memo: '戦わない従者' },
-        tachi_mochi: { name: '太刀持ち', icon: '🗡️', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦わない従者' },
+        pc: { name: '主人公', icon: '👤', level: 10, skill: 0, life: 4, lifeMax: 4, lifeType: 'hp', lifeLabel: '生命', subType: 'luck', subLabel: '幸運', subVal: 2, subMax: 2, follower: 7, food: 2, gold: 10, clue: 0, memo: '', hometown: '', occupation: '', inventoryMultiplier: 1 },
+        soldier: { name: '兵士', icon: '⚔️', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦う従者' , inventoryMultiplier: 0},
+        swordsman: { name: '剣士', icon: '⚔️', level: 4, skill: 1, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦う従者' , inventoryMultiplier: 0},
+        archer: { name: '弓兵', icon: '🏹', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'dex', subLabel: '器用', subVal: 0, subMax: 0, rangedMod: 1, meleeMod: -1, memo: '戦う従者：遠隔攻撃+1、近接攻撃-1' , inventoryMultiplier: 0},
+        mage: { name: '魔術師', icon: '🧙', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'mag', subLabel: '魔術', subVal: 1, subMax: 1, memo: '戦う従者：人数＝魔術点' , inventoryMultiplier: 0},
+        scout: { name: '斥候', icon: '🕯️', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'dex', subLabel: '器用', subVal: 0, subMax: 0, memo: '戦わない従者' , inventoryMultiplier: 0},
+        porter: { name: '荷物持ち', icon: '🎒', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦わない従者', inventoryMultiplier: 3 },
+        lantern: { name: 'ランタン持ち', icon: '🏮', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'luck', subLabel: '幸運', subVal: 0, subMax: 0, memo: '戦わない従者' , inventoryMultiplier: 0},
+        tachi_mochi: { name: '太刀持ち', icon: '🗡️', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦わない従者'  , inventoryMultiplier: 0},
     };
 
     function addFromPreset(key) {
@@ -1086,6 +1166,9 @@
                 clue: p.clue || 0,
                 gold: p.gold || 0,
                 memo: p.memo,
+                occupation: p.occupation || '',
+                hometown: p.hometown || '',
+                inventoryMultiplier: (p.inventoryMultiplier !== undefined) ? p.inventoryMultiplier : 1,
                 meleeMod: p.meleeMod || 0,
                 rangedMod: p.rangedMod || 0,
                 armorMod: p.armorMod || 0,
@@ -1186,6 +1269,57 @@
             }
         }
     }
+
+    // --- Swipe & Tab Logic ---
+    let xDown = null;
+    let yDown = null;
+
+    function handleTouchStart(evt) {
+        const firstTouch = evt.touches[0];
+        xDown = firstTouch.clientX;
+        yDown = firstTouch.clientY;
+    }
+
+    function handleTouchEnd(evt, charId) {
+        if (!xDown || !yDown) {
+            return;
+        }
+
+        var xUp = evt.changedTouches[0].clientX;
+        var yUp = evt.changedTouches[0].clientY;
+
+        var xDiff = xDown - xUp;
+        var yDiff = yDown - yUp;
+
+        if (Math.abs(xDiff) > Math.abs(yDiff)) {
+            if (Math.abs(xDiff) > 50) { // Threshold
+                const c = appState.characters[charId];
+                const tabs = ['adventure', 'equipment', 'memo'];
+                let currentIdx = tabs.indexOf(c.activeSubTab || 'adventure');
+                
+                if (xDiff > 0) {
+                    /* left swipe -> next tab */
+                    currentIdx = (currentIdx + 1) % tabs.length;
+                } else {
+                    /* right swipe -> prev tab */
+                    currentIdx = (currentIdx - 1 + tabs.length) % tabs.length;
+                }
+                
+                switchCharSubTab(charId, tabs[currentIdx]);
+            }
+        }
+        xDown = null;
+        yDown = null;
+    }
+
+    function switchCharSubTab(id, tab) {
+        if (appState.characters[id]) {
+            appState.characters[id].activeSubTab = tab;
+            renderCurrentCharacterSheet();
+            saveData();
+        }
+    }
+
     //① renderCurrentCharacterSheet（キャラシートの自動生成）
 function renderCurrentCharacterSheet() {
     const container = document.getElementById('current-character-sheet');
@@ -1226,6 +1360,9 @@ function renderCurrentCharacterSheet() {
         if (!c.deletedResources) c.deletedResources = [];
         if (c.isSelected === undefined) c.isSelected = false;
         if (c.isExpanded === undefined) c.isExpanded = false;
+        
+        // Tab initialization
+        if (!c.activeSubTab) c.activeSubTab = 'adventure';
 
         // --- 状態判定 ---
         const isActive = (id === appState.currentCharacterId);
@@ -1238,10 +1375,14 @@ function renderCurrentCharacterSheet() {
             ondragover="handleDragOver(event)" 
             ondrop="handleDrop(event, '${id}')"
             ondragleave="handleDragLeave(event)">
-            <summary class="relative flex items-center justify-between p-3 pr-8 cursor-pointer list-none hover:bg-opacity-80 transition-colors select-none"
+            <summary class="relative flex items-center justify-between p-0 pr-8 cursor-pointer list-none hover:bg-opacity-80 transition-colors select-none h-10"
                 onclick="event.preventDefault(); setActiveCharacter('${id}')">
 
-                <div class="flex items-center flex-grow min-w-0 gap-2">
+                <div class="flex items-center flex-grow min-w-0 gap-2 h-full">
+                    <!-- Portrait Icon -->
+                    <div class="relative w-10 h-full shrink-0 bg-gray-200 overflow-hidden cursor-pointer border-r border-gray-300 group-hover:border-indigo-300" onclick="event.stopPropagation(); showPortraitModal('${id}')">
+                        ${d.portrait ? `<img src="${d.portrait}" class="w-full h-full object-cover" style="object-position: ${d.iconPosition || '50% 50%'}">` : `<div class="w-full h-full flex items-center justify-center text-gray-400 text-[8px]">No Img</div>`}
+                    </div>
                     
                     <!-- 名前入力 -->
                     <input type="text" value="${c.name || ''}" 
@@ -1274,142 +1415,21 @@ function renderCurrentCharacterSheet() {
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </div>
             </summary>
-            <div class="p-3 border-t border-gray-100 flex flex-col items-stretch gap-4 w-full">`;
-
-        // --- 内部ツールバー: 並び替え & ランダムチェック ---
-        h += `<div class="flex justify-end items-center mb-1">
-            <label class="flex items-center text-[10px] cursor-pointer select-none px-2 hover:text-indigo-700">
-                <input type="checkbox" class="mr-1 h-3 w-3 accent-indigo-600" 
-                    ${c.isSelected ? 'checked' : ''} 
-                    onchange="toggleCharSelection('${id}')">
-                <span>ランダム選出対象</span>
-            </label>
-        </div>`;
-
-        const resourceConfigs = [
-            {id:'skill', l:'技量点', bg:'yellow', type:'single'}, {id:'life', l:'生命点', bg:'red', type:'sub-life'}, {id:'subAbility', l:'能力', bg:'blue', type:'sub'}, {id:'follower', l:'従者', bg:'green', type:'dual'}, {id:'food', l:'食料', bg:'orange', type:'single'}, {id:'clue', l:'手がかり', bg:'indigo', type:'single'}, {id:'gold', l:'金貨', bg:'amber', type:'single'}
-        ];
-        const mainRes = resourceConfigs.slice(0, 4);
-        const subRes = resourceConfigs.slice(4);
-
-        // 1. 主要リソース (2列)
-        h += `<div class="grid grid-cols-2 gap-1 w-full">`;
-        mainRes.forEach(res => {
-            if(c.deletedResources.includes(res.id)) return;
-            const isSpecial = (res.type === 'sub-life' || res.type === 'sub');
-            const target = isSpecial ? (res.type === 'sub-life' ? d.life : d.subAbility) : null;
-            const val = d[res.id];
-            let logLabel = res.l;
-            if (isSpecial && target) { logLabel = target.label; }
-
-            h += `<div class="bg-${res.bg}-50 border border-${res.bg}-200 p-0.5 rounded flex items-center justify-between group h-9 shadow-sm w-full">
-                <div class="flex-grow min-w-0 pr-1">
-                    ${isSpecial ? `<div class="relative flex items-center">
-                            <select class="font-bold bg-transparent w-full focus:outline-none cursor-pointer text-gray-700 text-[11px] appearance-none pr-4 z-10" onchange="event.stopPropagation(); const ch=appState.characters['${id}']; const t=ch.data.${res.type==='sub-life'?'life':'subAbility'}; t.type=this.value; t.label=this.options[this.selectedIndex].text; renderCurrentCharacterSheet(); saveData();">
-                                ${(res.type==='sub-life' ? [{v:'hp',t:'生命'},{v:'num',t:'人数'},{v:'app',t:'出現数'}] : [{v:'luck',t:'幸運'},{v:'str',t:'筋力'},{v:'mag',t:'魔術'},{v:'dex',t:'器用'}]).map(opt => `<option value="${opt.v}" ${target.type===opt.v?'selected':''}>${opt.t}</option>`).join('')}
-                            </select>
-                            <div class="absolute right-0 pointer-events-none text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 9l-7 7-7-7" /></svg></div>
-                        </div>` : `<span class="font-bold text-gray-600 text-[11px] truncate pl-1">${res.l}</span>`}
+            
+            <!-- Tab Navigation -->
+            <div class="border-t border-gray-100 bg-gray-50/50">
+                <div class="flex border-b border-gray-200">
+                    <button onclick="event.stopPropagation(); switchCharSubTab('${id}', 'adventure')" class="flex-1 py-2 text-[10px] font-bold transition-colors ${c.activeSubTab === 'adventure' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white' : 'text-gray-500 hover:bg-gray-100'}">冒険</button>
+                    <button onclick="event.stopPropagation(); switchCharSubTab('${id}', 'equipment')" class="flex-1 py-2 text-[10px] font-bold transition-colors ${c.activeSubTab === 'equipment' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white' : 'text-gray-500 hover:bg-gray-100'}">装備・能力</button>
+                    <button onclick="event.stopPropagation(); switchCharSubTab('${id}', 'memo')" class="flex-1 py-2 text-[10px] font-bold transition-colors ${c.activeSubTab === 'memo' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white' : 'text-gray-500 hover:bg-gray-100'}">メモ</button>
                 </div>
-                <div class="flex items-center space-x-1">
-                    <div class="flex items-center bg-white/50 rounded border border-${res.bg}-100 px-1">
-                        ${isSpecial || res.type === 'dual' ? `<input type="number" value="${isSpecial ? target.current : (val?.current||0)}" ${isSpecial && res.type==='sub-life' ? 'data-res-key="life.current"' : ''} class="w-9 text-center text-[11px] font-bold bg-transparent outline-none" onchange="onResChange('${isSpecial?(res.type==='sub-life'?'life':'subAbility'):res.id}', '${logLabel}', this.value, false, '${id}')"><span class="text-gray-400 text-[10px]">/</span><input type="number" value="${isSpecial ? target.max : (val?.max||0)}" class="w-9 text-center text-[11px] bg-transparent text-gray-400 outline-none" onchange="onResChange('${isSpecial?(res.type==='sub-life'?'life':'subAbility'):res.id}', '${logLabel}', this.value, true, '${id}')">` : `<input type="number" value="${val||0}" class="w-10 text-center text-[11px] font-bold bg-transparent outline-none" onchange="onResChange('${res.id}', '${res.l}', this.value, false, '${id}')">`}
-                    </div>
-                    <button onclick="event.stopPropagation(); appState.characters['${id}'].deletedResources.push('${res.id}'); renderCurrentCharacterSheet(); saveData();" class="text-red-300 hover:text-red-500 hidden group-hover:block transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg></button>
+
+                <!-- Tab Content -->
+                <div class="p-3 min-h-[200px]" ontouchstart="handleTouchStart(event)" ontouchend="handleTouchEnd(event, '${id}')">
+                    ${renderTabContent(id, c.activeSubTab)}
                 </div>
-            </div>`;
-        });
-        h += `</div>`;
-
-        // 2. サブリソース & カスタムリソース (3列)
-        h += `<div class="grid grid-cols-3 gap-1 w-full mt-1">`;
-        subRes.forEach(res => {
-            if(c.deletedResources.includes(res.id)) return;
-            const val = d[res.id];
-            h += `<div class="bg-${res.bg}-50 border border-${res.bg}-200 p-0.5 rounded flex items-center justify-between h-8 shadow-sm w-full group gap-1">
-                    <span class="font-bold text-gray-600 text-[10px] pl-1 truncate">${res.l}</span>
-                    <div class="flex items-center space-x-1">
-                        <div class="flex items-center bg-white/50 rounded border border-${res.bg}-100 px-1">
-                            <input type="number" value="${val||0}" class="w-10 text-center text-[11px] font-bold bg-transparent outline-none" onchange="onResChange('${res.id}', '${res.l}', this.value, false, '${id}')">
-                        </div>
-                        <button onclick="event.stopPropagation(); appState.characters['${id}'].deletedResources.push('${res.id}'); renderCurrentCharacterSheet(); saveData();" class="text-red-300 hover:text-red-500 hidden group-hover:block transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg></button>
-                    </div>
-                </div>`;
-        });
-        if (c.customResources) {
-            c.customResources.forEach((res, idx) => {
-                h += `<div class="bg-purple-50 border border-purple-200 p-0.5 rounded flex items-center justify-between h-8 shadow-sm w-full group gap-1">
-                        <input type="text" value="${res.name}" class="font-bold text-purple-700 bg-transparent flex-grow min-w-0 focus:outline-none text-[10px] pl-1" onchange="appState.characters['${id}'].customResources[${idx}].name=this.value; saveData();">
-                        <div class="flex items-center space-x-1">
-                            <div class="flex items-center bg-white/50 rounded border border-purple-100 px-1">
-                                <input type="number" value="${res.current}" class="w-10 text-center text-[11px] font-bold bg-transparent outline-none text-purple-800" onchange="onCustomResChange('${id}', ${idx}, this.value, false)">
-                            </div>
-                            <button onclick="event.stopPropagation(); appState.characters['${id}'].customResources.splice(${idx},1); renderCurrentCharacterSheet(); saveData();" class="text-red-300 hover:text-red-500 hidden group-hover:block transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" /></svg>
-                            </button>
-                        </div>
-                    </div>`;
-            });
-        }
-        h += `</div>`;
-       
-        // --- 1-2. 戦闘アクションタイルの生成 ---
-        h += `<div class="pt-2 border-t border-gray-100 w-full">
-                <p class="text-[10px] font-bold text-orange-600 mb-2 pl-1">⚔️ 戦闘・特殊判定</p>
-                <div class="grid grid-cols-2 gap-1 w-full">`;
-
-        const canMagicAbility = (d.subAbility.type === 'mag' || d.subAbility.type === 'luck');
-        const actions = [
-            {k:'meleeMod', l:'接近', c:'orange', t:'接近', hasAbility: true, hasSkill: true}, {k:'rangedMod', l:'遠隔', c:'emerald', t:'遠距離', hasAbility: true, hasSkill: true}, {k:'armorMod', l:'防御', c:'gray', t:'防御', hasAbility: true, hasSkill: true}, {k:'magicResistMod', l:'対魔', c:'purple', t:'対魔法', hasAbility: canMagicAbility, hasSkill: true}, {k:'lifeMod', l:'生命', c:'red', t:'生命', hasAbility: true, hasSkill: false}
-        ];
-
-        actions.forEach(item => {
-            h += `<div class="bg-${item.c}-50 border border-${item.c}-200 p-0.5 rounded flex items-center justify-between h-9 shadow-sm w-full">
-                    <span class="text-[11px] font-bold text-${item.c}-700 pl-1">${item.l}</span>
-                    <div class="flex items-center space-x-1">
-                        <span class="text-[9px] text-${item.c}-400">修:</span>
-                        <input type="number" value="${d[item.k] || 0}" class="w-8 text-center text-[11px] font-bold bg-white border border-${item.c}-100 rounded outline-none" onchange="onResChange('${item.k}', '${item.l}修正', this.value, false, '${id}')">
-                        <div class="flex gap-1 ml-1">
-                            ${item.hasAbility ? `<button onclick="event.stopPropagation(); handleActionRoll('${id}', '${item.t}', 'ability')" class="w-7 h-7 bg-${item.c}-600 text-white text-[10px] rounded font-bold shadow-sm hover:bg-${item.c}-700 transition-colors">${item.hasSkill ? '能' : 'Roll'}</button>` : ''}
-                            ${item.hasSkill ? `<button onclick="event.stopPropagation(); handleActionRoll('${id}', '${item.t}', 'skill')" class="w-7 h-7 bg-${item.c}-500 text-white text-[10px] rounded font-bold shadow-sm hover:bg-${item.c}-600 transition-colors">技</button>` : ''}
-                        </div>
-                    </div>
-                </div>`;
-        });
-        h += `</div></div>`;
-
-        // --- 【セクション2：能力判定（4つの基本ステータス）】 ---
-        h += `<div class="pt-2 border-t border-gray-100 w-full">
-                <p class="text-[10px] font-bold text-blue-500 mb-2 pl-1">💎 能力判定 (左:副能力修正 / 右:技量ロール)</p>
-                <div class="grid grid-cols-2 gap-1 w-full">
-                    ${['luck', 'str', 'mag', 'dex'].map(key => {
-                        const names = {luck:'幸運', str:'筋力', mag:'魔術', dex:'器用'};
-                        const mod = d.abilityMods[key] || 0;
-                        const isSelected = (d.subAbility && d.subAbility.type === key);
-                        return `<div class="flex items-center justify-between border ${isSelected ? 'border-blue-300 bg-blue-50' : 'border-gray-100 bg-white'} p-0.5 rounded h-9 shadow-sm w-full">
-                                <span class="text-[11px] font-bold w-5 text-center ${isSelected ? 'text-blue-700' : 'text-gray-300'}">${names[key].charAt(0)}</span>
-                                <div class="flex items-center space-x-1">
-                                    <span class="text-[9px] text-blue-400">修:</span>
-                                    <input type="number" value="${mod}" class="w-7 text-center text-[11px] border-b border-blue-200 bg-transparent outline-none" onchange="updateAbilityMod('${id}', '${key}', this.value)">
-                                    <div class="flex gap-1 ml-1">
-                                        <button onclick="event.stopPropagation(); handleActionRoll('${id}', '${names[key]}', 'ability')" class="w-7 h-7 ${isSelected ? 'bg-blue-600' : 'bg-gray-200 text-gray-400'} text-white text-[10px] rounded font-bold" ${!isSelected ? 'disabled' : ''}>能</button>
-                                        <button onclick="event.stopPropagation(); handleActionRoll('${id}', '${names[key]}', 'skill')" class="w-7 h-7 bg-gray-500 text-white text-[10px] rounded font-bold">技</button>
-                                    </div>
-                                </div>
-                            </div>`;
-                    }).join('')}
-                </div>
-            </div>`;
-
-        // --- 【セクション3：メモ ＆ ユーティリティボタン】 ---
-        h += `<textarea class="w-full text-[12px] border border-gray-200 h-28 p-2 rounded-md focus:ring-1 focus:ring-blue-400 focus:outline-none bg-yellow-50/30" placeholder="メモ・所持品" onclick="event.stopPropagation();" onchange="appState.characters['${id}'].data.memo=this.value; saveData();">${d.memo || ""}</textarea>
-            <div class="grid grid-cols-4 gap-2 w-full pb-2">
-                <button onclick="event.stopPropagation(); addCustomResourceTo('${id}')" class="bg-purple-100 text-purple-700 hover:bg-purple-200 text-[10px] py-2 rounded font-bold">＋ 項目</button>
-                <button onclick="event.stopPropagation(); downloadCharacterById('${id}')" class="bg-blue-100 text-blue-700 hover:bg-blue-200 text-[10px] py-2 rounded font-bold">💾 保存</button>
-                <button onclick="event.stopPropagation(); if(confirm('全リセットしますか？')) { appState.characters['${id}'].deletedResources=[]; renderCurrentCharacterSheet(); saveData(); }" class="text-[10px] text-gray-400 bg-gray-50 py-2 rounded border border-gray-100">リセット</button>
-                <button onclick="event.stopPropagation(); if(confirm('${c.name} を削除してもよろしいですか？')) { deleteCharacter('${id}'); }" class="text-[10px] text-red-400 bg-red-50 py-2 rounded border border-red-100">削除</button>
             </div>
-        </div> </details> `;
+        </details>`;
     });
 
     // 2. 「新しいキャラクターを追加」ボタン
@@ -1430,6 +1450,251 @@ function renderCurrentCharacterSheet() {
 
     // 3. 生成したHTMLをDOMに反映
     container.innerHTML = h;
+}
+
+function renderTabContent(id, tab) {
+    const c = appState.characters[id];
+    const d = c.data;
+    let h = '';
+
+    if (tab === 'adventure') {
+        // --- Adventure Tab Content ---
+        h += `<div class="flex justify-end items-center mb-1">
+            <label class="flex items-center text-[10px] cursor-pointer select-none px-2 hover:text-indigo-700">
+                <input type="checkbox" class="mr-1 h-3 w-3 accent-indigo-600" 
+                    ${c.isSelected ? 'checked' : ''} 
+                    onchange="toggleCharSelection('${id}')">
+                <span>ランダム選出対象</span>
+            </label>
+        </div>
+        <div class="space-y-2 mb-3">`;
+
+        const resourceConfigs = [
+            {id:'skill', l:'技量点', type:'single'}, {id:'life', l:'生命点', type:'sub-life'}, {id:'subAbility', l:'能力', type:'sub'}, {id:'follower', l:'従者', type:'dual'}, {id:'food', l:'食料', type:'single'}, {id:'clue', l:'手がかり', type:'single'}, {id:'gold', l:'金貨', type:'single'}
+        ];
+        
+        // バー表示するリソースとそれ以外を分離
+        const barRes = resourceConfigs.filter(r => ['life', 'subAbility', 'follower'].includes(r.id));
+        const otherRes = resourceConfigs.filter(r => !['life', 'subAbility', 'follower'].includes(r.id));
+
+        // 1. プログレスバー表示 (生命・能力・従者)
+        barRes.forEach(res => {
+            if(c.deletedResources.includes(res.id)) return;
+            const isSpecial = (res.type === 'sub-life' || res.type === 'sub');
+            const target = isSpecial ? (res.type === 'sub-life' ? d.life : d.subAbility) : null;
+            const val = d[res.id];
+            const current = isSpecial ? target.current : val.current;
+            const max = isSpecial ? target.max : val.max;
+            let logLabel = res.l;
+            if (isSpecial && target) { logLabel = target.label; }
+            
+            // バーの色決定
+            const barColor = 'bg-blue-600';
+            const trackColor = 'bg-blue-100';
+            
+            const percent = max > 0 ? Math.min(100, Math.max(0, (current / max) * 100)) : 0;
+
+            h += `<div class="flex items-center gap-1 h-7">
+                <div class="w-16 shrink-0">
+                    ${isSpecial ? `<div class="relative">
+                            <select class="w-full bg-transparent font-bold text-gray-700 focus:outline-none appearance-none pr-3 text-[10px]" onchange="event.stopPropagation(); const ch=appState.characters['${id}']; const t=ch.data.${res.type==='sub-life'?'life':'subAbility'}; t.type=this.value; t.label=this.options[this.selectedIndex].text; renderCurrentCharacterSheet(); saveData();">
+                                ${(res.type==='sub-life' ? [{v:'hp',t:'生命'},{v:'num',t:'人数'},{v:'app',t:'出現数'}] : [{v:'luck',t:'幸運'},{v:'str',t:'筋力'},{v:'mag',t:'魔術'},{v:'dex',t:'器用'}]).map(opt => `<option value="${opt.v}" ${target.type===opt.v?'selected':''}>${opt.t}</option>`).join('')}
+                            </select>
+                        </div>` : `<span class="font-bold text-gray-600 text-[10px]">${res.l}</span>`}
+                </div>
+                <button onclick="adjustResource('${id}', '${res.id}', -1)" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded text-gray-600 font-bold text-xs border border-gray-300">-</button>
+                <div class="flex-grow relative h-5 ${trackColor} progress-bar-track rounded-full overflow-hidden cursor-pointer border border-gray-300" onclick="const v=prompt('${logLabel}の現在値を入力', ${current}); if(v!==null) { onResChange('${res.id}', '${logLabel}', v, false, '${id}'); renderCurrentCharacterSheet(); }">
+                    <div class="h-full ${barColor} progress-bar-fill transition-all duration-300" style="width: ${percent}%"></div>
+                    <div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md" style="text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${current} / ${max}</div>
+                </div>
+                <button onclick="adjustResource('${id}', '${res.id}', 1)" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded text-gray-600 font-bold text-xs border border-gray-300">+</button>
+                <input type="number" value="${max}" class="w-8 text-center text-[10px] bg-transparent border-b border-gray-300 focus:outline-none text-gray-400" onchange="onResChange('${res.id}', '${logLabel}', this.value, true, '${id}'); renderCurrentCharacterSheet();">
+            </div>`;
+        });
+        h += `</div>`;
+
+        // 2. その他のリソース (タイル表示)
+        h += `<div class="grid grid-cols-4 gap-2 mb-2">`;
+        otherRes.forEach(res => {
+            if(c.deletedResources.includes(res.id)) return;
+            const val = d[res.id];
+            h += `<div class="bg-white border border-gray-200 rounded p-1 flex flex-col items-center justify-center shadow-sm relative group">
+                <span class="text-[9px] text-gray-500 font-bold mb-0.5">${res.l}</span>
+                <input type="number" value="${val||0}" class="w-full text-center font-bold text-sm bg-transparent outline-none text-gray-700" onchange="onResChange('${res.id}', '${res.l}', this.value, false, '${id}')">
+                <button onclick="event.stopPropagation(); appState.characters['${id}'].deletedResources.push('${res.id}'); renderCurrentCharacterSheet(); saveData();" class="absolute top-0 right-0 text-gray-300 hover:text-red-500 hidden group-hover:block p-0.5"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>
+            </div>`;
+        });
+        h += `</div>`;
+
+        // 3. カスタムリソース (リスト形式)
+        h += `<div class="space-y-1 mb-2">`;
+        if (c.customResources) {
+            c.customResources.forEach((res, idx) => {
+                h += `<div class="flex items-center gap-1 h-7">
+                    <input type="text" value="${res.name}" class="w-16 text-[10px] font-bold text-purple-700 bg-transparent border-b border-transparent focus:border-purple-500 focus:outline-none" onchange="appState.characters['${id}'].customResources[${idx}].name=this.value; saveData();">
+                    <button onclick="const v=parseInt(${res.current})||0; onCustomResChange('${id}', ${idx}, v-1, false); renderCurrentCharacterSheet();" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded text-gray-600 font-bold text-xs border border-gray-300">-</button>
+                    <div class="flex-grow relative h-5 bg-gray-200 rounded-full overflow-hidden cursor-pointer border border-gray-300" onclick="const v=prompt('${res.name}の現在値を入力', ${res.current}); if(v!==null) { onCustomResChange('${id}', ${idx}, v, false); renderCurrentCharacterSheet(); }">
+                        <div class="h-full bg-purple-400 transition-all duration-300" style="width: ${res.max > 0 ? Math.min(100, (res.current/res.max)*100) : 0}%"></div>
+                        <div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md" style="text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${res.current} / ${res.max}</div>
+                    </div>
+                    <button onclick="const v=parseInt(${res.current})||0; onCustomResChange('${id}', ${idx}, v+1, false); renderCurrentCharacterSheet();" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded text-gray-600 font-bold text-xs border border-gray-300">+</button>
+                    <input type="number" value="${res.max}" class="w-8 text-center text-[10px] bg-transparent border-b border-gray-300 focus:outline-none text-gray-400" onchange="onCustomResChange('${id}', ${idx}, this.value, true); renderCurrentCharacterSheet();">
+                    <button onclick="event.stopPropagation(); appState.characters['${id}'].customResources.splice(${idx},1); renderCurrentCharacterSheet(); saveData();" class="text-gray-300 hover:text-red-500"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>
+                </div>`;
+            });
+        }
+        h += `</div>`;
+        
+        h += `<div class="mt-2 text-right"><button onclick="event.stopPropagation(); addCustomResourceTo('${id}')" class="bg-purple-100 text-purple-700 hover:bg-purple-200 text-[10px] px-2 py-1 rounded font-bold">＋ 項目追加</button></div>`;
+
+        h += `<div class="pt-2 border-t border-gray-100 w-full">
+                <p class="text-[10px] font-bold text-orange-600 mb-2 pl-1">⚔️ 戦闘・特殊判定</p>
+                <div class="grid grid-cols-2 gap-1 w-full">`;
+
+        const canMagicAbility = (d.subAbility.type === 'mag' || d.subAbility.type === 'luck');
+        const actions = [
+            {k:'meleeMod', l:'接近', c:'orange', t:'接近', hasAbility: true, hasSkill: true}, {k:'rangedMod', l:'遠隔', c:'emerald', t:'遠距離', hasAbility: true, hasSkill: true}, {k:'armorMod', l:'防御', c:'gray', t:'防御', hasAbility: true, hasSkill: true}, {k:'magicResistMod', l:'対魔', c:'purple', t:'対魔法', hasAbility: canMagicAbility, hasSkill: true}, {k:'lifeMod', l:'生命', c:'red', t:'生命', hasAbility: true, hasSkill: false}
+        ];
+
+        actions.forEach(item => {
+            h += `<div class="bg-${item.c}-50 border border-${item.c}-200 p-0.5 rounded flex items-center justify-between h-9 shadow-sm w-full">
+                    <span class="text-[11px] font-bold text-${item.c}-700 pl-1">${item.l}</span>
+                    <div class="flex items-center space-x-1">
+                        <span class="text-[9px] text-${item.c}-400">修:</span>
+                        <input type="number" value="${d[item.k] || 0}" class="w-8 text-center text-[11px] font-bold bg-white border border-gray-200 rounded outline-none shadow-sm" onchange="onResChange('${item.k}', '${item.l}修正', this.value, false, '${id}')">
+                        <div class="flex gap-1 ml-1">
+                            ${item.hasAbility ? `<button onclick="event.stopPropagation(); handleActionRoll('${id}', '${item.t}', 'ability')" class="w-7 h-7 bg-${item.c}-600 text-white text-[10px] rounded font-bold shadow-sm hover:bg-${item.c}-700 transition-colors">${item.hasSkill ? '能' : 'Roll'}</button>` : ''}
+                            ${item.hasSkill ? `<button onclick="event.stopPropagation(); handleActionRoll('${id}', '${item.t}', 'skill')" class="w-7 h-7 bg-${item.c}-500 text-white text-[10px] rounded font-bold shadow-sm hover:bg-${item.c}-600 transition-colors">技</button>` : ''}
+                        </div>
+                    </div>
+                </div>`;
+        });
+        h += `</div></div>`;
+
+        h += `<div class="pt-2 border-t border-gray-100 w-full">
+                <p class="text-[10px] font-bold text-blue-500 mb-2 pl-1">💎 能力判定 (左:副能力修正 / 右:技量ロール)</p>
+                <div class="grid grid-cols-2 gap-1 w-full">
+                    ${['luck', 'str', 'mag', 'dex'].map(key => {
+                        const names = {luck:'幸運', str:'筋力', mag:'魔術', dex:'器用'};
+                        const mod = d.abilityMods[key] || 0;
+                        const isSelected = (d.subAbility && d.subAbility.type === key);
+                        return `<div class="flex items-center justify-between border ${isSelected ? 'border-blue-300 bg-blue-50' : 'border-gray-100 bg-white'} p-0.5 rounded h-9 shadow-sm w-full">
+                                <span class="text-[11px] font-bold w-5 text-center ${isSelected ? 'text-blue-700' : 'text-gray-300'}">${names[key].charAt(0)}</span>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-[9px] text-blue-400">修:</span>
+                                    <input type="number" value="${mod}" class="w-8 text-center text-[11px] font-bold bg-white border border-gray-200 rounded outline-none shadow-sm" onchange="updateAbilityMod('${id}', '${key}', this.value)">
+                                    <div class="flex gap-1 ml-1">
+                                        <button onclick="event.stopPropagation(); handleActionRoll('${id}', '${names[key]}', 'ability')" class="w-7 h-7 ${isSelected ? 'bg-blue-600' : 'bg-gray-200 text-gray-400'} text-white text-[10px] rounded font-bold" ${!isSelected ? 'disabled' : ''}>能</button>
+                                        <button onclick="event.stopPropagation(); handleActionRoll('${id}', '${names[key]}', 'skill')" class="w-7 h-7 bg-gray-500 text-white text-[10px] rounded font-bold">技</button>
+                                    </div>
+                                </div>
+                            </div>`;
+                    }).join('')}
+                </div>
+            </div>`;
+
+    } else if (tab === 'equipment') {
+        // --- Equipment Tab Content ---
+        // データ初期化
+        if (!d.slots) d.slots = { skills: [], equipped: [], inventory: [] };
+        // 既存データの移行（簡易的）
+        if (d.skills && d.skills.length > 0 && d.slots.skills.length === 0) {
+            d.slots.skills = d.skills.map(s => ({ name: s.name, desc: s.effect }));
+            delete d.skills; 
+        }
+        // 装備スロット初期化
+        if (!d.slots.equipped || d.slots.equipped.length === 0) {
+            d.slots.equipped = [
+                { label: '手1', item: null }, { label: '手2', item: null },
+                { label: '胴', item: null }, { label: '遠隔', item: null }
+            ];
+        }
+        // 所持品初期化
+        if (!d.slots.inventory) d.slots.inventory = [];
+
+        // 1. スキル
+        h += `<div class="mb-3">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[10px] font-bold text-slate-600">習得スキル</span>
+                    <button onclick="addSkillSlot('${id}')" class="text-[9px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded hover:bg-slate-200">+ 追加</button>
+                </div>
+                <div class="flex flex-wrap gap-1">
+                    ${d.slots.skills.map((s, i) => `<span class="slot-badge" onclick="openItemModal('${id}', 'skill', ${i})">${s.name || '名称未設定'}</span>`).join('')}
+                    ${d.slots.skills.length === 0 ? '<span class="text-[9px] text-gray-400 italic">なし</span>' : ''}
+                </div>
+              </div>`;
+
+        // 2. 装備
+        h += `<div class="mb-3 border-t border-gray-100 pt-2">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[10px] font-bold text-slate-600">装備</span>
+                    <button onclick="addEquipSlot('${id}')" class="text-[9px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded hover:bg-slate-200">+ 枠追加</button>
+                </div>
+                ${(() => {
+                    const hand1Index = d.slots.equipped.findIndex(s => s.label === '手1');
+                    const hand2Index = d.slots.equipped.findIndex(s => s.label === '手2');
+                    const hand2IsLocked = (hand1Index !== -1 && d.slots.equipped[hand1Index].item && d.slots.equipped[hand1Index].item.isTwoHanded);
+                    const hand1IsLocked = (hand2Index !== -1 && d.slots.equipped[hand2Index].item && d.slots.equipped[hand2Index].item.isTwoHanded);
+
+                    return d.slots.equipped.map((slot, i) => {
+                        const isLocked = (i === hand2Index && hand2IsLocked) || (i === hand1Index && hand1IsLocked);
+                        if (isLocked) {
+                            return `<div class="equip-row"><span class="equip-label">${slot.label}</span><span class="slot-badge flex-grow justify-center empty opacity-50 cursor-not-allowed">--- (両手武器) ---</span></div>`;
+                        }
+                        return `<div class="equip-row"><span class="equip-label">${slot.label}</span><span class="slot-badge flex-grow justify-center ${!slot.item ? 'empty' : ''}" onclick="openItemModal('${id}', 'equip', ${i})">${slot.item ? slot.item.name : '装備なし'}</span></div>`;
+                    }).join('');
+                })()}
+              </div>`;
+        
+        // 3. 装備品（所持品）
+        const invMultiplier = (d.inventoryMultiplier !== undefined) ? d.inventoryMultiplier : 1;
+        const maxLife = (d.life && d.life.max) ? parseInt(d.life.max) : 10;
+        const maxInv = Math.floor(maxLife * invMultiplier);
+        const invCount = Math.max(maxInv, d.slots.inventory.length);
+        h += `<div class="border-t border-gray-100 pt-2">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-[10px] font-bold text-slate-600">装備品 (最大: ${maxInv})</span>
+                    <div class="flex items-center gap-1">
+                        <span class="text-[9px] text-gray-500">枠倍率:</span>
+                        <input type="number" value="${invMultiplier}" step="0.5" class="w-10 text-center text-[11px] font-bold bg-white border border-gray-200 rounded outline-none shadow-sm" onchange="const v=parseFloat(this.value); appState.characters['${id}'].data.inventoryMultiplier=isNaN(v)?1:v; renderCurrentCharacterSheet(); saveData();">
+                    </div>
+                </div>
+                <div class="inv-grid">
+                    ${Array.from({length: invCount}).map((_, i) => {
+                        const item = d.slots.inventory[i];
+                        if (item && item.isPlaceholder) {
+                             return `<div class="inv-slot placeholder" style="background-color:#f3f4f6; color:#d1d5db; border-style:dashed; cursor:default;">(続)</div>`;
+                        }
+                        const slotsText = (item && item.slots > 1) ? `<span class="text-[8px] bg-gray-200 rounded px-1 ml-1">x${item.slots}</span>` : '';
+                        return `<div class="inv-slot ${item ? 'filled' : ''}" onclick="openItemModal('${id}', 'inv', ${i})">${item ? item.name + slotsText : (i < maxInv ? (i+1) : '+')}</div>`;
+                    }).join('')}
+                </div>
+              </div>`;
+
+    } else if (tab === 'memo') {
+        // --- Memo Tab Content ---
+        h += `<div class="flex gap-3 mb-4">
+            <div class="flex-1">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">職業/種族</label>
+                    <input type="text" class="w-full text-[12px] border border-gray-200 p-2 rounded-md focus:ring-1 focus:ring-blue-400 focus:outline-none" placeholder="職業や種族を記入" onclick="event.stopPropagation();" onchange="appState.characters['${id}'].data.occupation=this.value; saveData();" value="${d.occupation || ''}">
+                </div>
+            <div class="flex-1">
+                    <label class="block text-xs font-bold text-gray-500 mb-1">故郷</label>
+                    <input type="text" class="w-full text-[12px] border border-gray-200 p-2 rounded-md focus:ring-1 focus:ring-blue-400 focus:outline-none" placeholder="故郷を記入" onclick="event.stopPropagation();" onchange="appState.characters['${id}'].data.hometown=this.value; saveData();" value="${d.hometown || ''}">
+                </div>
+              </div>`;
+
+        h += `<textarea class="w-full text-[12px] border border-gray-200 h-24 p-2 rounded-md focus:ring-1 focus:ring-blue-400 focus:outline-none bg-yellow-50/30 mb-4" placeholder="メモ" onclick="event.stopPropagation();" onchange="appState.characters['${id}'].data.memo=this.value; saveData();">${d.memo || ""}</textarea>
+            
+            <div class="grid grid-cols-4 gap-2 w-full pb-2">
+                <button onclick="event.stopPropagation(); downloadCharacterById('${id}')" class="bg-blue-100 text-blue-700 hover:bg-blue-200 text-[10px] py-2 rounded font-bold">💾 保存</button>
+                <button onclick="event.stopPropagation(); if(confirm('削除したリソース項目をリセットしますか？')) { appState.characters['${id}'].deletedResources=[]; renderCurrentCharacterSheet(); saveData(); }" class="text-[10px] text-gray-400 bg-gray-50 py-2 rounded border border-gray-100">リセット</button>
+                <button onclick="event.stopPropagation(); if(confirm('${c.name} を削除してもよろしいですか？')) { deleteCharacter('${id}'); }" class="text-[10px] text-red-400 bg-red-50 py-2 rounded border border-red-100">削除</button>
+            </div>
+        `;
+    }
+
+    return h;
 }
     // --- ランダム選出機能 ---
     function toggleCharSelection(id) {
@@ -1459,7 +1724,23 @@ function renderCurrentCharacterSheet() {
         addLogEntry('system', 'ランダム選出', `候補: ${names}\n当選:  ${winner.name} `);
         showToast(`🎲 ランダム選出\n当選: ${winner.name}`);
     }
-
+    
+    function adjustResource(id, key, delta) {
+        const c = appState.characters[id];
+        if (!c) return;
+        const d = c.data;
+        const target = (key === 'life' || key === 'subAbility') ? d[key] : (key === 'follower' ? d.follower : null);
+        
+        if (target) {
+            let val = parseInt(target.current) || 0;
+            const max = parseInt(target.max) || 0;
+            val += delta;
+            if (val < 0) val = 0;
+            if (val > max) val = max;
+            onResChange(key, target.label || (key==='follower'?'従者':''), val, false, id);
+            renderCurrentCharacterSheet();
+        }
+    }
     // カスタム項目追加用関数
     function addCustomResourceTo(id) {
         appState.characters[id].customResources.push({ name: "新項目", current: 0, max: 0 });
@@ -1831,6 +2112,10 @@ function renderCurrentCharacterSheet() {
     function renderCharacterSelector() { document.getElementById('charSelector').innerHTML = Object.entries(appState.characters).map(([id,c])=>`<option value="${id}" ${id===appState.currentCharacterId?'selected':''}>${c.name}</option>`).join(''); }
     function renderAll() { 
         document.getElementById('logTitle').value = appState.logTitle; 
+        if (document.getElementById('d66Rows')) {
+            document.getElementById('d66Rows').value = appState.d66GridSettings.rows;
+            document.getElementById('d66Cols').value = appState.d66GridSettings.cols;
+        }
         renderD66Grid(); renderD66Table(); renderLogArea(); renderEnemyPanel(); renderCurrentCharacterSheet(); 
     }
     // セッション全体の保存
@@ -2171,6 +2456,10 @@ function renderCurrentCharacterSheet() {
                 document.getElementById('soundToggle').checked = appState.settings.soundEnabled !== false;
                 document.getElementById('volRange').value = appState.settings.volume || 50;
                 document.getElementById('volValue').textContent = appState.settings.volume || 50;
+                if (document.getElementById('d66Rows')) {
+                    document.getElementById('d66Rows').value = appState.d66GridSettings.rows;
+                    document.getElementById('d66Cols').value = appState.d66GridSettings.cols;
+                }
             }
         }
     }
@@ -2587,6 +2876,630 @@ ${treasureText}
     function playDiceSound() { playAudioFile(DICE_ROLL_SE, 1.0); }
     function playCriticalSound() { playAudioFile(CRITICAL_SE, 0.4); }
     function playFanFanSound() { playAudioFile(FUMBLE_SE, 0.4); }
+    // --- Portrait Logic ---
+    function handlePortraitUpload(event, charId) {
+        const file = event.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const maxWidth = 300;
+                let width = img.width;
+                let height = img.height;
+                
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                // 透過PNG対策：背景を白で塗りつぶす
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, width, height);
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                const base64 = canvas.toDataURL('image/jpeg', 0.85);
+                appState.characters[charId].data.portrait = base64;
+                appState.characters[charId].data.iconPosition = "50% 50%";
+                saveData();
+                renderCurrentCharacterSheet();
+                
+                if(document.getElementById('portraitModal').style.display === 'flex') {
+                    showPortraitModal(charId);
+                }
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function setPortraitUrl(charId, url) {
+        appState.characters[charId].data.portrait = url;
+        appState.characters[charId].data.iconPosition = "50% 50%";
+        saveData();
+        renderCurrentCharacterSheet();
+        if(document.getElementById('portraitModal').style.display === 'flex') {
+            showPortraitModal(charId);
+        }
+    }
+
+    function showPortraitModal(charId) {
+        const c = appState.characters[charId];
+        if (!c) return;
+        
+        const modal = document.getElementById('portraitModal');
+        const contentDiv = modal.querySelector('.modal-content');
+        const d = c.data;
+        const hasPortrait = d.portrait && d.portrait !== "";
+        
+        if (!d.iconPosition) d.iconPosition = "50% 50%";
+        const [posX, posY] = d.iconPosition.split(' ').map(s => parseInt(s));
+        
+        contentDiv.innerHTML = `
+            <div class="bg-white p-4 rounded-lg shadow-2xl max-w-md w-full flex flex-col gap-4 relative" onclick="event.stopPropagation()">
+                <button onclick="document.getElementById('portraitModal').style.display='none'" class="absolute top-2 right-2 text-gray-400 hover:text-gray-600 z-10 bg-white rounded-full p-1 shadow-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+                <div class="flex justify-center items-center bg-gray-100 rounded overflow-hidden min-h-[200px] max-h-[60vh] border border-gray-200">
+                    ${hasPortrait ? `<img src="${d.portrait}" class="max-w-full max-h-[50vh] object-contain">` : `<div class="text-gray-400 flex flex-col items-center p-8"><span class="text-4xl mb-2">👤</span><span class="text-xs">No Image</span></div>`}
+                </div>
+                <div class="flex flex-col gap-3 pt-2 border-b border-gray-100 pb-4">
+                    <label class="flex items-center justify-center w-full p-2 bg-indigo-600 text-white rounded-lg cursor-pointer hover:bg-indigo-700 transition-colors shadow-md">
+                        <span class="font-bold text-xs">📂 画像をアップロード</span>
+                        <input type="file" accept="image/*" class="hidden" onchange="handlePortraitUpload(event, '${charId}')">
+                    </label>
+                    <div class="flex gap-2 items-center">
+                        <input type="text" placeholder="または画像URL" class="flex-1 border border-gray-300 rounded p-2 text-xs focus:ring-2 focus:ring-indigo-400 outline-none" onchange="setPortraitUrl('${charId}', this.value)" value="${hasPortrait && d.portrait.startsWith('http') ? d.portrait : ''}">
+                        ${hasPortrait ? `<button onclick="setPortraitUrl('${charId}', '')" class="text-red-500 border border-red-200 bg-red-50 px-3 py-2 rounded text-xs hover:bg-red-100 whitespace-nowrap">削除</button>` : ''}
+                    </div>
+                </div>
+                ${hasPortrait ? `
+                <div class="flex flex-col gap-2">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-gray-600">アイコン表示位置調整</span>
+                        <div class="w-10 h-10 rounded overflow-hidden border border-gray-300 bg-gray-200 shrink-0">
+                            <img id="iconPreview" src="${d.portrait}" class="w-full h-full object-cover" style="object-position: ${d.iconPosition}">
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                        <span>↔</span>
+                        <input type="range" min="0" max="100" value="${posX}" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="updateIconPos('${charId}', this.value, null)">
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                        <span>↕</span>
+                        <input type="range" min="0" max="100" value="${posY}" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="updateIconPos('${charId}', null, this.value)">
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+        `;
+        modal.style.display = 'flex';
+    }
+
+    function updateIconPos(charId, x, y) {
+        const c = appState.characters[charId];
+        if (!c) return;
+        let [curX, curY] = (c.data.iconPosition || "50% 50%").split(' ').map(s => parseInt(s));
+        if (x !== null) curX = x;
+        if (y !== null) curY = y;
+        const newPos = `${curX}% ${curY}%`;
+        c.data.iconPosition = newPos;
+        const preview = document.getElementById('iconPreview');
+        if (preview) preview.style.objectPosition = newPos;
+        saveData();
+        renderCurrentCharacterSheet();
+    }
+
+    // --- Item Edit Logic ---
+    let editingItem = null; // { charId, type, index }
+
+    function openItemModal(charId, type, index) {
+        editingItem = { charId, type, index };
+        const char = appState.characters[charId];
+        let item = null;
+        let title = "";
+
+        // UI初期化
+        document.getElementById('itemEquipSelector').classList.add('hidden');
+        document.getElementById('btnEquip').classList.add('hidden');
+        document.getElementById('btnUnequip').classList.add('hidden');
+        document.getElementById('itemTransferSelector').classList.add('hidden');
+        document.getElementById('itemAttributes').classList.add('hidden');
+        document.getElementById('btnTransfer').classList.add('hidden');
+
+        if (type === 'skill') {
+            item = char.data.slots.skills[index];
+            title = "スキル編集";
+        } else if (type === 'equip') {
+            item = char.data.slots.equipped[index].item;
+            title = char.data.slots.equipped[index].label + "の装備";
+            if (item) {
+                document.getElementById('btnUnequip').classList.remove('hidden');
+                renderTransferCharList(charId);
+                document.getElementById('itemAttributes').classList.remove('hidden');
+                document.getElementById('itemEditTwoHanded').checked = !!item.isTwoHanded;
+            }
+        } else if (type === 'inv') {
+            item = char.data.slots.inventory[index];
+            title = "所持品編集";
+            if (item) {
+                document.getElementById('itemEquipSelector').classList.remove('hidden');
+                document.getElementById('btnEquip').classList.remove('hidden');
+                document.getElementById('itemAttributes').classList.remove('hidden');
+                document.getElementById('itemEditTwoHanded').checked = !!item.isTwoHanded;
+                renderEquipSlots(charId);
+                renderTransferCharList(charId);
+            }
+        }
+
+        document.getElementById('itemEditTitle').textContent = title;
+        document.getElementById('itemEditName').value = item ? item.name : "";
+        document.getElementById('itemEditDesc').value = item ? (item.desc || "") : "";
+        document.getElementById('itemEditMod').value = item ? (item.mod || "") : "";
+        document.getElementById('itemEditUses').value = item ? (item.uses || "") : "";
+        document.getElementById('itemEditSlots').value = item ? (item.slots || 1) : 1;
+        
+        document.getElementById('itemEditModal').style.display = 'flex';
+    }
+
+    function closeItemModal() {
+        document.getElementById('itemEditModal').style.display = 'none';
+        editingItem = null;
+    }
+
+    function saveItem() {
+        if (!editingItem) return;
+        const { charId, type, index } = editingItem;
+        const char = appState.characters[charId];
+        const name = document.getElementById('itemEditName').value;
+        const desc = document.getElementById('itemEditDesc').value;
+        const mod = document.getElementById('itemEditMod').value;
+        const uses = document.getElementById('itemEditUses').value;
+        const slots = parseInt(document.getElementById('itemEditSlots').value) || 1;
+        const isTwoHanded = document.getElementById('itemEditTwoHanded').checked;
+        
+        const updateItem = (itm) => {
+            itm.name = name;
+            itm.desc = desc;
+            itm.mod = mod;
+            itm.uses = uses ? parseInt(uses) : "";
+            itm.slots = slots;
+            if (isTwoHanded) {
+                itm.isTwoHanded = true;
+            } else {
+                delete itm.isTwoHanded;
+            }
+        };
+
+        if (type === 'skill') {
+            if (!char.data.slots.skills[index]) char.data.slots.skills[index] = {};
+            updateItem(char.data.slots.skills[index]);
+        } else if (type === 'equip') {
+            if (name) {
+                if (!char.data.slots.equipped[index].item) char.data.slots.equipped[index].item = {};
+                updateItem(char.data.slots.equipped[index].item);
+            } else {
+                char.data.slots.equipped[index].item = null;
+            }
+        } else if (type === 'inv') {
+            if (name) {
+                // Inventory Slot Management
+                const inv = char.data.slots.inventory;
+                const currentItem = inv[index] || {};
+                const oldSlots = currentItem.slots || 1;
+                
+                // Check capacity if expanding
+                if (slots > oldSlots) {
+                    for (let i = 1; i < slots; i++) {
+                        const targetIdx = index + i;
+                        // Check if slot exists and is empty (or is our own placeholder)
+                        if (inv[targetIdx] && !inv[targetIdx].isPlaceholder) {
+                            alert(`スロット ${targetIdx + 1} が空いていないため、枠数を増やせません。`);
+                            return;
+                        }
+                        if (inv[targetIdx] && inv[targetIdx].isPlaceholder && inv[targetIdx].parentIndex !== index) {
+                            alert(`スロット ${targetIdx + 1} が空いていないため、枠数を増やせません。`);
+                            return;
+                        }
+                    }
+                }
+
+                if (!inv[index]) inv[index] = {};
+                updateItem(inv[index]);
+
+                // Update placeholders
+                const maxRange = Math.max(oldSlots, slots);
+                for (let i = 1; i < maxRange; i++) {
+                    if (i < slots) {
+                        inv[index + i] = { isPlaceholder: true, parentIndex: index, name: "(続)" };
+                    } else {
+                        // If we are shrinking, clear the slot if it was our placeholder
+                        if (inv[index + i] && inv[index + i].isPlaceholder && inv[index + i].parentIndex === index) {
+                            inv[index + i] = null;
+                        }
+                    }
+                }
+            } else {
+                deleteInventoryItem(char, index);
+            }
+        }
+        saveData();
+        renderCurrentCharacterSheet();
+        closeItemModal();
+    }
+
+    function deleteItem() {
+        if (!editingItem) return;
+        const { charId, type, index } = editingItem;
+        const char = appState.characters[charId];
+
+        if (type === 'skill') {
+            char.data.slots.skills.splice(index, 1);
+        } else if (type === 'equip') {
+            char.data.slots.equipped[index].item = null;
+        } else if (type === 'inv') {
+            deleteInventoryItem(char, index);
+        }
+        saveData();
+        renderCurrentCharacterSheet();
+        closeItemModal();
+    }
+
+    function deleteInventoryItem(char, index) {
+        const item = char.data.slots.inventory[index];
+        if (item && item.slots > 1) {
+            for (let i = 1; i < item.slots; i++) {
+                if (char.data.slots.inventory[index + i] && char.data.slots.inventory[index + i].isPlaceholder) {
+                    char.data.slots.inventory[index + i] = null;
+                }
+            }
+        }
+        char.data.slots.inventory[index] = null;
+    }
+
+    function useItem() {
+        if (!editingItem) return;
+        const { charId, type, index } = editingItem;
+        const char = appState.characters[charId];
+        let item = null;
+
+        if (type === 'skill') item = char.data.slots.skills[index];
+        else if (type === 'equip') item = char.data.slots.equipped[index].item;
+        else if (type === 'inv') item = char.data.slots.inventory[index];
+
+        if (!item) return;
+
+        addLogEntry('system', 'アイテム使用', `[${char.name}] ${item.name} を使用します`);
+
+        if (item.uses && item.uses > 0) {
+            item.uses--;
+            if (item.uses <= 0) {
+                deleteItem(); // 残り回数0で削除
+                return;
+            } else {
+                document.getElementById('itemEditUses').value = item.uses;
+            }
+            saveData();
+            renderCurrentCharacterSheet();
+        }
+    }
+
+    function addEquipSlot(charId) {
+        const label = prompt("スロット名を入力してください（例：装飾品）");
+        if (label) {
+            appState.characters[charId].data.slots.equipped.push({ label: label, item: null });
+            saveData();
+            renderCurrentCharacterSheet();
+        }
+    }
+    
+    function addSkillSlot(charId) {
+         appState.characters[charId].data.slots.skills.push({ name: "新規スキル", desc: "" });
+         saveData();
+         renderCurrentCharacterSheet();
+    }
+
+    // --- Equip / Unequip Logic ---
+    function renderEquipSlots(charId) {
+        const char = appState.characters[charId];
+        const container = document.getElementById('equipSlotList');
+        container.innerHTML = '';
+        
+        char.data.slots.equipped.forEach((slot, idx) => {
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-2';
+            
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'equipTarget';
+            radio.value = idx;
+            radio.id = 'equip_slot_' + idx;
+            if (idx === 0) radio.checked = true;
+            
+            const label = document.createElement('label');
+            label.htmlFor = 'equip_slot_' + idx;
+            label.className = 'cursor-pointer flex-grow truncate';
+            const itemName = slot.item ? slot.item.name : '(空き)';
+            label.textContent = `${slot.label}: ${itemName}`;
+            
+            div.appendChild(radio);
+            div.appendChild(label);
+            container.appendChild(div);
+        });
+    }
+
+    function executeEquip() {
+        if (!editingItem || editingItem.type !== 'inv') return;
+        const radios = document.getElementsByName('equipTarget');
+        const char = appState.characters[editingItem.charId];
+        const invIdx = editingItem.index;
+        const invItem = char.data.slots.inventory[invIdx];
+        const equipSlots = char.data.slots.equipped;
+        let targetSlotIdx = -1;
+        for (const r of radios) { if (r.checked) { targetSlotIdx = parseInt(r.value); break; } }
+        if (targetSlotIdx === -1) return;
+
+        const hand1Index = equipSlots.findIndex(s => s.label === '手1');
+        const hand2Index = equipSlots.findIndex(s => s.label === '手2');
+
+        // Case 1: Equipping a two-handed weapon
+        if (invItem.isTwoHanded) {
+            if (targetSlotIdx === hand1Index) {
+                if (hand2Index !== -1 && equipSlots[hand2Index].item) {
+                    showToast("⚠️ 両手武器を装備するには、手2を空けてください。");
+                    return;
+                }
+            } else if (targetSlotIdx === hand2Index) {
+                if (hand1Index !== -1 && equipSlots[hand1Index].item) {
+                    showToast("⚠️ 両手武器を装備するには、手1を空けてください。");
+                    return;
+                }
+            }
+        }
+
+        // Case 2: Equipping any item to a hand slot that would conflict with an existing two-handed weapon
+        if (targetSlotIdx === hand1Index) {
+            if (hand2Index !== -1 && equipSlots[hand2Index].item && equipSlots[hand2Index].item.isTwoHanded) {
+                showToast("⚠️ 手2に両手武器が装備されているため、手1には装備できません。");
+                return;
+            }
+        }
+        if (targetSlotIdx === hand2Index) {
+            if (hand1Index !== -1 && equipSlots[hand1Index].item && equipSlots[hand1Index].item.isTwoHanded) {
+                showToast("⚠️ 手1に両手武器が装備されているため、手2には装備できません。");
+                return;
+            }
+        }
+
+        const equippedItem = equipSlots[targetSlotIdx].item;
+        equipSlots[targetSlotIdx].item = invItem;
+        
+        deleteInventoryItem(char, invIdx);
+        if (equippedItem) {
+             char.data.slots.inventory[invIdx] = equippedItem;
+        }
+        
+        addLogEntry('system', '装備変更', `[${char.name}] ${invItem.name} を ${equipSlots[targetSlotIdx].label} に装備しました`);
+        saveData(); renderCurrentCharacterSheet(); closeItemModal();
+    }
+
+    function executeUnequip() {
+        if (!editingItem || editingItem.type !== 'equip') return;
+        const char = appState.characters[editingItem.charId];
+        const equipIdx = editingItem.index;
+        const item = char.data.slots.equipped[equipIdx].item;
+        if (!item) return;
+
+        const d = char.data;
+        const invMultiplier = (d.inventoryMultiplier !== undefined) ? d.inventoryMultiplier : 1;
+        const maxLife = (d.life && d.life.max) ? parseInt(d.life.max) : 10;
+        const maxInv = Math.floor(maxLife * invMultiplier);
+        const slotsNeeded = item.slots || 1;
+        
+        let targetIdx = -1;
+        for (let i = 0; i < maxInv; i++) {
+             let fits = true;
+             for (let k = 0; k < slotsNeeded; k++) {
+                 if (i + k >= maxInv || d.slots.inventory[i + k]) { 
+                     fits = false; 
+                     break; 
+                 }
+             }
+             if (fits) { targetIdx = i; break; }
+        }
+        
+        if (targetIdx !== -1) {
+            d.slots.inventory[targetIdx] = item;
+            for(let k=1; k<slotsNeeded; k++) {
+                d.slots.inventory[targetIdx+k] = { isPlaceholder: true, parentIndex: targetIdx, name: "(続)" };
+            }
+            d.slots.equipped[equipIdx].item = null;
+            addLogEntry('system', '装備解除', `[${char.name}] ${item.name} を外しました`);
+            saveData(); renderCurrentCharacterSheet(); closeItemModal();
+        } else {
+            showToast("⚠️ 所持品がいっぱいです");
+        }
+    }
+
+    function renderTransferCharList(currentCharId) {
+        const otherChars = Object.values(appState.characters).filter(c => c.id !== currentCharId);
+        const container = document.getElementById('transferCharList');
+        const selectorDiv = document.getElementById('itemTransferSelector');
+        const transferBtn = document.getElementById('btnTransfer');
+
+        container.innerHTML = '';
+
+        if (otherChars.length > 0) {
+            otherChars.forEach(char => {
+                const option = document.createElement('option');
+                option.value = char.id;
+                option.textContent = char.name;
+                container.appendChild(option);
+            });
+            selectorDiv.classList.remove('hidden');
+            transferBtn.classList.remove('hidden');
+        } else {
+            selectorDiv.classList.add('hidden');
+            transferBtn.classList.add('hidden');
+        }
+    }
+
+    function executeTransfer() {
+        if (!editingItem) return;
+        const { charId: sourceCharId, type: sourceType, index: sourceIndex } = editingItem;
+
+        const targetCharId = document.getElementById('transferCharList').value;
+        if (!targetCharId) return;
+
+        const sourceChar = appState.characters[sourceCharId];
+        const targetChar = appState.characters[targetCharId];
+
+        let itemToTransfer = null;
+        if (sourceType === 'equip') {
+            itemToTransfer = sourceChar.data.slots.equipped[sourceIndex].item;
+        } else if (sourceType === 'inv') {
+            itemToTransfer = sourceChar.data.slots.inventory[sourceIndex];
+        }
+        if (!itemToTransfer) return;
+
+        const targetInv = targetChar.data.slots.inventory;
+        const invMultiplier = (targetChar.data.inventoryMultiplier !== undefined) ? targetChar.data.inventoryMultiplier : 1;
+        const maxLife = (targetChar.data.life && targetChar.data.life.max) ? parseInt(targetChar.data.life.max) : 10;
+        const maxInv = Math.floor(maxLife * invMultiplier);
+        const slotsNeeded = itemToTransfer.slots || 1;
+        
+        let targetSlotIndex = -1;
+        for (let i = 0; i < maxInv; i++) {
+             let fits = true;
+             for (let k = 0; k < slotsNeeded; k++) {
+                 if (i + k >= maxInv || targetInv[i + k]) { 
+                     fits = false; 
+                     break; 
+                 }
+             }
+             if (fits) { targetSlotIndex = i; break; }
+        }
+
+        if (targetSlotIndex !== -1) {
+            targetInv[targetSlotIndex] = itemToTransfer;
+            for(let k=1; k<slotsNeeded; k++) {
+                targetInv[targetSlotIndex+k] = { isPlaceholder: true, parentIndex: targetSlotIndex, name: "(続)" };
+            }
+
+            if (sourceType === 'equip') {
+                sourceChar.data.slots.equipped[sourceIndex].item = null;
+            } else if (sourceType === 'inv') {
+                deleteInventoryItem(sourceChar, sourceIndex);
+            }
+
+            addLogEntry('system', 'アイテム移動', `[${sourceChar.name} → ${targetChar.name}] ${itemToTransfer.name} を渡しました`);
+            saveData();
+            renderCurrentCharacterSheet();
+            closeItemModal();
+        } else {
+            showToast(`⚠️ ${targetChar.name}の所持品がいっぱいです`);
+        }
+    }
+
+    // --- Item Move Logic (Right Click / Long Press) ---
+    let longPressTimer = null;
+    let isLongPress = false;
+
+    function handleItemContext(e, id, type, index) {
+        e.preventDefault();
+        moveItem(id, type, index);
+    }
+
+    function handleItemTouchStart(e, id, type, index) {
+        isLongPress = false;
+        longPressTimer = setTimeout(() => {
+            isLongPress = true;
+            moveItem(id, type, index);
+            if (navigator.vibrate) navigator.vibrate(50);
+        }, 600);
+    }
+
+    function handleItemTouchEnd(e) {
+        if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+        }
+        if (isLongPress) {
+            if (e.cancelable) e.preventDefault();
+            e.stopPropagation();
+        }
+    }
+
+    function handleItemTouchMove(e) {
+        if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+        }
+    }
+
+    function moveItem(id, type, index) {
+        const c = appState.characters[id];
+        if (!c) return;
+        const d = c.data;
+        
+        if (type === 'equip') {
+            const item = d.slots.equipped[index].item;
+            if (!item) return;
+
+            const invMultiplier = (d.inventoryMultiplier !== undefined) ? d.inventoryMultiplier : 1;
+            const maxLife = (d.life && d.life.max) ? parseInt(d.life.max) : 10;
+            const maxInv = Math.floor(maxLife * invMultiplier);
+            const slotsNeeded = item.slots || 1;
+            let targetIdx = -1;
+            
+            for (let i = 0; i < maxInv; i++) {
+                 let fits = true;
+                 for (let k = 0; k < slotsNeeded; k++) {
+                     if (i + k >= maxInv || d.slots.inventory[i + k]) { 
+                         fits = false; 
+                         break; 
+                     }
+                 }
+                 if (fits) { targetIdx = i; break; }
+            }
+
+            if (targetIdx !== -1) {
+                d.slots.inventory[targetIdx] = item;
+                for(let k=1; k<slotsNeeded; k++) {
+                    d.slots.inventory[targetIdx+k] = { isPlaceholder: true, parentIndex: targetIdx, name: "(続)" };
+                }
+                d.slots.equipped[index].item = null;
+                addLogEntry('system', '装備解除', `[${c.name}] ${item.name} を外しました`);
+                saveData();
+                renderCurrentCharacterSheet();
+            } else {
+                showToast("⚠️ 所持品がいっぱいです");
+            }
+        } else if (type === 'inv') {
+            const item = d.slots.inventory[index];
+            if (!item) return;
+
+            let targetIdx = -1;
+            for (let i = 0; i < d.slots.equipped.length; i++) {
+                if (!d.slots.equipped[i].item) { targetIdx = i; break; }
+            }
+
+            if (targetIdx !== -1) {
+                d.slots.equipped[targetIdx].item = item;
+                deleteInventoryItem(c, index);
+                addLogEntry('system', '装備', `[${c.name}] ${item.name} を装備しました`);
+                saveData();
+                renderCurrentCharacterSheet();
+            } else {
+                showToast("⚠️ 装備枠がいっぱいです");
+            }
+        }
+    }
 </script>
 
 
@@ -2675,6 +3588,17 @@ ${treasureText}
             </div>
         </div>
         <div class="mb-6">
+            <h3 class="font-bold mb-2 text-sm text-gray-700">D66グリッド設定</h3>
+            <div class="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg border">
+                <span class="text-xs font-bold text-gray-600">サイズ:</span>
+                <input type="number" id="d66Rows" min="1" class="w-12 text-center text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                <span class="text-xs font-bold text-gray-500">×</span>
+                <input type="number" id="d66Cols" min="1" class="w-12 text-center text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                <button onclick="updateD66GridSize()" class="ml-auto bg-teal-600 text-white text-[10px] px-3 py-1.5 rounded hover:bg-teal-700 font-bold">更新</button>
+            </div>
+            <p class="text-[10px] text-gray-400 mt-1 ml-1">※変更すると現在のグリッド状態はリセットされます</p>
+        </div>
+        <div class="mb-6">
             <h3 class="font-bold mb-2 text-sm text-gray-700">通知設定</h3>
             <label class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border cursor-pointer hover:bg-gray-100">
                 <input type="checkbox" id="toastToggle" onchange="toggleToastNotifications(this.checked)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
@@ -2715,6 +3639,64 @@ ${treasureText}
             <button id="btn-share-result" class="bg-black hover:bg-gray-800 text-white font-bold py-2 px-4 rounded shadow">Xでシェア</button>
             <button onclick="saveResultImage()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow">画像を保存</button>
             <button onclick="document.getElementById('resultModal').style.display='none'" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded shadow">閉じる</button>
+        </div>
+    </div>
+</div>
+
+<!-- Portrait Modal -->
+<div id="portraitModal" class="modal" onclick="this.style.display='none'">
+    <div class="modal-content" style="background:transparent; box-shadow:none; border:none; width:auto; max-width:90%; max-height:90%; display:flex; justify-content:center; align-items:center; padding:0;">
+        <img id="portraitModalImg" src="" style="max-width:100%; max-height:80vh; object-fit:contain; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); background-color: #fff;">
+    </div>
+</div>
+
+<!-- Item Edit Modal -->
+<div id="itemEditModal" class="modal" onclick="closeItemModal()">
+    <div class="modal-content" style="max-width: 300px;" onclick="event.stopPropagation()">
+        <h3 id="itemEditTitle" class="font-bold text-lg mb-3 text-gray-700">編集</h3>
+        <div class="mb-3">
+            <label class="block text-xs font-bold text-gray-500 mb-1">名前</label>
+            <input type="text" id="itemEditName" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
+        </div>
+        <div class="flex gap-2 mb-3">
+            <div class="flex-1">
+                <label class="block text-xs font-bold text-gray-500 mb-1">修正値(メモ)</label>
+                <input type="text" id="itemEditMod" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="+1など">
+            </div>
+            <div class="flex-1">
+                <label class="block text-xs font-bold text-gray-500 mb-1">残り回数</label>
+                <input type="number" id="itemEditUses" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="消耗品のみ">
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="block text-xs font-bold text-gray-500 mb-1">装備品欄占有枠数</label>
+            <input type="number" id="itemEditSlots" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" min="1" value="1">
+        </div>
+        <div class="mb-4">
+            <label class="block text-xs font-bold text-gray-500 mb-1">詳細</label>
+            <textarea id="itemEditDesc" rows="4" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none"></textarea>
+        </div>
+        <div id="itemAttributes" class="mb-4 hidden">
+            <label class="flex items-center text-sm cursor-pointer hover:bg-gray-50 p-1 rounded">
+                <input type="checkbox" id="itemEditTwoHanded" class="mr-2 h-4 w-4 accent-indigo-600">
+                <span>両手武器</span>
+            </label>
+        </div>
+        <div id="itemEquipSelector" class="mb-4 hidden bg-gray-50 p-2 rounded border">
+            <label class="block text-xs font-bold text-gray-500 mb-1">装備先:</label>
+            <div id="equipSlotList" class="flex flex-col gap-1 text-xs max-h-32 overflow-y-auto"></div>
+        </div>
+        <div id="itemTransferSelector" class="mb-4 hidden bg-gray-50 p-2 rounded border">
+            <label class="block text-xs font-bold text-gray-500 mb-1">他のキャラクターに渡す:</label>
+            <select id="transferCharList" class="w-full border rounded p-1 text-xs focus:ring-2 focus:ring-indigo-400 outline-none"></select>
+        </div>
+        <div class="flex justify-end gap-2">
+            <button onclick="useItem()" class="bg-green-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-green-700 mr-auto">使用</button>
+            <button id="btnEquip" onclick="executeEquip()" class="bg-blue-600 text-white px-3 py-1 rounded text-xs font-bold hover:bg-blue-700 hidden">装備</button>
+            <button id="btnUnequip" onclick="executeUnequip()" class="bg-orange-500 text-white px-3 py-1 rounded text-xs font-bold hover:bg-orange-600 hidden">解除</button>
+            <button id="btnTransfer" onclick="executeTransfer()" class="bg-teal-500 text-white px-3 py-1 rounded text-xs font-bold hover:bg-teal-600 hidden">渡す</button>
+            <button onclick="deleteItem()" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold hover:bg-red-100">削除/空にする</button>
+            <button onclick="saveItem()" class="bg-indigo-600 text-white px-4 py-1 rounded text-xs font-bold hover:bg-indigo-700">保存</button>
         </div>
     </div>
 </div>
