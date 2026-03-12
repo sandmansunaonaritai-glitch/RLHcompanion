@@ -477,11 +477,11 @@
                    class="bg-transparent border-none focus:ring-0 text-sm font-semibold px-2 flex-grow min-w-[60px] text-white">
 
             <div class="flex flex-nowrap gap-1 shrink-0">
-                <button onclick="document.getElementById('uploadFile').click()" class="bg-green-700 hover:bg-green-600 text-[10px] py-1 px-2 rounded whitespace-nowrap">読込</button>
-                <button onclick="downloadData()" class="bg-blue-700 hover:bg-blue-600 text-[10px] py-1 px-2 rounded whitespace-nowrap">保存</button>
-                <button onclick="showSessionResult()" class="bg-amber-600 hover:bg-amber-500 text-[10px] py-1 px-2 rounded whitespace-nowrap font-bold">戦績</button>
-                <button onclick="exportLogText()" class="bg-teal-600 hover:bg-teal-500 text-[10px] py-1 px-2 rounded whitespace-nowrap">ログDL</button>
-                <button onclick="resetAllData()" class="bg-red-700 hover:bg-red-600 text-[10px] py-1 px-2 rounded whitespace-nowrap">消去</button>
+                <button onclick="document.getElementById('uploadFile').click()" class="bg-green-700 hover:bg-green-600 text-[10px] py-1 px-2 rounded whitespace-nowrap"title="セッション・キャラ読込">読込</button>
+                <button onclick="downloadData()" class="bg-blue-700 hover:bg-blue-600 text-[10px] py-1 px-2 rounded whitespace-nowrap"title="セッション全体の保存">保存</button>
+                <button onclick="showSessionResult()" class="bg-amber-600 hover:bg-amber-500 text-[10px] py-1 px-2 rounded whitespace-nowrap font-bold"title="戦績報告">戦績</button>
+                <button onclick="exportLogText()" class="bg-teal-600 hover:bg-teal-500 text-[10px] py-1 px-2 rounded whitespace-nowrap"title="ログをテキスト形式で保存">ログDL</button>
+                <button onclick="resetAllData()" class="bg-red-700 hover:bg-red-600 text-[10px] py-1 px-2 rounded whitespace-nowrap"title="全てを消去">消去</button>
             </div>
         </div>
         <!-- Mobile-only Help and Settings buttons -->
@@ -588,6 +588,7 @@
         <textarea id="logInput" placeholder="ログ入力 (Enterで送信)" rows="2" class="w-full p-2 border border-gray-300 rounded-md text-sm resize-none focus:ring-2 focus:ring-blue-400 mb-2 shadow-sm"></textarea>
         <div class="flex space-x-2 text-xs pb-2">
             <button onclick="addLogEntry('input')" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded shadow">送信</button>
+            <button id="ttsToggleBtn" onclick="toggleAutoRead()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded" title="ログ自動読み上げ ON/OFF">🔊</button>
             <button onclick="addLogEntry('separator')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">区切り線</button>
         </div>
         </div>
@@ -603,6 +604,7 @@
 <!--③ 司令塔：JavaScript-->
 <script>
         const STORAGE_KEY = 'rlh_final_integrated_v1';
+        let ttsVoices = []; // TTSの声を格納するグローバル変数
     // --- appState: このアプリの**全データ（心臓部） ---
         let appState = { theme: 'colorful', showToastNotifications: true, settings: { soundEnabled: true, volume: 50 }, 
             d66GridSettings: { rows: 6, cols: 6 }, enemies: [], activeEnemyId: null, currentRound: 0,
@@ -612,12 +614,18 @@
                 { grid: Array(36).fill(0), clickOrder: 1 },
                 { grid: Array(36).fill(0), clickOrder: 1 }
             ],
-            d66Table: Array.from({ length: 3 }, () => Array(13).fill("")), activeRow: 0
+            d66Table: Array.from({ length: 3 }, () => Array(13).fill("")), activeRow: 0,
+            ttsSettings: {
+                enabled: false, // 自動読み上げの有効/無効
+                voiceURI: null, // 選択された声のURI
+                rate: 1,        // 速度
+                pitch: 1        // ピッチ
+            }
         };
         let scenarioMaster = [];
         let logTimeout = null; // デバウンス用のタイマー変数
     // --- Core Functions ---
-    function switchTab(tab) {
+    function switchTab(tab){
         // 1. すべてのタブコンテンツとボタンから active クラスを除去
         document.querySelectorAll('.view-tab').forEach(el => el.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -1139,6 +1147,7 @@
         porter: { name: '荷物持ち', icon: '🎒', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦わない従者', inventoryMultiplier: 3 },
         lantern: { name: 'ランタン持ち', icon: '🏮', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'luck', subLabel: '幸運', subVal: 0, subMax: 0, memo: '戦わない従者' , inventoryMultiplier: 0},
         tachi_mochi: { name: '太刀持ち', icon: '🗡️', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦わない従者'  , inventoryMultiplier: 0},
+        buddy: { name: '強い従者', icon: '🐎', level: 4, skill: 1, life: 7, lifeMax: 7, lifeType: 'hp', lifeLabel: '生命', subType: 'str', subLabel: '筋力', subVal: 4, subMax: 4, memo: '相棒や騎乗生物、怪物作成など' , inventoryMultiplier: 0},
     };
 
     function addFromPreset(key) {
@@ -1150,6 +1159,10 @@
         let deleted = [];
         if (key !== 'pc') {
             deleted = ['follower', 'food', 'clue', 'gold'];
+        }
+        // 魔術師と主人公・強い従者以外の従者プリセットから副能力値を削除
+        if (key !== 'pc' && key !== 'mage'&& key !== 'buddy') {
+            deleted.push('subAbility');
         }
 
         appState.characters[newId] = {
@@ -1169,6 +1182,8 @@
                 occupation: p.occupation || '',
                 hometown: p.hometown || '',
                 inventoryMultiplier: (p.inventoryMultiplier !== undefined) ? p.inventoryMultiplier : 1,
+                iconPosition: '50% 50%',
+                iconScale: 1,
                 meleeMod: p.meleeMod || 0,
                 rangedMod: p.rangedMod || 0,
                 armorMod: p.armorMod || 0,
@@ -1360,6 +1375,8 @@ function renderCurrentCharacterSheet() {
         if (!c.deletedResources) c.deletedResources = [];
         if (c.isSelected === undefined) c.isSelected = false;
         if (c.isExpanded === undefined) c.isExpanded = false;
+        if (d.iconPosition === undefined) d.iconPosition = '50% 50%';
+        if (d.iconScale === undefined) d.iconScale = 1;
         
         // Tab initialization
         if (!c.activeSubTab) c.activeSubTab = 'adventure';
@@ -1381,7 +1398,7 @@ function renderCurrentCharacterSheet() {
                 <div class="flex items-center flex-grow min-w-0 gap-2 h-full">
                     <!-- Portrait Icon -->
                     <div class="relative w-10 h-full shrink-0 bg-gray-200 overflow-hidden cursor-pointer border-r border-gray-300 group-hover:border-indigo-300" onclick="event.stopPropagation(); showPortraitModal('${id}')">
-                        ${d.portrait ? `<img src="${d.portrait}" class="w-full h-full object-cover" style="object-position: ${d.iconPosition || '50% 50%'}">` : `<div class="w-full h-full flex items-center justify-center text-gray-400 text-[8px]">No Img</div>`}
+                        ${d.portrait ? `<img src="${d.portrait}" class="w-full h-full object-cover" style="object-position: ${d.iconPosition || '50% 50%'}; transform-origin: ${d.iconPosition || '50% 50%'}; transform: scale(${d.iconScale || 1});">` : `<div class="w-full h-full flex items-center justify-center text-gray-400 text-[8px]">No Img</div>`}
                     </div>
                     
                     <!-- 名前入力 -->
@@ -1445,6 +1462,7 @@ function renderCurrentCharacterSheet() {
             <option value="porter">🎒 荷物持ち</option>
             <option value="lantern">🏮 ランタン持ち</option>
             <option value="tachi_mochi">🗡️ 太刀持ち</option>
+            <option value="buddy">🐎 強い従者</option>
         </select>
     </div>`;
 
@@ -1521,7 +1539,7 @@ function renderTabContent(id, tab) {
             h += `<div class="bg-white border border-gray-200 rounded p-1 flex flex-col items-center justify-center shadow-sm relative group">
                 <span class="text-[9px] text-gray-500 font-bold mb-0.5">${res.l}</span>
                 <input type="number" value="${val||0}" class="w-full text-center font-bold text-sm bg-transparent outline-none text-gray-700" onchange="onResChange('${res.id}', '${res.l}', this.value, false, '${id}')">
-                <button onclick="event.stopPropagation(); appState.characters['${id}'].deletedResources.push('${res.id}'); renderCurrentCharacterSheet(); saveData();" class="absolute top-0 right-0 text-gray-300 hover:text-red-500 hidden group-hover:block p-0.5"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>
+                ${res.id !== 'skill' ? `<button onclick="event.stopPropagation(); appState.characters['${id}'].deletedResources.push('${res.id}'); renderCurrentCharacterSheet(); saveData();" class="absolute top-0 right-0 text-gray-300 hover:text-red-500 hidden group-hover:block p-0.5"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>` : ''}
             </div>`;
         });
         h += `</div>`;
@@ -1553,7 +1571,7 @@ function renderTabContent(id, tab) {
 
         const canMagicAbility = (d.subAbility.type === 'mag' || d.subAbility.type === 'luck');
         const actions = [
-            {k:'meleeMod', l:'接近', c:'orange', t:'接近', hasAbility: true, hasSkill: true}, {k:'rangedMod', l:'遠隔', c:'emerald', t:'遠距離', hasAbility: true, hasSkill: true}, {k:'armorMod', l:'防御', c:'gray', t:'防御', hasAbility: true, hasSkill: true}, {k:'magicResistMod', l:'対魔', c:'purple', t:'対魔法', hasAbility: canMagicAbility, hasSkill: true}, {k:'lifeMod', l:'生命', c:'red', t:'生命', hasAbility: true, hasSkill: false}
+            {k:'meleeMod', l:'接近', c:'orange', t:'接近', hasAbility: true, hasSkill: true}, {k:'rangedMod', l:'遠隔', c:'emerald', t:'遠距離', hasAbility: true, hasSkill: true}, {k:'armorMod', l:'防御', c:'gray', t:'防御', hasAbility: true, hasSkill: true}, {k:'magicResistMod', l:'対魔', c:'purple', t:'対魔法', hasAbility: true, hasSkill: true}, {k:'lifeMod', l:'生命', c:'red', t:'生命', hasAbility: true, hasSkill: true}
         ];
 
         actions.forEach(item => {
@@ -1563,7 +1581,10 @@ function renderTabContent(id, tab) {
                         <span class="text-[9px] text-${item.c}-400">修:</span>
                         <input type="number" value="${d[item.k] || 0}" class="w-8 text-center text-[11px] font-bold bg-white border border-gray-200 rounded outline-none shadow-sm" onchange="onResChange('${item.k}', '${item.l}修正', this.value, false, '${id}')">
                         <div class="flex gap-1 ml-1">
-                            ${item.hasAbility ? `<button onclick="event.stopPropagation(); handleActionRoll('${id}', '${item.t}', 'ability')" class="w-7 h-7 bg-${item.c}-600 text-white text-[10px] rounded font-bold shadow-sm hover:bg-${item.c}-700 transition-colors">${item.hasSkill ? '能' : 'Roll'}</button>` : ''}
+                            ${item.hasAbility ? `<button onclick="event.stopPropagation(); handleActionRoll('${id}', '${item.t}', 'ability')" 
+                                class="w-7 h-7 text-[10px] rounded font-bold shadow-sm transition-colors ${ (item.t === '対魔法' && !canMagicAbility) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : `bg-${item.c}-600 text-white hover:bg-${item.c}-700` }"
+                                ${ (item.t === '対魔法' && !canMagicAbility) ? 'disabled' : '' }
+                            >${item.hasSkill ? (item.t === '生命' ? '生' : '能') : 'Roll'}</button>` : ''}
                             ${item.hasSkill ? `<button onclick="event.stopPropagation(); handleActionRoll('${id}', '${item.t}', 'skill')" class="w-7 h-7 bg-${item.c}-500 text-white text-[10px] rounded font-bold shadow-sm hover:bg-${item.c}-600 transition-colors">技</button>` : ''}
                         </div>
                     </div>
@@ -1885,9 +1906,14 @@ function renderTabContent(id, tab) {
             }
             equip = d.abilityMods[key] || 0;
         } else if (type === '生命') { 
-            base = (d.life && d.life.type === 'hp') ? d.life.current : 1; 
+            if (mode === 'skill') {
+                base = d.skill;
+                label = "生命力判定(技量)";
+            } else { // 'ability'
+                base = (d.life && d.life.type === 'hp') ? d.life.current : 1; 
+                label = "生命力判定";
+            }
             equip = d.lifeMod || 0;
-            label = "生命力判定";
         } else {
             // 戦闘・特殊判定 (接近, 遠距離, 防御, 対魔法)
             let actionMod = 0;
@@ -2089,6 +2115,11 @@ function renderTabContent(id, tab) {
             const displayContent = resultLines.length > 0 ? resultLines.join('\n') : content;
             showToast(`🎲 ${title}\n${displayContent}`);
         }
+         // 自動読み上げが有効なら、新しいログの内容を読み上げる
+        if (appState.ttsSettings.enabled) {
+            const cleanContent = (e.content || '').replace(/<[^>]*>?/gm, ''); // HTMLタグを除去
+            speak(cleanContent);
+        }
     }
 
     //log
@@ -2097,8 +2128,12 @@ function renderTabContent(id, tab) {
         const logListEl = document.getElementById('log-list'); // スクロールを制御する親要素を取得
         logAreaEl.innerHTML = appState.logEntries.map((e, idx) => {
                 if(e.type==='separator') return `<div class="border-t-2 border-purple-200 my-4 relative group"><button onclick="deleteLog(${idx})" class="absolute -top-3 right-0 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] hidden group-hover:block">×</button></div>`;
+                // ログテキストからHTMLタグを除去して読み上げ用に準備
+                const cleanContent = e.content.replace(/<[^>]*>?/gm, '');
                 return `<div class="p-2 border rounded text-xs relative group ${e.type==='dice'?'bg-indigo-50':e.type==='system'?'bg-gray-100':'bg-white'}">
-                    <div class="flex justify-between text-[9px] text-gray-400"><span>${e.time}</span><div class="opacity-0 group-hover:opacity-100"><button onclick="editLog(${idx})">✎</button> <button onclick="deleteLog(${idx})">×</button></div></div>
+                    <div class="flex justify-between text-[9px] text-gray-400"><span>${e.time}</span><div class="opacity-0 group-hover:opacity-100 flex items-center gap-2">
+                        <button onclick="speak('${cleanContent}', true)" title="このログを読み上げる">▶️</button>
+                        <button onclick="editLog(${idx})">✎</button> <button onclick="deleteLog(${idx})">×</button></div></div>
                     <div class="whitespace-pre-wrap">${e.content}</div></div>`;
         }).join('');
         if (logListEl) {
@@ -2116,6 +2151,7 @@ function renderTabContent(id, tab) {
             document.getElementById('d66Rows').value = appState.d66GridSettings.rows;
             document.getElementById('d66Cols').value = appState.d66GridSettings.cols;
         }
+        updateTTSButtonState();
         renderD66Grid(); renderD66Table(); renderLogArea(); renderEnemyPanel(); renderCurrentCharacterSheet(); 
     }
     // セッション全体の保存
@@ -2193,7 +2229,9 @@ function renderTabContent(id, tab) {
             location.reload();
         }
     }
+    // --- 初期化処理 ---
     document.getElementById('logInput').addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); addLogEntry('input'); }});
+    window.speechSynthesis.onvoiceschanged = populateVoiceList;
     window.onload = loadData;
         
     // ------------------------
@@ -2207,6 +2245,12 @@ function renderTabContent(id, tab) {
             container.innerHTML = `<div class="text-xs text-slate-500 italic self-center w-full text-center">敵はいません。「＋」ボタンで追加してください。</div>`;
             return;
         }
+
+        // データ補完
+        appState.enemies.forEach(e => {
+            if (e.hpMax === undefined) e.hpMax = e.hp;
+            if (e.countMax === undefined) e.countMax = e.count;
+        });
 
         // ラウンド管理カードを生成
         const roundCardHTML = `
@@ -2223,16 +2267,24 @@ function renderTabContent(id, tab) {
         const enemyCardsHTML = appState.enemies.map(enemy => {
             const isActive = enemy.id === appState.activeEnemyId;
             const isStrong = enemy.mode === 'strong';
-            const hpLabel = isStrong ? '生命点' : '出現数';
+
+            const hpLabel = isStrong ? '生命' : '出現数';
             const currentVal = isStrong ? enemy.hp : enemy.count;
+            const maxVal = isStrong ? enemy.hpMax : enemy.countMax;
             const valKey = isStrong ? 'hp' : 'count';
+            const maxKey = isStrong ? 'hpMax' : 'countMax';
+
+            const percent = maxVal > 0 ? (currentVal / maxVal) * 100 : 0;
+            const isDamaged = currentVal <= maxVal / 2;
+            const barColor = isDamaged ? 'bg-rose-600' : 'bg-emerald-500';
+            const trackColor = isDamaged ? 'bg-rose-100' : 'bg-emerald-100';
 
             return `
             <div class="enemy-card bg-white border rounded-lg p-2 shadow-md flex flex-col gap-2 ${isActive ? 'active' : ''}" onclick="setActiveEnemy('${enemy.id}')">
                 <div class="flex justify-between items-center gap-1">
                     <input type="text" class="font-bold text-sm bg-transparent border-b border-transparent hover:border-slate-300 focus:border-slate-400 focus:outline-none flex-1 min-w-0" value="${enemy.name}" onchange="updateEnemy('${enemy.id}', 'name', this.value, false)" onclick="event.stopPropagation()">
                     
-                    <label class="mode-toggle-label shrink-0" onclick="event.stopPropagation()">
+                    <label class="mode-toggle-label shrink-0" onclick="event.stopPropagation()"title="クリックで強弱切替">
                         <input type="checkbox" ${!isStrong ? 'checked' : ''} onchange="toggleEnemyMode('${enemy.id}', this)" onclick="event.stopPropagation()">
                         <span class="mode-toggle-slider"></span>
                         <span class="mode-toggle-text mode-text-strong">強い</span>
@@ -2245,24 +2297,27 @@ function renderTabContent(id, tab) {
                     </div>
                 </div>
                 
-                <div class="flex items-center gap-1 text-xs justify-between">
+                <div class="flex items-center gap-2 text-xs">
                     <!-- Level -->
-                    <div class="flex items-center gap-1">
+                    <div class="flex items-center gap-1 shrink-0">
                         <span class="font-bold text-slate-500 text-[10px] whitespace-nowrap">Lv</span>
                         <input type="number" class="w-8 border rounded text-center bg-white" value="${enemy.level}" onchange="updateEnemy('${enemy.id}', 'level', this.value)" onclick="event.stopPropagation()">
                         <button title="目標値連動" onclick="toggleEnemyLink('${enemy.id}'); event.stopPropagation()" class="text-xs ${enemy.isLinked ? 'opacity-100 text-blue-600' : 'opacity-30'}">🔗</button>
                     </div>
 
-                    <!-- HP/Count -->
-                    <div class="flex items-center gap-1">
-                        <span class="font-bold text-slate-500 text-[10px] whitespace-nowrap">${hpLabel}</span>
-                        <button onclick="updateEnemyStat('${enemy.id}', '${valKey}', -1); event.stopPropagation();" class="bg-slate-100 hover:bg-slate-200 border rounded w-5 h-5 flex items-center justify-center text-[10px]">-1</button>
-                        <input type="number" class="w-8 text-center bg-white border rounded" value="${currentVal}" onchange="updateEnemy('${enemy.id}', '${valKey}', this.value)" onclick="event.stopPropagation();">
+                    <!-- HP/Count Progress Bar -->
+                    <div class="flex items-center gap-1 flex-grow" title="クリックで現在値、右の数値で最大値を編集">
+                        <button onclick="updateEnemyStat('${enemy.id}', '${valKey}', -1); event.stopPropagation();" class="bg-slate-100 hover:bg-slate-200 border rounded w-5 h-5 flex items-center justify-center text-sm shrink-0">-</button>
+                        <div class="flex-grow relative h-5 ${trackColor} rounded-full overflow-hidden border border-gray-300 cursor-pointer" onclick="const v=prompt('${hpLabel}の現在値を入力', ${currentVal}); if(v!==null) { updateEnemy('${enemy.id}', '${valKey}', v); } event.stopPropagation();">
+                            <div class="h-full ${barColor} transition-all duration-300" style="width: ${percent}%"></div>
+                            <div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white" style="text-shadow: 0 1px 1px rgba(0,0,0,0.6);">${currentVal} / ${maxVal}</div>
+                        </div>
+                        <input type="number" class="w-10 text-center bg-white border rounded text-[10px] shrink-0" value="${maxVal}" onchange="updateEnemy('${enemy.id}', '${maxKey}', this.value)" onclick="event.stopPropagation();">
                     </div>
 
                     <!-- Attacks -->
-                    <div class="flex items-center gap-1">
-                        <span class="font-bold text-slate-500 text-[10px] whitespace-nowrap">攻撃回数</span>
+                    <div class="flex items-center gap-1 shrink-0" title="攻撃回数">
+                        <span class="font-bold text-slate-500 text-[10px] whitespace-nowrap">攻</span>
                         <input type="number" class="w-8 text-center bg-white border rounded" value="${enemy.attacks}" onchange="updateEnemy('${enemy.id}', 'attacks', this.value)" onclick="event.stopPropagation();">
                     </div>
                 </div>
@@ -2280,13 +2335,13 @@ function renderTabContent(id, tab) {
         const newId = 'enemy_' + Date.now();
         const newEnemy = {
             id: newId,
-            name: mode === 'strong' ? '強い敵' : '弱い敵',
+            name: mode === 'strong' ? '強いクリーチャー' : '弱いクリーチャー',
             mode: mode,
             level: 4,
             tv: 4,
             isLinked: true,
-            hp: 10, hpMax: 10,
-            count: 5,
+            hp: 10, hpMax: 10, 
+            count: 5, countMax: 5, 
             attacks: mode === 'strong' ? 1 : 5,
         };
         appState.enemies.push(newEnemy);
@@ -2346,8 +2401,21 @@ function renderTabContent(id, tab) {
     function updateEnemy(id, key, value, isNumber = true) {
         const enemy = appState.enemies.find(e => e.id === id);
         if (!enemy) return;
-        const val = isNumber ? parseInt(value) || 0 : value;
-        enemy[key] = val;
+        let val = isNumber ? parseInt(value) || 0 : value;
+
+        // hpやcountを更新する際に、max値を超えないようにする
+        if (key === 'hp' && val > enemy.hpMax) val = enemy.hpMax;
+        if (key === 'count' && val > enemy.countMax) val = enemy.countMax;
+
+        enemy[key] = val
+
+        // hpMaxやcountMaxを更新した際に、現在値がそれを超えていたら調整
+        if (key === 'hpMax' && enemy.hp > val) {
+            enemy.hp = val;
+        }
+        if (key === 'countMax' && enemy.count > val) {
+            enemy.count = val;
+        }
 
         if (key === 'level' && enemy.isLinked) {
             enemy.tv = val;
@@ -2381,7 +2449,9 @@ function renderTabContent(id, tab) {
         const enemy = appState.enemies.find(e => e.id === id);
         if (enemy) {
             const oldVal = enemy[key] || 0;
-            const newVal = Math.max(0, oldVal + delta);
+            const maxKey = key + 'Max';
+            const maxVal = enemy[maxKey] || oldVal;
+            const newVal = Math.min(maxVal, Math.max(0, oldVal + delta));
             enemy[key] = newVal;
             
             // If weak mode and updating count, sync attacks
@@ -2460,6 +2530,10 @@ function renderTabContent(id, tab) {
                     document.getElementById('d66Rows').value = appState.d66GridSettings.rows;
                     document.getElementById('d66Cols').value = appState.d66GridSettings.cols;
                 }
+            // TTS設定をUIに反映
+            document.getElementById('ttsRate').value = appState.ttsSettings.rate;
+            document.getElementById('ttsPitch').value = appState.ttsSettings.pitch;
+            updateTTSSliderValue('Rate'); updateTTSSliderValue('Pitch');
             }
         }
     }
@@ -2496,6 +2570,95 @@ function renderTabContent(id, tab) {
         updateMasterVolume();
         saveData();
     }
+
+    // --- TTS (Text-to-Speech) Logic ---
+    function populateVoiceList() {
+        ttsVoices = window.speechSynthesis.getVoices();
+        const selector = document.getElementById('ttsVoiceSelector');
+        if (!selector) return;
+        selector.innerHTML = '';
+        
+        const jaVoices = ttsVoices.filter(v => v.lang.startsWith('ja'));
+        const otherVoices = ttsVoices.filter(v => !v.lang.startsWith('ja'));
+
+        [...jaVoices, ...otherVoices].forEach(voice => {
+            const option = document.createElement('option');
+            option.textContent = `${voice.name} (${voice.lang})`;
+            option.value = voice.voiceURI;
+            selector.appendChild(option);
+        });
+
+        if (appState.ttsSettings.voiceURI) {
+            selector.value = appState.ttsSettings.voiceURI;
+        } else if (jaVoices.length > 0) {
+            selector.value = jaVoices[0].voiceURI;
+            appState.ttsSettings.voiceURI = jaVoices[0].voiceURI;
+        }
+    }
+
+    function saveTTSSettings() {
+        appState.ttsSettings.voiceURI = document.getElementById('ttsVoiceSelector').value;
+        appState.ttsSettings.rate = parseFloat(document.getElementById('ttsRate').value);
+        appState.ttsSettings.pitch = parseFloat(document.getElementById('ttsPitch').value);
+        saveData();
+    }
+
+    function updateTTSSliderValue(type) {
+        const value = document.getElementById(`tts${type}`).value;
+        document.getElementById(`tts${type}Value`).textContent = parseFloat(value).toFixed(1);
+    }
+
+    function speak(text, isManual = false) {
+        if (!isManual && !appState.ttsSettings.enabled) return;
+        if (!text) return;
+
+        window.speechSynthesis.cancel(); // 既存の読み上げをキャンセル
+
+        const utterance = new SpeechSynthesisUtterance(text);
+        const selectedVoice = ttsVoices.find(v => v.voiceURI === appState.ttsSettings.voiceURI);
+        
+        if (selectedVoice) utterance.voice = selectedVoice;
+        utterance.rate = appState.ttsSettings.rate;
+        utterance.pitch = appState.ttsSettings.pitch;
+        utterance.volume = (appState.settings.volume / 100) ** 2;
+
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function testTTS() {
+        saveTTSSettings();
+        speak("こんにちは、これはテスト再生です。", true);
+    }
+
+    function toggleAutoRead() {
+        appState.ttsSettings.enabled = !appState.ttsSettings.enabled;
+        if (!appState.ttsSettings.enabled) {
+            window.speechSynthesis.cancel(); // OFFにしたら読み上げを停止
+        }
+        updateTTSButtonState();
+        saveData();
+        showToast(`自動読み上げが ${appState.ttsSettings.enabled ? 'ON' : 'OFF'} になりました`);
+    }
+
+    function updateTTSButtonState() {
+        const btn = document.getElementById('ttsToggleBtn');
+        if (!btn) return;
+        if (appState.ttsSettings.enabled) {
+            btn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
+            btn.classList.add('bg-green-600', 'hover:bg-green-700');
+            btn.innerHTML = '🔊';
+        } else {
+            btn.classList.remove('bg-green-600', 'hover:bg-green-700');
+            btn.classList.add('bg-gray-500', 'hover:bg-gray-600');
+            btn.innerHTML = '<span class="line-through">🔊</span>';
+        }
+    }
+
+    document.getElementById('ttsVoiceSelector')?.addEventListener('change', saveTTSSettings);
+    document.getElementById('ttsRate')?.addEventListener('input', () => updateTTSSliderValue('Rate'));
+    document.getElementById('ttsRate')?.addEventListener('change', saveTTSSettings);
+    document.getElementById('ttsPitch')?.addEventListener('input', () => updateTTSSliderValue('Pitch'));
+    document.getElementById('ttsPitch')?.addEventListener('change', saveTTSSettings);
 
     // 新しいアコーディオン開閉制御関数
     function toggleCharacterAccordion(summaryElement, id) {
@@ -2540,7 +2703,11 @@ function renderTabContent(id, tab) {
             gold: 0,
             treasures: [],
             magicTreasureCount: 0,
-            tileCounts: { 10:0, 20:0, 30:0, 40:0, 50:0, 60:0 }
+            tileCounts: { 10:0, 20:0, 30:0, 40:0, 50:0, 60:0 },
+            totalTiles: 0,
+            followers: char.data.follower ? (char.data.follower.current || 0) : 0,
+            food: char.data.food || 0,
+            life: char.data.life.current || 0
         };
 
         targetLogs.forEach(log => {
@@ -2569,13 +2736,19 @@ function renderTabContent(id, tab) {
             }
 
             // お宝リスト
-            if (log.type === 'dice' && (c.includes("【宝物】") || c.includes("【魔法の宝物】"))) {
+            if (log.type === 'dice' && c.includes("【宝物】")) {
                 const lines = c.split('\n');
                 lines.forEach(line => {
                     if (line.startsWith("内容：") || line.startsWith("〈")) {
                         stats.treasures.push(line.replace("内容：", "").trim());
                     }
                 });
+            } else if (log.type === 'system' && c.startsWith("【魔法の宝物】")) {
+                const lines = c.split('\n');
+                if (lines.length > 1) {
+                    const treasureLine = lines.slice(1).find(line => line.trim() !== "");
+                    if (treasureLine) stats.treasures.push(treasureLine.trim());
+                }
             }
 
             // 魔法の宝物回数
@@ -2586,6 +2759,7 @@ function renderTabContent(id, tab) {
         let visitedTilesLines = [];
         appState.d66Table.forEach((row, idx) => {
             const tiles = row.filter(c => c !== "");
+            stats.totalTiles += tiles.length;
             if (tiles.length > 0) {
                 visitedTilesLines.push(`[${idx+1}] ${tiles.join('＞')}`);
                 // 称号判定用の集計
@@ -2603,21 +2777,43 @@ function renderTabContent(id, tab) {
         // 3. 称号選定
         let title = "新進気鋭の冒険者";
         const maxTileRange = Object.keys(stats.tileCounts).reduce((a, b) => stats.tileCounts[a] > stats.tileCounts[b] ? a : b);
-        
+
+        // 成功/失敗判定 (称号判定で使うため先に定義)
+        const lastLog = targetLogs.length > 0 ? targetLogs[targetLogs.length - 1].content : "";
+        const isFail = /死亡|全滅|倒れた|失敗/.test(lastLog);
+
+        // 称号「十人隊長」用のロジック：主人公以外の従者キャラクターの「人数」を合計する
+        let totalFollowerCount = 0;
+        Object.values(appState.characters).forEach(c => {
+            if (c.id !== charId && c.data.life && c.data.life.type === 'num') {
+                totalFollowerCount += (c.data.life.current || 0);
+            }
+        });
+
         const tiers = [
+            { check: () => stats.critical >= 8 && stats.fumble >= 8, titles: ["嵐を呼ぶ者", "波乱万丈の体現者", "運命の綱渡り師"] },
             { check: () => stats.critical >= 10, titles: ["天運の体現者", "神の指先を持つ者", "奇跡の観測者", "因果を覆す者", "神域の豪運"] },
             { check: () => stats.fumble >= 10, titles: ["絶望を切り抜ける者", "歩く大惨事", "冥府の愛し子", "死神を追い越したもの"] },
+            { check: () => stats.life === 1, titles: ["死線を往く者", "瀬戸際の勝負師", "不死身の男"] },
             { check: () => stats.wins >= 15, titles: ["一騎当千の猛者", "死地を求める狂戦士", "戦場を喰らう牙", "修羅場に笑う者"] },
+            { check: () => stats.totalTiles >= 36, titles: ["大陸横断者", "終わりなき道の探求者", "地図を塗り替える者"] },
+            { check: () => stats.gold >= 200, titles: ["黄金の探求者", "竜の財宝に挑む者"] },
             { check: () => stats.magicTreasureCount >= 3, titles: ["星に導かれし者", "至高の鑑定士", "運命の蒐集家", "黄金の風を呼ぶ者"] },
-            { check: () => stats.gold >= 100, titles: ["黄金の探求者", "富を築きし者", "成金冒険者"] },
+            { check: () => stats.gold >= 100, titles: ["歩く金庫", "富を築きし者", "成金冒険者"] },
             { check: () => stats.critical >= 6, titles: ["ダイスに愛されし者", "一撃必殺の英雄", "追い風の旅人"] },
+            { check: () => stats.gold <= 5, titles: ["清貧の求道者", "その日暮らしの達人", "宵越しの銭は持たぬ主義"] },
             { check: () => stats.fumble >= 6, titles: ["数奇な運命の持ち主", "死神に好かれた男", "不運の星の下に", "逆境の徒"] },
+            { check: () => Object.keys(appState.characters).length === 1 && !isFail, titles: ["孤高の狼", "独りの英雄", "影と共に歩む者"] },
+            { check: () => totalFollowerCount >= 10, titles: ["十人隊長",  "信頼厚きリーダー"] },
             { check: () => stats.critical === 0 && stats.fumble === 0 && targetLogs.length > 5, titles: ["中庸の極み", "波風立てぬプロ"] },
-            { check: () => stats.wins >= 10, titles: ["修羅場を潜る者", "戦場を渡り歩くもの"] },
             { check: () => maxTileRange == 60 && stats.tileCounts[60] > 0, titles: ["大物狩りの勇士", "強者を挫く者"] },
             { check: () => maxTileRange == 10 && stats.tileCounts[10] > 0, titles: ["扉を開く者", "秘めたるを明かす者"] },
             { check: () => maxTileRange == 40 && stats.tileCounts[40] > 0, titles: ["危難の専門家", "罠を突き進む者"] },
-            { check: () => stats.wins <= 2 && targetLogs.length > 10, titles: ["隠密の達人", "戦いを避ける知恵者"] }
+            { check: () => maxTileRange == 50 && stats.tileCounts[50] > 0, titles: ["魔を断つ刃", "多勢無勢の突破者","百鬼夜行の終止符"] },
+            { check: () => maxTileRange == 20 && stats.tileCounts[20] > 0, titles: ["交渉上手", "街の人気者"] },
+            { check: () => stats.wins <= 2 && targetLogs.length > 10, titles: ["隠密の達人", "戦いを避ける知恵者"] },
+            { check: () => maxTileRange == 30 && stats.tileCounts[30] > 0, titles: ["自然の友", "荒野の案内人"] },
+            { check: () => stats.wins >= 10, titles: ["修羅場を潜る者", "戦場を渡り歩くもの"] }    
         ];
 
         for (const tier of tiers) {
@@ -2628,8 +2824,6 @@ function renderTabContent(id, tab) {
         }
 
         // 4. 成功/失敗判定 & デザイン
-        const lastLog = targetLogs.length > 0 ? targetLogs[targetLogs.length - 1].content : "";
-        const isFail = /死亡|全滅|倒れた|失敗/.test(lastLog);
         const resultClass = isFail ? "failure" : "success";
         const resultIcon = isFail ? "💀" : "✨";
 
@@ -2906,6 +3100,7 @@ ${treasureText}
                 const base64 = canvas.toDataURL('image/jpeg', 0.85);
                 appState.characters[charId].data.portrait = base64;
                 appState.characters[charId].data.iconPosition = "50% 50%";
+                appState.characters[charId].data.iconScale = 1;
                 saveData();
                 renderCurrentCharacterSheet();
                 
@@ -2921,6 +3116,7 @@ ${treasureText}
     function setPortraitUrl(charId, url) {
         appState.characters[charId].data.portrait = url;
         appState.characters[charId].data.iconPosition = "50% 50%";
+        appState.characters[charId].data.iconScale = 1;
         saveData();
         renderCurrentCharacterSheet();
         if(document.getElementById('portraitModal').style.display === 'flex') {
@@ -2939,6 +3135,7 @@ ${treasureText}
         
         if (!d.iconPosition) d.iconPosition = "50% 50%";
         const [posX, posY] = d.iconPosition.split(' ').map(s => parseInt(s));
+        if (!d.iconScale) d.iconScale = 1;
         
         contentDiv.innerHTML = `
             <div class="bg-white p-4 rounded-lg shadow-2xl max-w-md w-full flex flex-col gap-4 relative" onclick="event.stopPropagation()">
@@ -2961,18 +3158,22 @@ ${treasureText}
                 ${hasPortrait ? `
                 <div class="flex flex-col gap-2">
                     <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-gray-600">アイコン表示位置調整</span>
+                        <span class="text-xs font-bold text-gray-600">アイコン表示調整</span>
                         <div class="w-10 h-10 rounded overflow-hidden border border-gray-300 bg-gray-200 shrink-0">
-                            <img id="iconPreview" src="${d.portrait}" class="w-full h-full object-cover" style="object-position: ${d.iconPosition}">
+                            <img id="iconPreview" src="${d.portrait}" class="w-full h-full object-cover" style="object-position: ${d.iconPosition}; transform-origin: ${d.iconPosition}; transform: scale(${d.iconScale || 1});">
                         </div>
                     </div>
                     <div class="flex items-center gap-2 text-xs text-gray-500">
                         <span>↔</span>
-                        <input type="range" min="0" max="100" value="${posX}" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="updateIconPos('${charId}', this.value, null)">
+                        <input type="range" min="0" max="100" value="${posX}" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="updateIconPos('${charId}', this.value, null, null)">
                     </div>
                     <div class="flex items-center gap-2 text-xs text-gray-500">
                         <span>↕</span>
-                        <input type="range" min="0" max="100" value="${posY}" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="updateIconPos('${charId}', null, this.value)">
+                        <input type="range" min="0" max="100" value="${posY}" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="updateIconPos('${charId}', null, this.value, null)">
+                    </div>
+                    <div class="flex items-center gap-2 text-xs text-gray-500">
+                        <span>🔍</span>
+                        <input type="range" min="100" max="500" value="${(d.iconScale || 1) * 100}" class="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="updateIconPos('${charId}', null, null, this.value)">
                     </div>
                 </div>
                 ` : ''}
@@ -2981,16 +3182,27 @@ ${treasureText}
         modal.style.display = 'flex';
     }
 
-    function updateIconPos(charId, x, y) {
+    function updateIconPos(charId, x, y, scale) {
         const c = appState.characters[charId];
         if (!c) return;
         let [curX, curY] = (c.data.iconPosition || "50% 50%").split(' ').map(s => parseInt(s));
+        let curScale = c.data.iconScale || 1;
+
         if (x !== null) curX = x;
         if (y !== null) curY = y;
+        if (scale !== null) curScale = parseInt(scale) / 100;
+
         const newPos = `${curX}% ${curY}%`;
         c.data.iconPosition = newPos;
+        c.data.iconScale = curScale;
+
         const preview = document.getElementById('iconPreview');
-        if (preview) preview.style.objectPosition = newPos;
+        if (preview) {
+            preview.style.objectPosition = newPos;
+            preview.style.transformOrigin = newPos;
+            preview.style.transform = `scale(${curScale})`;
+        }
+        
         saveData();
         renderCurrentCharacterSheet();
     }
@@ -3599,6 +3811,24 @@ ${treasureText}
             <p class="text-[10px] text-gray-400 mt-1 ml-1">※変更すると現在のグリッド状態はリセットされます</p>
         </div>
         <div class="mb-6">
+            <h3 class="font-bold mb-2 text-sm text-gray-700">読み上げ(TTS)設定</h3>
+            <div class="p-3 bg-gray-50 rounded-lg border space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">声の種類</label>
+                    <select id="ttsVoiceSelector" class="w-full border rounded p-1 text-xs focus:ring-2 focus:ring-indigo-400 outline-none"></select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">速度: <span id="ttsRateValue">1.0</span></label>
+                    <input type="range" id="ttsRate" min="0.5" max="2" step="0.1" value="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-600 mb-1">高さ: <span id="ttsPitchValue">1.0</span></label>
+                    <input type="range" id="ttsPitch" min="0.5" max="2" step="0.1" value="1" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                </div>
+                <button onclick="testTTS()" class="bg-white border border-gray-300 rounded py-1 px-3 text-[10px] hover:bg-gray-100">テスト再生</button>
+            </div>
+        </div>
+        <div class="mb-6">
             <h3 class="font-bold mb-2 text-sm text-gray-700">通知設定</h3>
             <label class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border cursor-pointer hover:bg-gray-100">
                 <input type="checkbox" id="toastToggle" onchange="toggleToastNotifications(this.checked)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
@@ -3652,25 +3882,25 @@ ${treasureText}
 
 <!-- Item Edit Modal -->
 <div id="itemEditModal" class="modal" onclick="closeItemModal()">
-    <div class="modal-content" style="max-width: 300px;" onclick="event.stopPropagation()">
+    <div class="modal-content" style="max-width: 350px;" onclick="event.stopPropagation()">
         <h3 id="itemEditTitle" class="font-bold text-lg mb-3 text-gray-700">編集</h3>
         <div class="mb-3">
             <label class="block text-xs font-bold text-gray-500 mb-1">名前</label>
             <input type="text" id="itemEditName" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
         </div>
+        <div class="mb-3">
+            <label class="block text-xs font-bold text-gray-500 mb-1">修正値(メモ)</label>
+            <input type="text" id="itemEditMod" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="+1など">
+        </div>
         <div class="flex gap-2 mb-3">
-            <div class="flex-1">
-                <label class="block text-xs font-bold text-gray-500 mb-1">修正値(メモ)</label>
-                <input type="text" id="itemEditMod" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="+1など">
-            </div>
             <div class="flex-1">
                 <label class="block text-xs font-bold text-gray-500 mb-1">残り回数</label>
                 <input type="number" id="itemEditUses" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="消耗品のみ">
             </div>
-        </div>
-        <div class="mb-3">
-            <label class="block text-xs font-bold text-gray-500 mb-1">装備品欄占有枠数</label>
-            <input type="number" id="itemEditSlots" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" min="1" value="1">
+            <div class="flex-1">
+                <label class="block text-xs font-bold text-gray-500 mb-1">装備品欄占有枠数</label>
+                <input type="number" id="itemEditSlots" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" min="1" value="1">
+            </div>
         </div>
         <div class="mb-4">
             <label class="block text-xs font-bold text-gray-500 mb-1">詳細</label>
