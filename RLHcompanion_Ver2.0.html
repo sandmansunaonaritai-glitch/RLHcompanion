@@ -1,4 +1,4 @@
-<!--RLHcompanion_Ver1.2-->
+<!--RLHcompanion_Ver2.2-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -17,7 +17,6 @@
         
         /* D66 Grid Styles */
         .d66-grid-container { width: 100%; display: grid; grid-template-columns: repeat(6, 1fr); border: 1px solid #14b8a6; max-width: 180px; }
-        .d66-grid-container { width: 100%; display: grid; border: 1px solid #14b8a6; max-width: 240px; }
         .d66-grid-cell { aspect-ratio: 1.1 / 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: bold; cursor: pointer; border: 1px solid #e5e7eb; position: relative; background: #fff; }
         
         /* 回数ごとの背景色 */
@@ -454,6 +453,38 @@
        .inv-slot { aspect-ratio: 2/1; border: 1px dashed #d1d5db; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 9px; cursor: pointer; background: #f9fafb; color: #9ca3af; text-align: center; padding: 2px; overflow: hidden; word-break: break-all; line-height: 1.1; transition: all 0.2s; }
        .inv-slot:hover { border-color: #6366f1; background: #f3f4f6; }
        .inv-slot.filled { border: 1px solid #cbd5e1; background: #fff; color: #374151; font-weight: bold; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+
+       /* 3D Dice Animation */
+        #dice-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4); z-index: 10000;
+            display: none; justify-content: center; align-items: center;
+            perspective: 800px;
+        }
+        #dice-overlay.active { display: flex; }
+        #dice-animation-container {
+            display: flex; gap: 30px; transform-style: preserve-3d; flex-wrap: wrap; justify-content: center; max-width: 80%;
+        }
+        .dice {
+            position: relative; width: 50px; height: 50px;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .dice-face {
+            position: absolute; width: 50px; height: 50px;
+            background: #fff; border: 1px solid #999; border-radius: 8px;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 20px; font-weight: bold; color: #333;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+            backface-visibility: hidden;
+        }
+        /* Dice Faces Orientation */
+        .face-1 { transform: rotateY(0deg) translateZ(25px); }
+        .face-6 { transform: rotateX(180deg) translateZ(25px); }
+        .face-2 { transform: rotateY(90deg) translateZ(25px); }
+        .face-5 { transform: rotateY(-90deg) translateZ(25px); }
+        .face-3 { transform: rotateX(90deg) translateZ(25px); }
+        .face-4 { transform: rotateX(-90deg) translateZ(25px); }
     </style>
 </head>
 
@@ -588,7 +619,6 @@
         <textarea id="logInput" placeholder="ログ入力 (Enterで送信)" rows="2" class="w-full p-2 border border-gray-300 rounded-md text-sm resize-none focus:ring-2 focus:ring-blue-400 mb-2 shadow-sm"></textarea>
         <div class="flex space-x-2 text-xs pb-2">
             <button onclick="addLogEntry('input')" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded shadow">送信</button>
-            <button id="ttsToggleBtn" onclick="toggleAutoRead()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded" title="ログ自動読み上げ ON/OFF">🔊</button>
             <button onclick="addLogEntry('separator')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">区切り線</button>
         </div>
         </div>
@@ -652,6 +682,12 @@
                     // 設定オブジェクトの初期化（旧データ互換）
                     if (!appState.settings) {
                         appState.settings = { soundEnabled: true, volume: 50 };
+                    }
+                    if (appState.settings.diceAnimationEnabled === undefined) {
+                        appState.settings.diceAnimationEnabled = true;
+                    }
+                    if (appState.settings.dice3DEnabled === undefined) {
+                        appState.settings.dice3DEnabled = true;
                     }
                     if (!appState.d66GridSettings) {
                         appState.d66GridSettings = { rows: 6, cols: 6 };
@@ -1007,12 +1043,15 @@
             }
 
             const roll = Math.floor(Math.random() * diceRange) + 1;
-            addLogEntry('dice', '魔法の宝物', `[実行者: ${name}] 1D${diceRange}(${roll})`);
-
-            // CSVデータがある場合のみ playScenario を呼び出す
-            if (entries.length > 0) {
-                playScenario('magictreasure', roll.toString());
-            } 
+            
+            // Animate
+            roll3DDice([roll], () => {
+                addLogEntry('dice', '魔法の宝物', `[実行者: ${name}] 1D${diceRange}(${roll})`);
+                // CSVデータがある場合のみ playScenario を呼び出す
+                if (entries.length > 0) {
+                    playScenario('magictreasure', roll.toString());
+                }
+            });
         }
     
     // ------------------------
@@ -1948,99 +1987,220 @@ function renderTabContent(id, tab) {
         const tg = parseInt(document.getElementById('targetValue').value) || 0; // 目標値
         const sk = base + equip + globalMod; // 合計修正値
     
-        // 効果音再生
-        playDiceSound();
-        let hasCritical = false;
-        let hasFumble = false;
-
-        let s=0, f=0, cr=0, fum=0, details=[];
-    
+        // 1. Calculate results first
+        let rawResults = [];
         for(let i=0; i<n; i++){
-            const r = Math.floor(Math.random()*6)+1;
-            const tot = r + sk;
-        
-        // RLH判定ロジック: 6がクリティカル、1がファンブル（逆の場合はここを入れ替えてください）
-        // ※以前のコードが r===6 でクリティカルだったので、それに合わせます
-            let resText = "";
-            if(r === 6) {
-                resText = "クリティカル";
-                hasCritical = true;
-                s++; cr++;
-            } 
-            else if(r === 1) {
-                resText = "ファンブル";
-                hasFumble = true;
-                f++; fum++;
-            }
-            else if(tot >= tg) {
-                resText = "成功";
-                s++;
-            }
-            else {
-                resText = "失敗";
-                f++;
-            }
-            details.push(`#${i+1}: 1D6(${r})+${sk}=${tot} -> ${resText}`);
+            rawResults.push(Math.floor(Math.random()*6)+1);
         }
+        
+        // 2. Animate Dice
+        roll3DDice(rawResults, () => {
+            // 3. Process Logic inside callback
+            let s=0, f=0, cr=0, fum=0, details=[];
+            let hasCritical = false;
+            let hasFumble = false;
+            rawResults.forEach((r, i) => {
+                const tot = r + sk;
+                let resText = "";
+                if(r === 6) {
+                    resText = "クリティカル";
+                    hasCritical = true;
+                    s++; cr++;
+                } 
+                else if(r === 1) {
+                    resText = "ファンブル";
+                    hasFumble = true;
+                    f++; fum++;
+                }
+                else if(tot >= tg) {
+                    resText = "成功";
+                    s++;
+                }
+                else {
+                    resText = "失敗";
+                    f++;
+                }
+                details.push(`#${i+1}: 1D6(${r})+${sk}=${tot} -> ${resText}`);
+            });
+    
+            // Delayed sound for result
+            setTimeout(() => {
+                if (hasCritical) playCriticalSound();
+                else if (hasFumble) playFanFanSound();
+            }, 100);
 
-        // 結果音の予約 (ダイス音が落ち着いた頃に再生)
-        setTimeout(() => {
-            if (hasCritical) playCriticalSound();
-            else if (hasFumble) playFanFanSound();
-        }, 600);
-
-        // ログ出力
-        addLogEntry('dice', `${label}判定`, 
-        `[${c.name}] 使用数値: ${label}(${base}) + 装備/スキル(${equip}) + 修正(${globalMod}) = 計+${sk}\n` +
-        `${n}RLH >= ${tg}\n` +
-        `${details.join('\n')}\n` +
-        `成功:${s} 失敗:${f} (C:${cr}/F:${fum})`
-        );
+            // ログ出力
+            addLogEntry('dice', `${label}判定`, 
+            `[${c.name}] 使用数値: ${label}(${base}) + 装備/スキル(${equip}) + 修正(${globalMod}) = 計+${sk}\n` +
+            `${n}RLH >= ${tg}\n` +
+            `${details.join('\n')}\n` +
+            `成功:${s} 失敗:${f} (C:${cr}/F:${fum})`
+            );
+        });
     }
-
     function handleDiceSelect(el) {
         const val = el.value;
         if(!val) return;
+        // playDiceSound(); // Removed immediate sound
         handleLocalRoll(val, val);
-        playDiceSound(); // 汎用ダイス音
         el.value = ""; el.blur();
     }
     function handleTreasureSelect(el) {
         const val = el.value;
         if(!val) return;
         if(val==='Treasure') handleLocalRoll('Treasure', '宝物');
-        else if(val==='MagicTreasure') handleMagicTreasure();
-        playDiceSound(); // 宝物ロール音
+        else if(val==='MagicTreasure') handleMagicTreasure(); // sound moved inside
         el.value = ""; el.blur();
     }
+    // --- 3D Dice Animation Function ---
+    function roll3DDice(values, callback) {
+        // 設定でオフの場合はスキップ
+        if (appState.settings && (appState.settings.dice3DEnabled === false || appState.settings.diceAnimationEnabled === false)) {
+            playDiceSound();
+            if(callback) callback();
+            return;
+        }
 
+        const overlay = document.getElementById('dice-overlay');
+        const container = document.getElementById('dice-animation-container');
+
+        if(!overlay || !container) { 
+            playDiceSound();
+            if(callback) callback(); 
+            return; 
+        }
+
+        // Start sound immediately
+        playDiceSound();
+
+        container.innerHTML = '';
+        overlay.classList.add('active');
+
+        // Limit visual dice to prevent clutter
+        const visualValues = values.slice(0, 12);
+        
+        // Create dice elements
+        const diceElements = visualValues.map(val => {
+            const dice = document.createElement('div');
+            dice.className = 'dice';
+            for(let i=1; i<=6; i++) {
+                const face = document.createElement('div');
+                face.className = `dice-face face-${i}`;
+                face.textContent = i;
+                dice.appendChild(face);
+            }
+            container.appendChild(dice);
+            return dice;
+        });
+
+        // Force reflow
+        void overlay.offsetWidth;
+
+        // Apply rotations
+        diceElements.forEach((dice, i) => {
+            const val = visualValues[i];
+            // Random spin amount (at least 2 full rotations)
+            const xTurns = 2 + Math.floor(Math.random() * 2);
+            const yTurns = 2 + Math.floor(Math.random() * 2);
+            
+            let targetX = 0, targetY = 0;
+            switch(val) {
+                case 1: targetX = 0; targetY = 0; break;
+                case 6: targetX = 180; targetY = 0; break; // X 180 to show back
+                case 2: targetX = 0; targetY = -90; break; // -90 Y shows Right face (2)
+                case 5: targetX = 0; targetY = 90; break;  // 90 Y shows Left face (5)
+                case 3: targetX = -90; targetY = 0; break; // -90 X shows Top face (3)
+                case 4: targetX = 90; targetY = 0; break;  // 90 X shows Bottom face (4)
+            }
+            
+            // Apply final rotation
+            // Add small random noise to initial position if desired, but here we just go to target
+            const finalX = targetX + (xTurns * 360);
+            const finalY = targetY + (yTurns * 360);
+
+            dice.style.transform = `rotateX(${finalX}deg) rotateY(${finalY}deg)`;
+        });
+
+        // アニメーション終了後の処理（タップでスキップ可能にする）
+        let isFinished = false;
+        const finishAnimation = () => {
+            if (isFinished) return;
+            isFinished = true;
+            overlay.classList.remove('active');
+            overlay.onclick = null; // リスナー解除
+            if(callback) callback();
+        };
+
+        // 画面タップで即座に結果を表示へ進む
+        overlay.onclick = finishAnimation;
+
+        // 自動で閉じるまでの時間を延長 (1000ms -> 2500ms)
+        // アニメーション(0.8s)の後、1.7秒ほど結果を確認できる
+        setTimeout(finishAnimation, 2500);
+    }
     //handleLocalRoll（その他帆ロールの判定計算）
     function handleLocalRoll(cmd, label) {
         const c = appState.characters[appState.currentCharacterId];
         // 修正値（quickModValue）を取得
         const mod = parseInt(document.getElementById('quickModValue').value) || 0;
-        let res = "";
         
+        let diceResults = [];
+        let finalValues = []; // values to check for result (like sum)
+        let isD66 = false;
+
         if(cmd==='1D3') { 
-            const r = Math.floor(Math.random()*3)+1; 
-            res = `1D3(${r})+${mod}=${r+mod}`; 
+            const r = Math.floor(Math.random()*3)+1;
+            diceResults = [r];
+            finalValues = [r];
         }
         else if(cmd==='1D6') { 
             const r = Math.floor(Math.random()*6)+1; 
-            res = `1D6(${r})+${mod}=${r+mod}`; 
+            diceResults = [r];
+            finalValues = [r];
         }
         else if(cmd==='D33') {
             const r1 = Math.floor(Math.random()*3)+1;
             const r2 = Math.floor(Math.random()*3)+1;
-            res = `D33[${r1},${r2}](${r1*10+r2})+${mod}=${(r1*10+r2)+mod}`;
+            diceResults = [r1, r2];
+            finalValues = [r1*10 + r2];
         }
         else if(cmd==='D66') { 
             const r1=Math.floor(Math.random()*6)+1, r2=Math.floor(Math.random()*6)+1; 
-            res=`D66[${r1},${r2}](${r1*10+r2})+${mod}=${(r1*10+r2)+mod}`; 
+            diceResults = [r1, r2];
+            finalValues = [r1*10 + r2];
+            isD66 = true;
         }
-        else if(cmd==='Treasure'){
+        else if(cmd === 'Treasure') {
             const r = Math.floor(Math.random()*6)+1;
-            const total = r + mod; // ダイス目＋修正値の合計
+            diceResults = [r];
+            finalValues = [r];
+        }
+
+        // Animate and then Log
+        roll3DDice(diceResults, () => {
+            let res = "";
+            
+            if(cmd === '1D3') {
+                const r = diceResults[0];
+                res = `1D3(${r})+${mod}=${r+mod}`;
+            }
+            else if(cmd === '1D6') {
+                const r = diceResults[0];
+                res = `1D6(${r})+${mod}=${r+mod}`;
+            }
+            else if(cmd === 'D33') {
+                const r1 = diceResults[0];
+                const r2 = diceResults[1];
+                res = `D33${r1},${r2}+${mod}=${(r1*10+r2)+mod}`;
+            }
+            else if(cmd === 'D66') {
+                const r1 = diceResults[0];
+                const r2 = diceResults[1];
+                res = `D66${r1},${r2}+${mod}=${(r1*10+r2)+mod}`;
+            }
+            else if(cmd === 'Treasure') {
+                const r = diceResults[0];
+                const total = r + mod;
             let detail = "";
             let isCsvData = false;
 
@@ -2094,11 +2254,12 @@ function renderTabContent(id, tab) {
             const modText = mod !== 0 ? `(${r}${mod >= 0 ? '+' : ''}${mod})` : "";
             res = `宝物結果：${total}${modText}\n内容：${detail}`;
             addLogEntry('dice', label, `[実行者: ${c.name}]\n${res}`);
-            return;
-        }
-
-        // Treasure以外のダイス（1D6など）のログ出力
-        addLogEntry('dice', label, `[実行者: ${c.name}]\n${res}`);
+            }
+            
+            if(cmd !== 'Treasure') {
+                addLogEntry('dice', label, `[実行者: ${c.name}]\n${res}`);
+            }
+        });
     }
 
     function addLogEntry(type, title='', content='') {
@@ -2132,7 +2293,7 @@ function renderTabContent(id, tab) {
                 const cleanContent = e.content.replace(/<[^>]*>?/gm, '');
                 return `<div class="p-2 border rounded text-xs relative group ${e.type==='dice'?'bg-indigo-50':e.type==='system'?'bg-gray-100':'bg-white'}">
                     <div class="flex justify-between text-[9px] text-gray-400"><span>${e.time}</span><div class="opacity-0 group-hover:opacity-100 flex items-center gap-2">
-                        <button onclick="speak('${cleanContent}', true)" title="このログを読み上げる">▶️</button>
+                        <button onclick="speak('${cleanContent}', true)" title="このログを読み上げる">▶</button>
                         <button onclick="editLog(${idx})">✎</button> <button onclick="deleteLog(${idx})">×</button></div></div>
                     <div class="whitespace-pre-wrap">${e.content}</div></div>`;
         }).join('');
@@ -2151,7 +2312,6 @@ function renderTabContent(id, tab) {
             document.getElementById('d66Rows').value = appState.d66GridSettings.rows;
             document.getElementById('d66Cols').value = appState.d66GridSettings.cols;
         }
-        updateTTSButtonState();
         renderD66Grid(); renderD66Table(); renderLogArea(); renderEnemyPanel(); renderCurrentCharacterSheet(); 
     }
     // セッション全体の保存
@@ -2523,7 +2683,9 @@ function renderTabContent(id, tab) {
             if (show) {
                 // モーダルを開いたときに現在の設定を反映
                 document.getElementById('toastToggle').checked = appState.showToastNotifications !== false;
+                document.getElementById('dice3DToggle').checked = appState.settings.dice3DEnabled !== false;
                 document.getElementById('soundToggle').checked = appState.settings.soundEnabled !== false;
+                document.getElementById('diceAnimationToggle').checked = appState.settings.diceAnimationEnabled !== false;
                 document.getElementById('volRange').value = appState.settings.volume || 50;
                 document.getElementById('volValue').textContent = appState.settings.volume || 50;
                 if (document.getElementById('d66Rows')) {
@@ -2531,6 +2693,7 @@ function renderTabContent(id, tab) {
                     document.getElementById('d66Cols').value = appState.d66GridSettings.cols;
                 }
             // TTS設定をUIに反映
+            document.getElementById('ttsEnabledToggle').checked = appState.ttsSettings.enabled;
             document.getElementById('ttsRate').value = appState.ttsSettings.rate;
             document.getElementById('ttsPitch').value = appState.ttsSettings.pitch;
             updateTTSSliderValue('Rate'); updateTTSSliderValue('Pitch');
@@ -2553,6 +2716,19 @@ function renderTabContent(id, tab) {
     // トースト通知のオンオフ切り替え
     function toggleToastNotifications(isEnabled) {
         appState.showToastNotifications = isEnabled;
+        saveData();
+    }
+
+    // 3Dダイス設定
+    function toggleDice3D(isEnabled) {
+        if (!appState.settings) appState.settings = {};
+        appState.settings.dice3DEnabled = isEnabled;
+        saveData();
+    }
+
+    function toggleDiceAnimation(isEnabled) {
+        if (!appState.settings) appState.settings = {};
+        appState.settings.diceAnimationEnabled = isEnabled;
         saveData();
     }
 
@@ -2630,28 +2806,12 @@ function renderTabContent(id, tab) {
         speak("こんにちは、これはテスト再生です。", true);
     }
 
-    function toggleAutoRead() {
-        appState.ttsSettings.enabled = !appState.ttsSettings.enabled;
+    function toggleTTS(isEnabled) {
+        appState.ttsSettings.enabled = isEnabled;
         if (!appState.ttsSettings.enabled) {
             window.speechSynthesis.cancel(); // OFFにしたら読み上げを停止
         }
-        updateTTSButtonState();
         saveData();
-        showToast(`自動読み上げが ${appState.ttsSettings.enabled ? 'ON' : 'OFF'} になりました`);
-    }
-
-    function updateTTSButtonState() {
-        const btn = document.getElementById('ttsToggleBtn');
-        if (!btn) return;
-        if (appState.ttsSettings.enabled) {
-            btn.classList.remove('bg-gray-500', 'hover:bg-gray-600');
-            btn.classList.add('bg-green-600', 'hover:bg-green-700');
-            btn.innerHTML = '🔊';
-        } else {
-            btn.classList.remove('bg-green-600', 'hover:bg-green-700');
-            btn.classList.add('bg-gray-500', 'hover:bg-gray-600');
-            btn.innerHTML = '<span class="line-through">🔊</span>';
-        }
     }
 
     document.getElementById('ttsVoiceSelector')?.addEventListener('change', saveTTSSettings);
@@ -3810,9 +3970,14 @@ ${treasureText}
             </div>
             <p class="text-[10px] text-gray-400 mt-1 ml-1">※変更すると現在のグリッド状態はリセットされます</p>
         </div>
+
         <div class="mb-6">
             <h3 class="font-bold mb-2 text-sm text-gray-700">読み上げ(TTS)設定</h3>
             <div class="p-3 bg-gray-50 rounded-lg border space-y-3">
+                <label class="flex items-center space-x-3 cursor-pointer mb-2 pb-2 border-b border-gray-200">
+                    <input type="checkbox" id="ttsEnabledToggle" onchange="toggleTTS(this.checked)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <span class="text-xs font-bold text-gray-700">ログの自動読み上げを有効にする</span>
+                </label>
                 <div>
                     <label class="block text-xs font-bold text-gray-600 mb-1">声の種類</label>
                     <select id="ttsVoiceSelector" class="w-full border rounded p-1 text-xs focus:ring-2 focus:ring-indigo-400 outline-none"></select>
@@ -3833,6 +3998,13 @@ ${treasureText}
             <label class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border cursor-pointer hover:bg-gray-100">
                 <input type="checkbox" id="toastToggle" onchange="toggleToastNotifications(this.checked)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
                 <span class="text-sm text-gray-800">ダイスロール結果をポップアップ表示する</span>
+            </label>
+        </div>
+        <div class="mb-6">
+            <h3 class="font-bold mb-2 text-sm text-gray-700">演出設定</h3>
+            <label class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border cursor-pointer hover:bg-gray-100">
+                <input type="checkbox" id="dice3DToggle" onchange="toggleDice3D(this.checked)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                <span class="text-sm text-gray-800">3Dダイスアニメーションを表示</span>
             </label>
         </div>
         <div class="mb-6">
@@ -3859,7 +4031,11 @@ ${treasureText}
     </div>
 </div>
 
-<!-- Result Modal -->
+<div id="dice-overlay">
+    <div id="dice-animation-container"></div>
+</div>
+
+
 <div id="resultModal" class="modal" onclick="document.getElementById('resultModal').style.display='none'">
     <div class="modal-content">
         <div id="result-paper" onclick="event.stopPropagation()">
