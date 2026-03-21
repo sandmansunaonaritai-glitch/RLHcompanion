@@ -539,7 +539,7 @@
             <button onclick="toggleSettings(true)" class="bg-gray-600 hover:bg-gray-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm shadow-sm">⚙️</button>
         </div>
     </div>
-    <div class="p-2 px-2 flex flex-nowrap gap-2 items-center bg-gray-700 text-[11px] text-white">
+    <div class="p-2 px-2 flex flex-nowrap gap-2 items-center bg-gray-700 text-[11px] text-white overflow-x-auto">
     <div class="flex items-center space-x-1 shrink-0">
         <span>回数:</span>
         <input type="number" id="rollCount" value="1" class="w-8 rounded text-gray-900 px-1 text-center">
@@ -608,7 +608,7 @@
                     </div>
                 </summary>
                 <div class="p-2 bg-white flex flex-col space-y-2">
-                    <div class="flex space-x-1 border-b pb-2">
+                    <div class="flex flex-wrap gap-1 border-b pb-2">
                    	 <button onclick="playScenario('title')" class="bg-indigo-600 text-white text-[9px] px-2 py-1 rounded">タイトル</button>
    			 <button onclick="playScenario('overview')" class="bg-cyan-600 text-white text-[9px] px-2 py-1 rounded">概要</button>
    			 <button onclick="playScenario('rule')" class="bg-slate-700 text-white text-[9px] px-2 py-1 rounded">特殊ルール</button>
