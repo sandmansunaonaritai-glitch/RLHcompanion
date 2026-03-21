@@ -1,4 +1,4 @@
-<!--RLHcompanion_Ver2.2-->
+<!--RLHcompanion_Ver2.3-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -7,6 +7,7 @@
     <title>RLH Companion</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700;900&display=swap" rel="stylesheet">
    
    <style>/* ①スタイルとレイアウト */
@@ -87,6 +88,21 @@
         .record-table th { background: #f9fafb; color: #667085; }
         .record-table tr.active-row { background: #fffbeb; outline: 2px solid #f59e0b; outline-offset: -2px; }
         .resource-input { padding: 0.1rem; font-size: 0.85rem; text-align: center; border-radius: 0.25rem; width: 2.8rem; border: 1px solid #d1d5db; }
+
+        /* Markdown in Log Styles */
+        .markdown-body strong { font-weight: 700; }
+        .markdown-body em { font-style: italic; background-color: #fef3c7; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 700; margin: 0.5em 0 0.2em; border-bottom: 1px solid #eee; }
+        .markdown-body ul { list-style: disc; padding-left: 1.2em; }
+        .markdown-body ol { list-style: decimal; padding-left: 1.2em; }
+        .markdown-body p { margin-bottom: 0.5em; }
+        /* Table Styles */
+        .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 1em; font-size: 0.9em; }
+        .markdown-body th, .markdown-body td { border: 1px solid #d1d5db; padding: 4px 8px; text-align: left; }
+        .markdown-body th { background-color: #f3f4f6; font-weight: 700; }
+        .markdown-body tr:nth-child(even) { background-color: #f9fafb; }
+        .markdown-body img { max-width: 100%; border-radius: 6px; margin: 0.5em auto; display: block; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-height: 150px; object-fit: contain; cursor: pointer; transition: transform 0.2s; }
+        .markdown-body img:hover { transform: scale(1.02); }
 
         /* 選択肢ボタン自体のスタイル */
         .choice-btn {
@@ -251,6 +267,7 @@
        body.theme-night input, body.theme-night textarea, body.theme-night select { 
            background-color: #0f172a !important; color: #f1f5f9 !important; border-color: #475569 !important; 
        }
+       body.theme-night input[type="range"] { background-color: #334155 !important; }
        body.theme-night [class*="text-"] { color: #cbd5e1 !important; }
        body.theme-night .text-white { color: #ffffff !important; }
        body.theme-night .text-gray-400 { color: #94a3b8 !important; }
@@ -271,13 +288,13 @@
        /* 2. 主要アクション (Blue) */
               body.theme-night .bg-blue-700, body.theme-night .bg-green-700, body.theme-night .bg-teal-600, body.theme-night .bg-amber-600,
        /* シナリオ進行ボタン */
-       body.theme-night #log-section .bg-indigo-600, body.theme-night #log-section .bg-slate-700, body.theme-night #log-section .bg-orange-600, body.theme-night #log-section .bg-gray-500, body.theme-night #log-section .bg-blue-500, body.theme-night #log-section .bg-amber-500, body.theme-night #log-section .bg-rose-500, body.theme-night #log-section .bg-emerald-500,
+       body.theme-night #log-section .bg-indigo-600, body.theme-night #log-section .bg-slate-700, body.theme-night #log-section .bg-orange-600, body.theme-night #log-section .bg-gray-500, body.theme-night #log-section .bg-blue-500, body.theme-night #log-section .bg-amber-500, body.theme-night #log-section .bg-rose-500, body.theme-night #log-section .bg-emerald-500, body.theme-night #log-section .bg-cyan-600, body.theme-night #log-section .bg-sky-500, body.theme-night #log-section .bg-gray-400,
        /* キャラシートの「能」ボタン */
        body.theme-night #view-char .bg-orange-600, body.theme-night #view-char .bg-emerald-600, body.theme-night #view-char .bg-gray-600, body.theme-night #view-char .bg-purple-600, body.theme-night #view-char .bg-blue-600 {
            background-color: #1d4ed8 !important; color: #eff6ff !important; border-color: #1e40af !important;
        }
              body.theme-night .bg-blue-700:hover, body.theme-night .bg-green-700:hover, body.theme-night .bg-teal-600:hover, body.theme-night .bg-amber-600:hover,
-       body.theme-night #log-section .bg-indigo-600:hover, body.theme-night #log-section .bg-slate-700:hover, body.theme-night #log-section .bg-orange-600:hover, body.theme-night #log-section .bg-gray-500:hover, body.theme-night #log-section .bg-blue-500:hover, body.theme-night #log-section .bg-amber-500:hover, body.theme-night #log-section .bg-rose-500:hover, body.theme-night #log-section .bg-emerald-500:hover,
+       body.theme-night #log-section .bg-indigo-600:hover, body.theme-night #log-section .bg-slate-700:hover, body.theme-night #log-section .bg-orange-600:hover, body.theme-night #log-section .bg-gray-500:hover, body.theme-night #log-section .bg-blue-500:hover, body.theme-night #log-section .bg-amber-500:hover, body.theme-night #log-section .bg-rose-500:hover, body.theme-night #log-section .bg-emerald-500:hover, body.theme-night #log-section .bg-cyan-600:hover, body.theme-night #log-section .bg-sky-500:hover, body.theme-night #log-section .bg-gray-400:hover,
        body.theme-night #view-char .bg-orange-600:hover, body.theme-night #view-char .bg-emerald-600:hover, body.theme-night #view-char .bg-gray-600:hover, body.theme-night #view-char .bg-purple-600:hover, body.theme-night #view-char .bg-blue-600:hover { background-color: #1e40af !important; }
 
        /* 3. 危険なアクション (Red) */
@@ -332,6 +349,7 @@
        body.theme-sepia input, body.theme-sepia textarea, body.theme-sepia select {
            background-color: #fffbf0 !important; color: #3e2723 !important; border-color: #d3c6a6 !important;
        }
+       body.theme-sepia input[type="range"] { background-color: #d3c6a6 !important; }
        body.theme-sepia [class*="text-"] { color: #4e342e !important; }
        body.theme-sepia .text-white { color: #fff !important; }
        body.theme-sepia .text-gray-400 { color: #a1887f !important; }
@@ -352,13 +370,13 @@
        /* 2. 主要アクション (Teal) */
               body.theme-sepia .bg-blue-700, body.theme-sepia .bg-green-700, body.theme-sepia .bg-teal-600, body.theme-sepia .bg-amber-600,
        /* シナリオ進行ボタン */
-       body.theme-sepia #log-section .bg-indigo-600, body.theme-sepia #log-section .bg-slate-700, body.theme-sepia #log-section .bg-orange-600, body.theme-sepia #log-section .bg-gray-500, body.theme-sepia #log-section .bg-blue-500, body.theme-sepia #log-section .bg-amber-500, body.theme-sepia #log-section .bg-rose-500, body.theme-sepia #log-section .bg-emerald-500,
+       body.theme-sepia #log-section .bg-indigo-600, body.theme-sepia #log-section .bg-slate-700, body.theme-sepia #log-section .bg-orange-600, body.theme-sepia #log-section .bg-gray-500, body.theme-sepia #log-section .bg-blue-500, body.theme-sepia #log-section .bg-amber-500, body.theme-sepia #log-section .bg-rose-500, body.theme-sepia #log-section .bg-emerald-500, body.theme-sepia #log-section .bg-cyan-600, body.theme-sepia #log-section .bg-sky-500, body.theme-sepia #log-section .bg-gray-400,
        /* キャラシートの「能」ボタン */
        body.theme-sepia #view-char .bg-orange-600, body.theme-sepia #view-char .bg-emerald-600, body.theme-sepia #view-char .bg-gray-600, body.theme-sepia #view-char .bg-purple-600, body.theme-sepia #view-char .bg-blue-600 {
            background-color: #00695c !important; color: #e0f2f1 !important; border-color: #004d40 !important;
        }
        body.theme-sepia .bg-blue-700:hover, body.theme-sepia .bg-green-700:hover, body.theme-sepia .bg-teal-600:hover, body.theme-sepia .bg-amber-600:hover,
-       body.theme-sepia #log-section .bg-indigo-600:hover, body.theme-sepia #log-section .bg-slate-700:hover, body.theme-sepia #log-section .bg-orange-600:hover, body.theme-sepia #log-section .bg-gray-500:hover, body.theme-sepia #log-section .bg-blue-500:hover, body.theme-sepia #log-section .bg-amber-500:hover, body.theme-sepia #log-section .bg-rose-500:hover, body.theme-sepia #log-section .bg-emerald-500:hover,
+       body.theme-sepia #log-section .bg-indigo-600:hover, body.theme-sepia #log-section .bg-slate-700:hover, body.theme-sepia #log-section .bg-orange-600:hover, body.theme-sepia #log-section .bg-gray-500:hover, body.theme-sepia #log-section .bg-blue-500:hover, body.theme-sepia #log-section .bg-amber-500:hover, body.theme-sepia #log-section .bg-rose-500:hover, body.theme-sepia #log-section .bg-emerald-500:hover, body.theme-sepia #log-section .bg-cyan-600:hover, body.theme-sepia #log-section .bg-sky-500:hover, body.theme-sepia #log-section .bg-gray-400:hover,
        body.theme-sepia #view-char .bg-orange-600:hover, body.theme-sepia #view-char .bg-emerald-600:hover, body.theme-sepia #view-char .bg-gray-600:hover, body.theme-sepia #view-char .bg-purple-600:hover, body.theme-sepia #view-char .bg-blue-600:hover { background-color: #004d40 !important; }
 
        /* 3. 危険なアクション (Red) */
@@ -407,11 +425,11 @@
        }
        #result-paper {
            pointer-events: auto;
-           width: 95%; max-width: 400px; min-height: 85vh; max-height: calc(100vh - 80px);
+           width: 95%; max-width: 400px; min-height: 70vh; max-height: 85vh;
            overflow-y: auto;
            background: radial-gradient(circle, #fdf5e6 0%, #f5deb3 100%);
            position: relative;
-           padding: 15px;
+           padding: 20px;
            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
            font-family: 'Noto Serif JP', serif;
            color: #3e2723;
@@ -436,7 +454,7 @@
        .result-stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; width: 100%; text-align: left; font-size: 0.85rem; margin-bottom: 10px; z-index: 1; }
        .result-stat-item { border-bottom: 1px dotted #a1887f; padding: 1px 0; display: flex; justify-content: space-between; }
        .result-stat-val { font-weight: bold; }
-       .result-treasure-list { width: 100%; text-align: left; font-size: 0.75rem; margin-top: 5px; flex-grow: 1; overflow-y: auto; border: 1px solid #d7ccc8; padding: 5px; background: rgba(255,255,255,0.3); z-index: 1; }
+       .result-treasure-list { width: 100%; text-align: left; font-size: 0.75rem; margin-top: 5px; flex-grow: 1; border: 1px solid #d7ccc8; padding: 5px; background: rgba(255,255,255,0.3); z-index: 1; }
        .result-quote { margin-top: auto; font-style: italic; font-size: 0.85rem; padding: 10px; background: rgba(255,255,255,0.4); border-radius: 4px; width: 100%; z-index: 1; }
        .result-rank { font-size: 1.3rem; font-weight: 900; color: #8b0000; margin: 5px 0; z-index: 1; text-shadow: 1px 1px 0 #fff; }
        
@@ -491,7 +509,7 @@
 <!--②画面表示-->
 <body class="h-screen flex flex-col">
     <input type="file" id="uploadFile" accept=".json" class="hidden" onchange="handleFileUpload(event)">
-    <input type="file" id="csvUpload" accept=".csv" class="hidden" onchange="handleCsvUpload(event)">
+    <input type="file" id="csvUpload" accept=".csv,.json" class="hidden" onchange="handleCsvUpload(event)">
     <!--Header-->
     <header class="bg-gray-800 text-white shadow-xl z-10 shrink-0">
     <div class="p-2 px-2 flex items-center gap-2 border-b border-gray-700 h-12 lg:h-auto">
@@ -511,7 +529,7 @@
                 <button onclick="document.getElementById('uploadFile').click()" class="bg-green-700 hover:bg-green-600 text-[10px] py-1 px-2 rounded whitespace-nowrap"title="セッション・キャラ読込">読込</button>
                 <button onclick="downloadData()" class="bg-blue-700 hover:bg-blue-600 text-[10px] py-1 px-2 rounded whitespace-nowrap"title="セッション全体の保存">保存</button>
                 <button onclick="showSessionResult()" class="bg-amber-600 hover:bg-amber-500 text-[10px] py-1 px-2 rounded whitespace-nowrap font-bold"title="戦績報告">戦績</button>
-                <button onclick="exportLogText()" class="bg-teal-600 hover:bg-teal-500 text-[10px] py-1 px-2 rounded whitespace-nowrap"title="ログをテキスト形式で保存">ログDL</button>
+                <button onclick="openLogExportModal()" class="bg-teal-600 hover:bg-teal-500 text-[10px] py-1 px-2 rounded whitespace-nowrap"title="ログを保存 (Text/Markdown)">ログDL</button>
                 <button onclick="resetAllData()" class="bg-red-700 hover:bg-red-600 text-[10px] py-1 px-2 rounded whitespace-nowrap"title="全てを消去">消去</button>
             </div>
         </div>
@@ -521,7 +539,7 @@
             <button onclick="toggleSettings(true)" class="bg-gray-600 hover:bg-gray-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm shadow-sm">⚙️</button>
         </div>
     </div>
-    <div class="p-2 px-2 flex flex-nowrap gap-2 items-center bg-gray-700 text-[11px] text-white overflow-x-auto">
+    <div class="p-2 px-2 flex flex-nowrap gap-2 items-center bg-gray-700 text-[11px] text-white">
     <div class="flex items-center space-x-1 shrink-0">
         <span>回数:</span>
         <input type="number" id="rollCount" value="1" class="w-8 rounded text-gray-900 px-1 text-center">
@@ -535,19 +553,29 @@
         <span>修正:</span>
         <input type="number" id="quickModValue" value="0" class="w-8 rounded text-gray-900 px-1 mr-1 text-center">
         
-        <select class="text-gray-900 rounded px-1 py-0.5 w-14 text-[10px] font-bold cursor-pointer focus:outline-none" onchange="handleDiceSelect(this)">
-            <option value="" selected hidden>1D6</option>
-            <option value="1D6">1D6</option>
-            <option value="1D3">1D3</option>
-            <option value="D66">D66</option>
-            <option value="D33">D33</option>
-        </select>
+        <!-- Dice Group -->
+        <div class="relative group">
+            <button class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1 rounded text-[10px] font-bold transition shadow-sm whitespace-nowrap flex items-center">
+                🎲 ダイス <span class="ml-1 text-[8px]">▼</span>
+            </button>
+            <div class="absolute top-full left-0 bg-white border border-gray-200 rounded shadow-lg hidden group-hover:block z-50 min-w-[80px]">
+                <button onclick="handleLocalRoll('1D6', '1D6')" class="block w-full text-left px-3 py-2 text-[10px] text-gray-800 hover:bg-gray-100 font-bold whitespace-nowrap">1D6</button>
+                <button onclick="handleLocalRoll('1D3', '1D3')" class="block w-full text-left px-3 py-2 text-[10px] text-gray-800 hover:bg-gray-100 font-bold whitespace-nowrap">1D3</button>
+                <button onclick="handleLocalRoll('D66', 'D66')" class="block w-full text-left px-3 py-2 text-[10px] text-gray-800 hover:bg-gray-100 font-bold whitespace-nowrap">D66</button>
+                <button onclick="handleLocalRoll('D33', 'D33')" class="block w-full text-left px-3 py-2 text-[10px] text-gray-800 hover:bg-gray-100 font-bold whitespace-nowrap">D33</button>
+            </div>
+        </div>
 
-        <select class="text-gray-900 rounded px-1 py-0.5 w-20 text-[10px] font-bold cursor-pointer focus:outline-none" onchange="handleTreasureSelect(this)">
-            <option value="" selected hidden>宝物</option>
-            <option value="Treasure">宝物</option>
-            <option value="MagicTreasure">魔法の宝物</option>
-        </select>
+        <!-- Treasure Group -->
+        <div class="relative group">
+            <button class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1 rounded text-[10px] font-bold transition shadow-sm whitespace-nowrap flex items-center">
+                💎 宝物 <span class="ml-1 text-[8px]">▼</span>
+            </button>
+            <div class="absolute top-full left-0 bg-white border border-gray-200 rounded shadow-lg hidden group-hover:block z-50 min-w-[100px]">
+                <button onclick="handleLocalRoll('Treasure', '宝物')" class="block w-full text-left px-3 py-2 text-[10px] text-gray-800 hover:bg-gray-100 font-bold whitespace-nowrap">宝物</button>
+                <button onclick="handleMagicTreasure()" class="block w-full text-left px-3 py-2 text-[10px] text-gray-800 hover:bg-gray-100 font-bold whitespace-nowrap">魔法の宝物</button>
+            </div>
+        </div>
     </div>
     </div> 
     </header>
@@ -574,13 +602,15 @@
                 <summary class="p-1 font-bold text-teal-800 cursor-pointer text-[10px] bg-teal-100 rounded-t-lg flex justify-between items-center px-3">
                     <span>D66 GRID & SCENARIO</span>
                     <div class="flex items-center space-x-2">
-                        <button onclick="event.preventDefault(); document.getElementById('csvUpload').click()" class="bg-slate-600 text-white px-2 rounded"title="シナリオcsv読み込み">CSV読込</button>
+                        <button onclick="event.preventDefault(); document.getElementById('csvUpload').click()" class="bg-slate-600 text-white px-2 rounded" title="シナリオ読み込み">シナリオ読込</button>
+                        <a href="RLH_ScenarioEditor.html" target="_blank" class="bg-indigo-600 text-white px-1.5 rounded hover:bg-indigo-500 flex items-center justify-center" title="シナリオデータエディタを開く">作成</a>
                         <button onclick="event.preventDefault(); resetD66Area()" class="bg-red-600 text-white px-1.5 rounded" title="シナリオ削除">CLR</button>
                     </div>
                 </summary>
                 <div class="p-2 bg-white flex flex-col space-y-2">
                     <div class="flex space-x-1 border-b pb-2">
                    	 <button onclick="playScenario('title')" class="bg-indigo-600 text-white text-[9px] px-2 py-1 rounded">タイトル</button>
+   			 <button onclick="playScenario('overview')" class="bg-cyan-600 text-white text-[9px] px-2 py-1 rounded">概要</button>
    			 <button onclick="playScenario('rule')" class="bg-slate-700 text-white text-[9px] px-2 py-1 rounded">特殊ルール</button>
    			 <button onclick="playScenario('linear')" class="bg-orange-600 text-white text-[9px] px-2 py-1 rounded">一本道モード</button>
  			 <button onclick="playScenario('pro')" class="bg-gray-500 text-white text-[9px] px-2 py-1 rounded">プロローグ</button>
@@ -589,8 +619,10 @@
 			 <button onclick="playScenario('mid')" class="bg-amber-500 text-white text-[9px] px-2 py-1 rounded">中間</button>
 			 <button onclick="playScenario('finish')" class="bg-rose-500 text-white text-[9px] px-2 py-1 rounded">最終</button>
 			 <button onclick="playScenario('clear')" class="bg-emerald-500 text-white text-[9px] px-2 py-1 rounded">達成</button>
+             <button onclick="playScenario('ending')" class="bg-sky-500 text-white text-[9px] px-2 py-1 rounded">エンディング</button>
+             <button onclick="playScenario('reference')" class="bg-gray-400 text-white text-[9px] px-2 py-1 rounded">参考</button>
 
- 		   <span id="csvStatus" class="text-[9px] text-gray-400 self-center ml-2 italic">CSV未読込</span>
+ 		   <span id="csvStatus" class="text-[9px] text-gray-400 self-center ml-2 italic">シナリオ未読込</span>
             </div>                    
                         <div class="overflow-x-auto">
                             <table class="record-table">
@@ -692,6 +724,7 @@
                     if (!appState.d66GridSettings) {
                         appState.d66GridSettings = { rows: 6, cols: 6 };
                     }
+                    if (!appState.settings.logFontSize) appState.settings.logFontSize = 'small';
                     // グリッドサイズとデータ配列の整合性チェック
                     const expectedSize = appState.d66GridSettings.rows * appState.d66GridSettings.cols;
                     if (appState.d66State && appState.d66State[0].grid.length !== expectedSize) {
@@ -748,10 +781,33 @@
         if (!f) return;
         const r = new FileReader();
         r.onload = (ev) => {
-        // テキストを読み込み、高度なパース(parseCSV)に渡す
-        processCSV(ev.target.result);
+            const content = ev.target.result;
+            if (f.name.toLowerCase().endsWith('.json')) {
+                try {
+                    const data = JSON.parse(content);
+                    if (Array.isArray(data)) {
+                        scenarioMaster = data;
+                        // 設定があれば適用
+                        applyScenarioConfig(data);
+                        try {
+                            localStorage.setItem('rlh_scenario_data_v1', JSON.stringify(scenarioMaster));
+                        } catch (e) { console.error("Scenario save failed", e); }
+                        const statusEl = document.getElementById('csvStatus');
+                        if (statusEl) {
+                            statusEl.textContent = "読込済 (" + scenarioMaster.length + "件)";
+                            statusEl.className = "text-[9px] text-teal-600 self-center ml-2 font-bold";
+                        }
+                        alert("シナリオデータを読み込みました (" + scenarioMaster.length + "件)");
+                    } else {
+                        alert("シナリオファイル(JSON配列)ではありません。");
+                    }
+                } catch (e) { alert("JSONの読み込みに失敗しました"); }
+            } else {
+                processCSV(content);
+            }
         };
         r.readAsText(f);
+        e.target.value = '';
     }
         // シナリオデータを保持する変数
         let scenarioData = {};
@@ -840,6 +896,9 @@
             return obj;
         });
 
+        // 設定があれば適用
+        applyScenarioConfig(scenarioMaster);
+
         // localStorageに保存
         try {
             localStorage.setItem('rlh_scenario_data_v1', JSON.stringify(scenarioMaster));
@@ -854,6 +913,36 @@
             statusEl.textContent = "読込済 (" + scenarioMaster.length + "件)";
             statusEl.className = "text-[9px] text-teal-600 self-center ml-2 font-bold";
         }
+    }
+
+    // --- シナリオ設定適用関数 ---
+    function applyScenarioConfig(data) {
+        const config = data.find(item => item.type === 'config');
+        if (!config) return;
+
+        let r = parseInt(config.rows);
+        let c = parseInt(config.cols);
+
+        // textプロパティからの解析 (CSVや、JSONのtext利用時)
+        if ((!r || !c) && config.text) {
+            const txt = config.text.toLowerCase();
+            // "rows=3" 形式
+            const matchR = txt.match(/rows\s*[=:]\s*(\d+)/);
+            if (matchR) r = parseInt(matchR[1]);
+            const matchC = txt.match(/cols\s*[=:]\s*(\d+)/);
+            if (matchC) c = parseInt(matchC[1]);
+            
+            // "3x3" 形式
+            if (!r && !c) {
+                const matchX = txt.match(/(\d+)\s*x\s*(\d+)/);
+                if (matchX) {
+                    r = parseInt(matchX[1]);
+                    c = parseInt(matchX[2]);
+                }
+            }
+        }
+
+        if (r > 0 && c > 0) changeGridSize(r, c, false);
     }
 
     // 直前のIDを保存する変数（関数の外に定義）
@@ -896,48 +985,71 @@
             // （ここでヘタに type 検索に流さないことで、無関係なデータ表示を防ぐ）
         } 
         if (!id) {
-            // ID指定がない場合のみ、タイプ（d66など）で検索する
-            entries = scenarioMaster.filter(s => s.type === targetType && parseInt(s.turn) === turn);
+            // ID指定がない場合：タイプで検索 (中間・開始・終了イベントなど)
+            // 優先度ルール: IDなし(ルート)がある場合は、IDあり(分岐)を除外してルートのみ表示する
+            
+            // 1. まず現在のターンで検索
+            let candidates = scenarioMaster.filter(s => s.type === targetType && parseInt(s.turn) === turn);
+            let roots = candidates.filter(s => !s.id); // IDが空のものを抽出
+            
+            if (roots.length > 0) entries = roots;
+            else entries = candidates;
+
+            // 2. ヒットなし & ターン1以外なら、ターン1(共通)で再検索
             if (entries.length === 0 && turn !== 1) {
-                entries = scenarioMaster.filter(s => s.type === targetType && parseInt(s.turn) === 1);
+                candidates = scenarioMaster.filter(s => s.type === targetType && parseInt(s.turn) === 1);
+                roots = candidates.filter(s => !s.id);
+                
+                if (roots.length > 0) entries = roots;
+                else entries = candidates;
             }
         }
 
         // --- 3. ログの日本語ラベル設定 ---
         const labels = {
             title: "タイトル",
+            overview: "概要",
             rule: "特殊ルール",
             linear: "一本道モード",
             pro: "プロローグ",
             start: "冒険のはじまり",
             mid: "中間イベント",
             clear: "冒険の達成",
+            ending: "エンディング",
+            reference: "参考",
             finish: "最終イベント",
             magictreasure: "魔法の宝物",
         };
 
         // --- 4. ログ出力処理 ---
-        let selectedEntry = entries.length > 0 ? entries[0] : null;
+let selectedEntry = entries.length > 0 ? entries[0] : null;
 
-        if (targetType === 'd66' && id) {
-            // D66の場合：データがあればテキスト付き、なければ「出目：XX」のみ
-            const text = (selectedEntry && selectedEntry.text) ? `\n${selectedEntry.text}` : "";
-            addLogEntry('system', 'RESULT', `出目：${id}${text}`);
-            
-            // D66イベントは分岐の終点なので、常に「戻る」の履歴をリセットします。
-            previousScenarioId = null;
-        }
-        else {
-            // タイトル、プロローグ、中間イベント、一本道、分岐などの場合
-            const labelName = labels[targetType] || type; 
-            // entries が空でも、あるいは text が空でも、ラベルは必ず表示する
-            let contentText = "";
-            if (entries.length > 0) {
-                contentText = entries.map(e => e.text ? `\n${e.text}` : "").join('');
-            }
-            // ラベル（【タイトル】など）を付けてログに出力
-            addLogEntry('system', 'SCENARIO', `【${labelName}】${contentText}`);
-        }
+if (targetType === 'd66' && id) {
+    // D66の場合
+    const text = (selectedEntry && selectedEntry.text) ? `\n${selectedEntry.text}` : "";
+    
+    // 【修正箇所】entry.image ではなく selectedEntry.image を使用
+    let imgHtml = "";
+    if (selectedEntry && selectedEntry.image) {
+        imgHtml = `\n![挿絵](${selectedEntry.image})\n`;
+    }
+
+    addLogEntry('system', 'RESULT', `出目：${id}${imgHtml}${text}`);
+    previousScenarioId = null;
+}
+else {
+    // タイトル、プロローグなどの場合
+    const labelName = labels[targetType] || type; 
+    let contentText = "";
+    if (entries.length > 0) {
+        contentText = entries.map(e => {
+            // 【修正箇所】e.image を使用し、閉じカッコ ) を追加
+            const img = e.image ? `\n![挿絵](${e.image})\n` : "";
+            return img + (e.text ? `\n${e.text}` : "");
+        }).join('');
+    }
+    addLogEntry('system', 'SCENARIO', `【${labelName}】${contentText}`);
+}
 
         // --- 5. 選択肢ボタンの描画 ---
         if (selectedEntry) {
@@ -1060,12 +1172,14 @@
     function updateD66GridSize() {
         const rows = parseInt(document.getElementById('d66Rows').value) || 6;
         const cols = parseInt(document.getElementById('d66Cols').value) || 6;
+        changeGridSize(rows, cols, true);
+    }
 
-        if (rows === appState.d66GridSettings.rows && cols === appState.d66GridSettings.cols) {
-            return; // 変更がない場合は何もしない
-        }
+    function changeGridSize(rows, cols, confirmMsg = true) {
+        if (!rows || !cols) return;
+        if (rows === appState.d66GridSettings.rows && cols === appState.d66GridSettings.cols) return;
 
-        if (confirm(`グリッドサイズを ${rows}x${cols} に変更しますか？\n現在のグリッドデータとテーブルはリセットされます。`)) {
+        if (!confirmMsg || confirm(`グリッドサイズを ${rows}x${cols} に変更しますか？\n現在のグリッドデータとテーブルはリセットされます。`)) {
             appState.d66GridSettings.rows = rows;
             appState.d66GridSettings.cols = cols;
             const newSize = rows * cols;
@@ -1079,6 +1193,11 @@
 
             renderAll();
             saveData();
+            
+            // 設定画面のinput値も更新
+            const rInput = document.getElementById('d66Rows');
+            const cInput = document.getElementById('d66Cols');
+            if(rInput && cInput) { rInput.value = rows; cInput.value = cols; }
         }
     }
 
@@ -2038,20 +2157,6 @@ function renderTabContent(id, tab) {
             );
         });
     }
-    function handleDiceSelect(el) {
-        const val = el.value;
-        if(!val) return;
-        // playDiceSound(); // Removed immediate sound
-        handleLocalRoll(val, val);
-        el.value = ""; el.blur();
-    }
-    function handleTreasureSelect(el) {
-        const val = el.value;
-        if(!val) return;
-        if(val==='Treasure') handleLocalRoll('Treasure', '宝物');
-        else if(val==='MagicTreasure') handleMagicTreasure(); // sound moved inside
-        el.value = ""; el.blur();
-    }
     // --- 3D Dice Animation Function ---
     function roll3DDice(values, callback) {
         // 設定でオフの場合はスキップ
@@ -2290,12 +2395,29 @@ function renderTabContent(id, tab) {
         logAreaEl.innerHTML = appState.logEntries.map((e, idx) => {
                 if(e.type==='separator') return `<div class="border-t-2 border-purple-200 my-4 relative group"><button onclick="deleteLog(${idx})" class="absolute -top-3 right-0 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] hidden group-hover:block">×</button></div>`;
                 // ログテキストからHTMLタグを除去して読み上げ用に準備
-                const cleanContent = e.content.replace(/<[^>]*>?/gm, '');
-                return `<div class="p-2 border rounded text-xs relative group ${e.type==='dice'?'bg-indigo-50':e.type==='system'?'bg-gray-100':'bg-white'}">
-                    <div class="flex justify-between text-[9px] text-gray-400"><span>${e.time}</span><div class="opacity-0 group-hover:opacity-100 flex items-center gap-2">
-                        <button onclick="speak('${cleanContent}', true)" title="このログを読み上げる">▶</button>
+                let cleanContent = e.content.replace(/<[^>]*>?/gm, '');
+                // ルビ記法変換 (読み上げ用にルビ部分だけを残す)
+                cleanContent = cleanContent.replace(/[\|｜]([^\|｜《》\n]+?)《([^《》\n]+?)》/g, '$2');
+                const speakContent = cleanContent.replace(/\r?\n/g, ' ').replace(/'/g, "\\'");
+                
+                // 連続する改行（3つ以上）を保持するための処理: 空行を&nbsp;を含む段落に置換
+                let processedContent = e.content.replace(/\n{3,}/g, m => '\n\n' + '&nbsp;\n\n'.repeat(m.length - 2));
+                
+                // ルビ記法変換 (|文字《ルビ》 -> <ruby>文字<rt>ルビ</rt></ruby>)
+                processedContent = processedContent.replace(/[\|｜]([^\|｜《》\n]+?)《([^《》\n]+?)》/g, '<ruby>$1<rt>$2</rt></ruby>');
+                
+                // Markdown変換 (breaks: true で改行を反映)
+                const htmlContent = marked.parse(processedContent, { breaks: true });
+                
+                const sizeSetting = appState.settings ? (appState.settings.logFontSize || 'small') : 'small';
+                const bodyClass = sizeSetting === 'large' ? 'text-base' : (sizeSetting === 'medium' ? 'text-sm' : 'text-xs');
+                const metaClass = sizeSetting === 'large' ? 'text-xs' : (sizeSetting === 'medium' ? 'text-[10px]' : 'text-[9px]');
+
+                return `<div class="p-2 border rounded ${bodyClass} relative group ${e.type==='dice'?'bg-indigo-50':e.type==='system'?'bg-gray-100':'bg-white'}">
+                    <div class="flex justify-between ${metaClass} text-gray-400"><span>${e.time}</span><div class="opacity-0 group-hover:opacity-100 flex items-center gap-2">
+                        <button onclick="speak('${speakContent}', true)" title="このログを読み上げる">▶</button>
                         <button onclick="editLog(${idx})">✎</button> <button onclick="deleteLog(${idx})">×</button></div></div>
-                    <div class="whitespace-pre-wrap">${e.content}</div></div>`;
+                    <div class="markdown-body">${htmlContent}</div></div>`;
         }).join('');
         if (logListEl) {
             logListEl.scrollTop = logListEl.scrollHeight; // 正しいスクロールコンテナを一番下までスクロール
@@ -2336,6 +2458,30 @@ function renderTabContent(id, tab) {
         a.download = `${title}.txt`; // ファイル名に反映
         a.click();
     }
+
+    function exportLogMarkdown() {
+        const title = document.getElementById('logTitle').value || "session_log";
+        let md = `# SESSION: ${title}\n\n`;
+        appState.logEntries.forEach(e => {
+            if (e.type === 'separator') {
+                md += `\n---\n\n`;
+            } else {
+                const icon = e.type === 'input' ? '💬' : (e.type === 'dice' ? '🎲' : '💻');
+                md += `### ${icon} [${e.time}]\n\n${e.content}\n\n`;
+            }
+        });
+        const b = new Blob([md], {type:'text/markdown'});
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(b);
+        a.download = `${title}.md`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    }
+
+    function openLogExportModal() {
+        document.getElementById('logExportModal').style.display = 'flex';
+    }
+
     // 表示中のキャラのみ保存
     function downloadCharacterById(id) {
         const c = appState.characters[id];
@@ -2391,6 +2537,13 @@ function renderTabContent(id, tab) {
     }
     // --- 初期化処理 ---
     document.getElementById('logInput').addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); addLogEntry('input'); }});
+    document.getElementById('logArea').addEventListener('click', e => {
+        if(e.target.tagName === 'IMG') {
+            const m = document.getElementById('imageModal');
+            const i = document.getElementById('imageModalImg');
+            if(m && i) { i.src = e.target.src; m.style.display = 'flex'; }
+        }
+    });
     window.speechSynthesis.onvoiceschanged = populateVoiceList;
     window.onload = loadData;
         
@@ -2682,6 +2835,10 @@ function renderTabContent(id, tab) {
             modal.style.display = show ? 'block' : 'none';
             if (show) {
                 // モーダルを開いたときに現在の設定を反映
+                const size = appState.settings.logFontSize || 'small';
+                const radio = document.querySelector(`input[name="logFontSize"][value="${size}"]`);
+                if(radio) radio.checked = true;
+
                 document.getElementById('toastToggle').checked = appState.showToastNotifications !== false;
                 document.getElementById('dice3DToggle').checked = appState.settings.dice3DEnabled !== false;
                 document.getElementById('soundToggle').checked = appState.settings.soundEnabled !== false;
@@ -2707,6 +2864,15 @@ function renderTabContent(id, tab) {
         applyTheme(themeName);
         saveData();
     }
+    
+    // ログ文字サイズ設定
+    function setLogFontSize(size) {
+        if (!appState.settings) appState.settings = {};
+        appState.settings.logFontSize = size;
+        saveData();
+        renderLogArea();
+    }
+
     function applyTheme(themeName) {
         document.body.classList.remove('theme-night', 'theme-sepia');
         if (themeName === 'night') document.body.classList.add('theme-night');
@@ -3018,6 +3184,7 @@ ${visitedTilesStr}
 
 ■ 獲得したお宝（全リスト）
 ${treasureText}
+
 ====================================`;
 
         addLogEntry('system', '戦績報告', reportLog);
@@ -3078,22 +3245,30 @@ ${treasureText}
 
     function saveResultImage() {
         const paper = document.getElementById('result-paper');
-        // 一時的にスタイルを変更して全体をキャプチャ可能にする
-        const originalMaxHeight = paper.style.maxHeight;
-        const originalOverflow = paper.style.overflow;
-        paper.style.maxHeight = 'none';
-        paper.style.overflow = 'visible';
+        
+        // クローンを作成してbody直下に配置し、それをキャプチャする
+        // これによりモーダル内のスクロールや表示領域の制限を回避する
+        const clone = paper.cloneNode(true);
+        Object.assign(clone.style, {
+            position: 'absolute',
+            top: '-9999px',
+            left: '0',
+            width: paper.offsetWidth + 'px', // 元の幅を維持
+            height: 'auto',
+            maxHeight: 'none',
+            overflow: 'visible',
+            zIndex: '-1000'
+        });
+        document.body.appendChild(clone);
 
-        html2canvas(paper, { scale: 2, useCORS: true }).then(canvas => {
-            paper.style.maxHeight = originalMaxHeight;
-            paper.style.overflow = originalOverflow;
+        html2canvas(clone, { scale: 2, useCORS: true, windowHeight: clone.scrollHeight + 100 }).then(canvas => {
             const link = document.createElement('a');
             link.download = `result_${document.getElementById('logTitle').value}.png`;
             link.href = canvas.toDataURL();
             link.click();
+            document.body.removeChild(clone);
         }).catch(err => {
-            paper.style.maxHeight = originalMaxHeight;
-            paper.style.overflow = originalOverflow;
+            if (document.body.contains(clone)) document.body.removeChild(clone);
             alert('画像の保存に失敗しました。\n' + err);
         });
     }
@@ -3240,7 +3415,7 @@ ${treasureText}
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
-                const maxWidth = 300;
+                const maxWidth = 500;
                 let width = img.width;
                 let height = img.height;
                 
@@ -3252,12 +3427,9 @@ ${treasureText}
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                // 透過PNG対策：背景を白で塗りつぶす
-                ctx.fillStyle = "#ffffff";
-                ctx.fillRect(0, 0, width, height);
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                const base64 = canvas.toDataURL('image/jpeg', 0.85);
+                const base64 = canvas.toDataURL('image/webp', 0.85);
                 appState.characters[charId].data.portrait = base64;
                 appState.characters[charId].data.iconPosition = "50% 50%";
                 appState.characters[charId].data.iconScale = 1;
@@ -3914,10 +4086,11 @@ ${treasureText}
                         <ul class="list-circle ml-4 text-[11px] text-gray-600">
                             <li><b>技:</b> 技量点＋修正値で判定。</li>
                             <li><b>能:</b> その項目の能力値（筋力など）＋修正値で判定。</li>
-                            <li><b>Roll:</b> 戦闘アクション（接近・防御など）の修正値を加味して判定。</li>
                         </ul>
                     </li>
                     <li><b>修正値:</b> 画面上部の「修正値」ボックスの値は、すべての判定に加算されます。</li>
+                    <li><b>装備・能力:</b> 習得技能と装備品欄を管理できます。枠倍率で生命点あたりいくつの荷物が持てるかを決定します</li>
+
                 </ul>
             </section>
 
@@ -3926,7 +4099,8 @@ ${treasureText}
                 <p>中央のGRIDエリアを使用します。</p>
                 <ul class="list-disc ml-5 mt-1 space-y-1">
                     <li><b>GRID入力:</b> クリックでマスが点灯し、進行度（1〜3回目）に応じて色分けされます。</li>
-                    <li><b>CSV連携:</b> 「CSV読込」からシナリオデータを読み込むと、出目に対応するイベントテキストがログに自動出力され、選択肢ボタンが表示されます。</li>
+                    <li><b>シナリオ出力:</b> 「シナリオ読込」からシナリオデータを読み込むと、出目に対応するイベントテキストがログに自動出力され、選択肢ボタンが表示されます。</li>
+                    <li><b>作成:</b> このツールで読み込める形のシナリオデータを作成するツールへのリンクを開きます</li>
                 </ul>
             </section>
 
@@ -3939,7 +4113,7 @@ ${treasureText}
             </section>
 
             <section class="text-[11px] text-gray-500 pt-2 border-t">
-                <p><b>バージョン:</b> 2.0</p>
+                <p><b>バージョン:</b> 2.3</p>
                 <p><b>詳細(note)：</b> https://note.com/sandman_sunao/n/ndaeb94b048f3?sub_rt=share_sb</p>
             </section>
 
@@ -3957,6 +4131,23 @@ ${treasureText}
                 <button onclick="setTheme('colorful')" class="flex-1 py-3 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 text-xs font-bold text-gray-800">🌈 カラフル</button>
                 <button onclick="setTheme('night')" class="flex-1 py-3 bg-gray-800 text-white border border-gray-600 rounded shadow-sm hover:bg-gray-700 text-xs font-bold">🌙 ナイト</button>
                 <button onclick="setTheme('sepia')" class="flex-1 py-3 bg-[#f4e4bc] text-[#433422] border border-[#d4c5b0] rounded shadow-sm hover:bg-[#e8d5a5] text-xs font-bold">📜 セピア</button>
+            </div>
+        </div>
+        <div class="mb-6">
+            <h3 class="font-bold mb-2 text-sm text-gray-700">ログの文字サイズ</h3>
+            <div class="flex gap-2 bg-gray-50 p-1 rounded border border-gray-200">
+                <label class="flex-1 text-center cursor-pointer">
+                    <input type="radio" name="logFontSize" value="small" onchange="setLogFontSize('small')" class="hidden peer">
+                    <span class="block py-2 rounded text-xs font-bold text-gray-600 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all hover:bg-gray-100">小</span>
+                </label>
+                <label class="flex-1 text-center cursor-pointer">
+                    <input type="radio" name="logFontSize" value="medium" onchange="setLogFontSize('medium')" class="hidden peer">
+                    <span class="block py-2 rounded text-xs font-bold text-gray-600 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all hover:bg-gray-100">中</span>
+                </label>
+                <label class="flex-1 text-center cursor-pointer">
+                    <input type="radio" name="logFontSize" value="large" onchange="setLogFontSize('large')" class="hidden peer">
+                    <span class="block py-2 rounded text-xs font-bold text-gray-600 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all hover:bg-gray-100">大</span>
+                </label>
             </div>
         </div>
         <div class="mb-6">
@@ -4009,11 +4200,11 @@ ${treasureText}
         </div>
         <div class="mb-6">
             <h3 class="font-bold mb-2 text-sm text-gray-700">サウンド設定</h3>
-            <label class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border cursor-pointer hover:bg-gray-100 mb-2">
-                <input type="checkbox" id="soundToggle" onchange="toggleSound(this.checked)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
-                <span class="text-sm text-gray-800">効果音を有効にする</span>
-            </label>
             <div class="p-3 bg-gray-50 rounded-lg border">
+                <label class="flex items-center space-x-3 cursor-pointer mb-3 pb-3 border-b border-gray-200">
+                    <input type="checkbox" id="soundToggle" onchange="toggleSound(this.checked)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <span class="text-sm text-gray-800">効果音を有効にする</span>
+                </label>
                 <div class="flex justify-between text-xs mb-1">
                     <span class="text-gray-600">音量</span>
                     <span id="volValue" class="font-bold text-gray-800">50</span>
@@ -4103,6 +4294,29 @@ ${treasureText}
             <button id="btnTransfer" onclick="executeTransfer()" class="bg-teal-500 text-white px-3 py-1 rounded text-xs font-bold hover:bg-teal-600 hidden">渡す</button>
             <button onclick="deleteItem()" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold hover:bg-red-100">削除/空にする</button>
             <button onclick="saveItem()" class="bg-indigo-600 text-white px-4 py-1 rounded text-xs font-bold hover:bg-indigo-700">保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="modal" onclick="this.style.display='none'">
+    <div class="modal-content" style="background:transparent; box-shadow:none; border:none; width:auto; max-width:95%; max-height:95%; display:flex; justify-content:center; align-items:center; padding:0;">
+        <img id="imageModalImg" src="" style="max-width:100%; max-height:90vh; object-fit:contain; border-radius:8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); background-color: #fff;">
+    </div>
+</div>
+
+<!-- Log Export Modal -->
+<div id="logExportModal" class="modal" onclick="this.style.display='none'">
+    <div class="modal-content" style="max-width: 300px; text-align: center; background-color: #fff;" onclick="event.stopPropagation()">
+        <h3 class="font-bold text-lg mb-4 text-gray-700">ログ保存形式を選択</h3>
+        <div class="flex flex-col gap-3">
+            <button onclick="exportLogText(); document.getElementById('logExportModal').style.display='none'" class="bg-teal-600 text-white py-2 rounded font-bold shadow hover:bg-teal-700 flex justify-center items-center gap-2">
+                <span>📄</span> テキスト形式 (.txt)
+            </button>
+            <button onclick="exportLogMarkdown(); document.getElementById('logExportModal').style.display='none'" class="bg-indigo-600 text-white py-2 rounded font-bold shadow hover:bg-indigo-700 flex justify-center items-center gap-2">
+                <span>📝</span> Markdown形式 (.md)
+            </button>
+            <button onclick="document.getElementById('logExportModal').style.display='none'" class="mt-2 text-gray-500 text-sm hover:underline">キャンセル</button>
         </div>
     </div>
 </div>
