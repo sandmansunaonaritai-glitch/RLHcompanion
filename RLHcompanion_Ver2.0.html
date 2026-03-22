@@ -1,4 +1,4 @@
-<!--RLHcompanion_Ver2.3-->
+<!--RLHcompanion_Ver2.4-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -503,6 +503,139 @@
         .face-5 { transform: rotateY(-90deg) translateZ(25px); }
         .face-3 { transform: rotateX(90deg) translateZ(25px); }
         .face-4 { transform: rotateX(-90deg) translateZ(25px); }
+
+        /* --- Floating Navigation Ball Styles --- */
+        #nav-ball-container {
+            position: fixed;
+            top: 60%; /* Initial position */
+            right: 20px;
+            z-index: 9999;
+            touch-action: none; /* Prevent scrolling while dragging */
+            width: 0;
+            height: 0;
+            overflow: visible;
+        }
+        
+        /* The Ball Button */
+        #nav-ball-btn {
+            position: absolute;
+            top: -25px; left: -25px; /* Center anchor */
+            width: 50px;
+            height: 50px;
+            background: rgba(31, 41, 55, 0.7); /* gray-800 with opacity */
+            border-radius: 50%;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border: 2px solid rgba(255,255,255,0.3);
+            font-size: 24px;
+            user-select: none;
+            transition: background 0.2s, transform 0.1s;
+            z-index: 10;
+        }
+        #nav-ball-btn:active {
+            cursor: grabbing;
+            background: rgba(31, 41, 55, 0.9);
+            transform: scale(0.95);
+        }
+        
+        /* Pie Menu Container */
+        .nav-pie-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 0; height: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+        
+        /* Rings */
+        .pie-ring {
+            position: absolute;
+            top: 0; left: 0;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(31, 41, 55, 0.9);
+            border: 1px solid rgba(255,255,255,0.3);
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        }
+        
+        #nav-ball-container.active .nav-pie-container {
+            pointer-events: auto;
+        }
+        #nav-ball-container.active .pie-ring {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* 円のサイズ調整: width/height を変更してください */
+        .outer-ring { width: 200px; height: 200px; z-index: 5; background: rgba(31, 41, 55, 0.85); transition-delay: 0.05s; }
+
+        /* Positioning Items */
+        .nav-item-wrapper {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(var(--angle)) translate(var(--radius)) rotate(calc(var(--angle) * -1));
+            display: flex; justify-content: center; align-items: center;
+        }
+        /* アイテムの配置半径調整: --radius を変更してください */
+        .outer-ring .nav-item-wrapper { --radius: 70px; }
+
+        /* Dice Buttons in Nav */
+        .nav-dice-btn {
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            line-height: 1.1;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+        .nav-dice-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+        
+        /* Inputs in Nav */
+        .nav-input-item {
+            display: flex; flex-direction: column; align-items: center;
+            width: 100%; gap: 2px;
+        }
+        .nav-label { font-size: 9px; font-weight: bold; color: #cbd5e1; }
+        .nav-ctrl-input {
+            width: 36px; height: 24px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            padding: 2px;
+            font-size: 11px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.3);
+            color: white;
+        }
+
+        /* Dark mode support for Nav Ball */
+        body.theme-night #nav-ball-btn { background: rgba(30, 58, 138, 0.9); border-color: rgba(255,255,255,0.3); }
+        body.theme-night .pie-ring { background: rgba(30, 58, 138, 0.9); border-color: rgba(255,255,255,0.3); }
+        body.theme-night .outer-ring { background: rgba(30, 58, 138, 0.8); }
+        body.theme-night .nav-dice-btn { background: rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.3); color: white; }
+        body.theme-night .nav-dice-btn:hover { background: rgba(0,0,0,0.5); }
+        body.theme-night .nav-label { color: #e2e8f0; }
+        body.theme-night .nav-ctrl-input { background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.3); color: white; }
+        
+        body.theme-sepia #nav-ball-btn { background: rgba(78, 52, 46, 0.7); }
+        body.theme-sepia .pie-ring { background: rgba(78, 52, 46, 0.9); border-color: #d3c6a6; }
+        body.theme-sepia .outer-ring { background: rgba(78, 52, 46, 0.8); }
+        body.theme-sepia .nav-dice-btn { background: rgba(255,255,255,0.1); border-color: #d3c6a6; color: white; }
+        body.theme-sepia .nav-dice-btn:hover { background: rgba(255,255,255,0.2); }
+        body.theme-sepia .nav-label { color: #f0e6d2; }
+        body.theme-sepia .nav-ctrl-input { background: rgba(255,255,255,0.1); border-color: #d3c6a6; color: white; }
     </style>
 </head>
 
@@ -539,19 +672,17 @@
             <button onclick="toggleSettings(true)" class="bg-gray-600 hover:bg-gray-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-sm shadow-sm">⚙️</button>
         </div>
     </div>
-    <div class="p-2 px-2 flex flex-wrap gap-2 items-center bg-gray-700 text-[11px] text-white">
+    <div id="header-dice-area" class="p-2 px-2 flex flex-wrap gap-2 items-center bg-gray-700 text-[11px] text-white">
     <div class="flex items-center space-x-1 shrink-0">
         <span>回数:</span>
         <input type="number" id="rollCount" value="1" class="w-8 rounded text-gray-900 px-1 text-center">
         <span>修正値:</span>
-        <input type="number" id="skillValue" value="0" class="w-8 rounded text-gray-900 px-1 text-center">
+        <input type="number" id="skillValue" value="0" class="w-8 rounded text-gray-900 px-1 text-center" onchange="syncAllMods(this.value)">
         <span>目標値:</span>
         <input type="number" id="targetValue" value="3" class="w-8 rounded text-gray-900 px-1 text-center" onchange="updateActiveEnemyTv(this.value)">
     </div>
 
-    <div class="flex items-center space-x-1 border-l border-gray-600 pl-2 ml-1 shrink-0">
-        <span>修正:</span>
-        <input type="number" id="quickModValue" value="0" class="w-8 rounded text-gray-900 px-1 mr-1 text-center">
+    <div class="flex items-center space-x-1 ml-1 shrink-0">
         
         <!-- Dice Group -->
         <div class="relative group">
@@ -718,6 +849,13 @@
                     if (appState.settings.diceAnimationEnabled === undefined) {
                         appState.settings.diceAnimationEnabled = true;
                     }
+                    // 表示設定の初期化（旧データ互換）
+                    if (appState.settings.showNavBall === undefined) {
+                        appState.settings.showNavBall = true;
+                    }
+                    if (appState.settings.showHeaderDice === undefined) {
+                        appState.settings.showHeaderDice = true;
+                    }
                     if (appState.settings.dice3DEnabled === undefined) {
                         appState.settings.dice3DEnabled = true;
                     }
@@ -773,6 +911,7 @@
             }
             applyTheme(appState.theme || 'colorful');
             renderAll();
+            applyDisplaySettings(); // 表示設定の適用
         }
 
     // --- 1. handleCsvUpload  ---
@@ -1139,6 +1278,8 @@ else {
             const c = appState.characters[appState.currentCharacterId];
             const name = c ? c.name : "？";
             const turn = appState.activeRow + 1;
+            // 修正値を取得
+            const mod = parseInt(document.getElementById('skillValue').value) || 0;
 
             // 今の回数または1回目にある magictreasure のデータを取得
             const entries = scenarioMaster.filter(s => s.type === 'magictreasure' && (s.turn === turn || s.turn === 1));
@@ -1155,13 +1296,15 @@ else {
             }
 
             const roll = Math.floor(Math.random() * diceRange) + 1;
+            const total = roll + mod;
             
             // Animate
             roll3DDice([roll], () => {
-                addLogEntry('dice', '魔法の宝物', `[実行者: ${name}] 1D${diceRange}(${roll})`);
+                const modText = mod !== 0 ? `(${roll}${mod >= 0 ? '+' : ''}${mod})` : "";
+                addLogEntry('dice', '魔法の宝物', `[実行者: ${name}] 1D${diceRange}${modText} = ${total}`);
                 // CSVデータがある場合のみ playScenario を呼び出す
                 if (entries.length > 0) {
-                    playScenario('magictreasure', roll.toString());
+                    playScenario('magictreasure', total.toString());
                 }
             });
         }
@@ -2246,124 +2389,109 @@ function renderTabContent(id, tab) {
     //handleLocalRoll（その他帆ロールの判定計算）
     function handleLocalRoll(cmd, label) {
         const c = appState.characters[appState.currentCharacterId];
-        // 修正値（quickModValue）を取得
-        const mod = parseInt(document.getElementById('quickModValue').value) || 0;
+        const name = c ? c.name : "？";
+        // 修正値（skillValue）を取得
+        const mod = parseInt(document.getElementById('skillValue').value) || 0;
+        const count = parseInt(document.getElementById('rollCount').value) || 1;
         
-        let diceResults = [];
-        let finalValues = []; // values to check for result (like sum)
-        let isD66 = false;
+        let allVisualDice = [];
+        let logLines = [];
 
-        if(cmd==='1D3') { 
-            const r = Math.floor(Math.random()*3)+1;
-            diceResults = [r];
-            finalValues = [r];
-        }
-        else if(cmd==='1D6') { 
-            const r = Math.floor(Math.random()*6)+1; 
-            diceResults = [r];
-            finalValues = [r];
-        }
-        else if(cmd==='D33') {
-            const r1 = Math.floor(Math.random()*3)+1;
-            const r2 = Math.floor(Math.random()*3)+1;
-            diceResults = [r1, r2];
-            finalValues = [r1*10 + r2];
-        }
-        else if(cmd==='D66') { 
-            const r1=Math.floor(Math.random()*6)+1, r2=Math.floor(Math.random()*6)+1; 
-            diceResults = [r1, r2];
-            finalValues = [r1*10 + r2];
-            isD66 = true;
-        }
-        else if(cmd === 'Treasure') {
-            const r = Math.floor(Math.random()*6)+1;
-            diceResults = [r];
-            finalValues = [r];
+        for(let i=0; i<count; i++) {
+            let diceResults = [];
+            let res = "";
+
+            if(cmd==='1D3') { 
+                const r = Math.floor(Math.random()*3)+1;
+                diceResults = [r];
+                res = `1D3(${r}) + ${mod} = ${r+mod}`;
+            }
+            else if(cmd==='1D6') { 
+                const r = Math.floor(Math.random()*6)+1; 
+                diceResults = [r];
+                res = `1D6(${r}) + ${mod} = ${r+mod}`;
+            }
+            else if(cmd==='D33') {
+                const r1 = Math.floor(Math.random()*3)+1;
+                const r2 = Math.floor(Math.random()*3)+1;
+                diceResults = [r1, r2];
+                res = `D33(${r1},${r2}) + ${mod} = ${(r1*10+r2)+mod}`;
+            }
+            else if(cmd==='D66') { 
+                const r1=Math.floor(Math.random()*6)+1, r2=Math.floor(Math.random()*6)+1; 
+                diceResults = [r1, r2];
+                res = `D66(${r1},${r2}) + ${mod} = ${(r1*10+r2)+mod}`;
+            }
+            else if(cmd === 'Treasure') {
+                const r = Math.floor(Math.random()*6)+1;
+                diceResults = [r];
+                const total = r + mod;
+                let detail = "";
+
+                // --- 1. CSV(scenarioMaster) から合計値(total)で検索 ---
+                const csvEntry = scenarioMaster.find(s => s.type === 'treasure' && s.id === total.toString());
+
+                if (csvEntry) {// 【CSVにデータがあった場合】
+                    detail = csvEntry.text;
+                } 
+                else {// 【CSVにデータがなかった場合】黄昏の騎士準拠
+                    if (total <= 1) {
+                            detail = "金貨1枚";
+                    } 
+                    else if (total === 2) {
+                        const d = Math.floor(Math.random()*6)+1;
+                        detail = `1D6(${d})枚の金貨`;
+                    } 
+                    else if (total === 3) {
+                        const d1 = Math.floor(Math.random()*6)+1;
+                        const d2 = Math.floor(Math.random()*6)+1;
+                        let sum = d1 + d2;
+                        let lowLimit = "";
+                        if (sum < 5) { sum = 5; lowLimit = "(下限5枚適用)"; }
+                        detail = `2D6${d1},${d2} -> ${sum}枚の金貨 ${lowLimit}`;
+                    } 
+                    else if (total === 4) {
+                        const a1 = Math.floor(Math.random()*6)+1;
+                        const a2 = Math.floor(Math.random()*6)+1;
+                        detail = `アクセサリー1個 (価値: 1D6[${a1}]×1D6[${a2}] = ${a1*a2}枚の金貨)`;
+                    }
+                    else if (total === 5) {
+                        const d = Math.floor(Math.random()*6)+1;
+                        let value = d * 5;
+                        let lowLimit = "";
+                        if (value < 15) { value = 15; lowLimit = "(下限15枚適用)"; }
+                        detail = `宝石・小1個 (価値: 1D6(${d})×5 = ${d*5} -> ${value}枚の金貨 ${lowLimit})`;
+                    } 
+                    else if (total === 6) {
+                        const d1 = Math.floor(Math.random()*6)+1;
+                        const d2 = Math.floor(Math.random()*6)+1;
+                        let value = (d1 + d2) * 5;
+                        let lowLimit = "";
+                        if (value < 30) { value = 30; lowLimit = "(下限30枚適用)"; }
+                        detail = `宝石・大1個 (価値: 2D6${d1},${d2}×5 = ${(d1+d2)*5} -> ${value}枚の金貨 ${lowLimit})`;
+                    } 
+                    else {detail = "★★★ 魔法の宝物表をロールしてください ★★★";}
+                }
+
+                // ログに「修正値込みの合計」と「元のダイス目」を明記する
+                const modText = mod !== 0 ? `(出目${r}${mod >= 0 ? '+' : ''}${mod})` : "";
+                res = `宝物結果：${total}${modText}\n内容：${detail}`;
+            }
+            
+            allVisualDice.push(...diceResults);
+            
+            // 複数回の場合は番号を振る
+            if(count > 1) {
+                logLines.push(`#${i+1}: ${res}`);
+            } else {
+                logLines.push(res);
+            }
         }
 
         // Animate and then Log
-        roll3DDice(diceResults, () => {
-            let res = "";
-            
-            if(cmd === '1D3') {
-                const r = diceResults[0];
-                res = `1D3(${r})+${mod}=${r+mod}`;
-            }
-            else if(cmd === '1D6') {
-                const r = diceResults[0];
-                res = `1D6(${r})+${mod}=${r+mod}`;
-            }
-            else if(cmd === 'D33') {
-                const r1 = diceResults[0];
-                const r2 = diceResults[1];
-                res = `D33${r1},${r2}+${mod}=${(r1*10+r2)+mod}`;
-            }
-            else if(cmd === 'D66') {
-                const r1 = diceResults[0];
-                const r2 = diceResults[1];
-                res = `D66${r1},${r2}+${mod}=${(r1*10+r2)+mod}`;
-            }
-            else if(cmd === 'Treasure') {
-                const r = diceResults[0];
-                const total = r + mod;
-            let detail = "";
-            let isCsvData = false;
-
-            // --- 1. CSV(scenarioMaster) から合計値(total)で検索 ---
-            const csvEntry = scenarioMaster.find(s => s.type === 'treasure' && s.id === total.toString());
-
-            if (csvEntry) {// 【CSVにデータがあった場合】
-                detail = csvEntry.text;
-                isCsvData = true;
-            } 
-            else {// 【CSVにデータがなかった場合】黄昏の騎士準拠
-                if (total <= 1) {
-                        detail = "金貨1枚";
-                } 
-                else if (total === 2) {
-                    const d = Math.floor(Math.random()*6)+1;
-                    detail = `1D6(${d})枚の金貨`;
-                } 
-                else if (total === 3) {
-                    const d1 = Math.floor(Math.random()*6)+1;
-                    const d2 = Math.floor(Math.random()*6)+1;
-                    let sum = d1 + d2;
-                    let lowLimit = "";
-                    if (sum < 5) { sum = 5; lowLimit = "(下限5枚適用)"; }
-                    detail = `2D6[${d1},${d2}](${d1+d2}) -> ${sum}枚の金貨 ${lowLimit}`;
-                } 
-                else if (total === 4) {
-                    const a1 = Math.floor(Math.random()*6)+1;
-                    const a2 = Math.floor(Math.random()*6)+1;
-                    detail = `アクセサリー1個 (価値: 1D6[${a1}]×1D6[${a2}] = ${a1*a2}枚の金貨)`;
-                }
-                else if (total === 5) {
-                    const d = Math.floor(Math.random()*6)+1;
-                    let value = d * 5;
-                    let lowLimit = "";
-                    if (value < 15) { value = 15; lowLimit = "(下限15枚適用)"; }
-                    detail = `宝石・小1個 (価値: 1D6(${d})×5 = ${d*5} -> ${value}枚の金貨 ${lowLimit})`;
-                } 
-                else if (total === 6) {
-                    const d1 = Math.floor(Math.random()*6)+1;
-                    const d2 = Math.floor(Math.random()*6)+1;
-                    let value = (d1 + d2) * 5;
-                    let lowLimit = "";
-                    if (value < 30) { value = 30; lowLimit = "(下限30枚適用)"; }
-                    detail = `宝石・大1個 (価値: 2D6[${d1},${d2}](${d1+d2})×5 = ${(d1+d2)*5} -> ${value}枚の金貨 ${lowLimit})`;
-                } 
-                else {detail = "★★★ 魔法の宝物表をロールしてください ★★★";}
-            }
-
-            // ログに「修正値込みの合計」と「元のダイス目」を明記する
-            const modText = mod !== 0 ? `(${r}${mod >= 0 ? '+' : ''}${mod})` : "";
-            res = `宝物結果：${total}${modText}\n内容：${detail}`;
-            addLogEntry('dice', label, `[実行者: ${c.name}]\n${res}`);
-            }
-            
-            if(cmd !== 'Treasure') {
-                addLogEntry('dice', label, `[実行者: ${c.name}]\n${res}`);
-            }
+        roll3DDice(allVisualDice, () => {
+             const content = logLines.join('\n');
+             addLogEntry('dice', label, `[実行者: ${name}]\n${content}`);
         });
     }
 
@@ -2844,6 +2972,8 @@ function renderTabContent(id, tab) {
                 document.getElementById('soundToggle').checked = appState.settings.soundEnabled !== false;
                 document.getElementById('diceAnimationToggle').checked = appState.settings.diceAnimationEnabled !== false;
                 document.getElementById('volRange').value = appState.settings.volume || 50;
+                document.getElementById('headerDiceToggle').checked = appState.settings.showHeaderDice !== false;
+                document.getElementById('navBallToggle').checked = appState.settings.showNavBall !== false;
                 document.getElementById('volValue').textContent = appState.settings.volume || 50;
                 if (document.getElementById('d66Rows')) {
                     document.getElementById('d66Rows').value = appState.d66GridSettings.rows;
@@ -2902,6 +3032,39 @@ function renderTabContent(id, tab) {
     function toggleSound(isEnabled) {
         if (!appState.settings) appState.settings = {};
         appState.settings.soundEnabled = isEnabled;
+        saveData();
+    }
+
+    // 表示設定の適用
+    function applyDisplaySettings() {
+        const nav = document.getElementById('nav-ball-container');
+        const headerDice = document.getElementById('header-dice-area');
+        
+        if(nav) nav.style.display = (appState.settings.showNavBall !== false) ? 'block' : 'none';
+        
+        // ヘッダーダイスエリアの制御
+        if(headerDice) {
+            if(appState.settings.showHeaderDice !== false) {
+                headerDice.classList.remove('hidden');
+                headerDice.classList.add('flex');
+            } else {
+                headerDice.classList.remove('flex');
+                headerDice.classList.add('hidden');
+            }
+        }
+    }
+
+    function toggleNavBall(isEnabled) {
+        if (!appState.settings) appState.settings = {};
+        appState.settings.showNavBall = isEnabled;
+        applyDisplaySettings();
+        saveData();
+    }
+
+    function toggleHeaderDice(isEnabled) {
+        if (!appState.settings) appState.settings = {};
+        appState.settings.showHeaderDice = isEnabled;
+        applyDisplaySettings();
         saveData();
     }
 
@@ -4113,7 +4276,7 @@ ${treasureText}
             </section>
 
             <section class="text-[11px] text-gray-500 pt-2 border-t">
-                <p><b>バージョン:</b> 2.3</p>
+                <p><b>バージョン:</b> 2.4</p>
                 <p><b>詳細(note)：</b> https://note.com/sandman_sunao/n/ndaeb94b048f3?sub_rt=share_sb</p>
             </section>
 
@@ -4131,6 +4294,19 @@ ${treasureText}
                 <button onclick="setTheme('colorful')" class="flex-1 py-3 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-50 text-xs font-bold text-gray-800">🌈 カラフル</button>
                 <button onclick="setTheme('night')" class="flex-1 py-3 bg-gray-800 text-white border border-gray-600 rounded shadow-sm hover:bg-gray-700 text-xs font-bold">🌙 ナイト</button>
                 <button onclick="setTheme('sepia')" class="flex-1 py-3 bg-[#f4e4bc] text-[#433422] border border-[#d4c5b0] rounded shadow-sm hover:bg-[#e8d5a5] text-xs font-bold">📜 セピア</button>
+            </div>
+        </div>
+        <div class="mb-6">
+            <h3 class="font-bold mb-2 text-sm text-gray-700">表示設定</h3>
+            <div class="p-3 bg-gray-50 rounded-lg border space-y-3">
+                <label class="flex items-center space-x-3 cursor-pointer border-b border-gray-200 pb-2 mb-2">
+                    <input type="checkbox" id="headerDiceToggle" onchange="toggleHeaderDice(this.checked)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <span class="text-xs font-bold text-gray-700">ヘッダーのダイス操作エリアを表示</span>
+                </label>
+                <label class="flex items-center space-x-3 cursor-pointer">
+                    <input type="checkbox" id="navBallToggle" onchange="toggleNavBall(this.checked)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
+                    <span class="text-xs font-bold text-gray-700">フローティング・ナビボールを表示</span>
+                </label>
             </div>
         </div>
         <div class="mb-6">
@@ -4320,5 +4496,132 @@ ${treasureText}
         </div>
     </div>
 </div>
+
+<!-- Floating Navigation Ball -->
+<div id="nav-ball-container">
+    <div id="nav-ball-btn">🎲</div>
+    
+    <!-- Pie Menu Container -->
+    <div class="nav-pie-container">
+        <!-- Single Ring: All Items -->
+        <div class="pie-ring outer-ring">
+            <div class="nav-item-wrapper" style="--angle:270deg;"><button class="nav-dice-btn" onclick="performNavRoll('1D6', '1D6')">1D6</button></div>
+            <div class="nav-item-wrapper" style="--angle:310deg;"><button class="nav-dice-btn" onclick="performNavRoll('1D3', '1D3')">1D3</button></div>
+            <div class="nav-item-wrapper" style="--angle:350deg;"><button class="nav-dice-btn" onclick="performNavRoll('D66', 'D66')">D66</button></div>
+            <div class="nav-item-wrapper" style="--angle:30deg;"><button class="nav-dice-btn" onclick="performNavRoll('D33', 'D33')">D33</button></div>
+            <div class="nav-item-wrapper" style="--angle:70deg;"><button class="nav-dice-btn" onclick="performNavRoll('Treasure', '宝物')">宝物</button></div>
+            <div class="nav-item-wrapper" style="--angle:110deg;"><button class="nav-dice-btn" onclick="performNavRoll('MagicTreasure')">魔法<br>宝物</button></div>
+            
+            <!-- Inputs placed on the same ring -->
+            <div class="nav-item-wrapper" style="--angle:150deg;"><div class="nav-input-item"><span class="nav-label">修正</span><input type="number" id="nav-quickModValue" class="nav-ctrl-input" value="0" onchange="syncAllMods(this.value)"></div></div>
+            <div class="nav-item-wrapper" style="--angle:190deg;"><div class="nav-input-item"><span class="nav-label">目標</span><input type="number" id="nav-targetValue" class="nav-ctrl-input" value="3" onchange="syncNavInput('targetValue', this.value)"></div></div>
+            <div class="nav-item-wrapper" style="--angle:230deg;"><div class="nav-input-item"><span class="nav-label">回数</span><input type="number" id="nav-rollCount" class="nav-ctrl-input" value="1" onchange="syncNavInput('rollCount', this.value)"></div></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- Navi Ball Logic ---
+    const navContainer = document.getElementById('nav-ball-container');
+    const navBtn = document.getElementById('nav-ball-btn');
+    let isDragging = false;
+    let hasMoved = false;
+    let startX, startY, initialLeft, initialTop;
+
+    // Initialize nav input values from main header inputs
+    function initNavInputs() {
+        document.getElementById('nav-rollCount').value = document.getElementById('rollCount').value || 1;
+        document.getElementById('nav-targetValue').value = document.getElementById('targetValue').value || 3;
+        // 修正値は skillValue (キャラクター判定用) を優先して同期
+        document.getElementById('nav-quickModValue').value = document.getElementById('skillValue').value || 0;
+    }
+
+    // Sync function for non-mod inputs: Nav -> Header
+    function syncNavInput(targetId, val) { // 修正値以外の同期用
+        const targetEl = document.getElementById(targetId);
+        if(targetEl) {
+            targetEl.value = val;
+            // Trigger change event if needed (e.g. for targetValue update)
+            if(targetId === 'targetValue') updateActiveEnemyTv(val);
+        }
+    }
+
+    // New sync function for all modifier inputs
+    function syncAllMods(val) {
+        document.getElementById('skillValue').value = val;
+        document.getElementById('nav-quickModValue').value = val;
+    }
+
+    // Wrapper to perform roll and close nav menu
+    function performNavRoll(cmd, label) {
+        // 入力値を強制同期 (入力直後のクリック対策)
+        const nRoll = document.getElementById('nav-rollCount');
+        const nTv = document.getElementById('nav-targetValue');
+        const nMod = document.getElementById('nav-quickModValue');
+        if(nRoll) syncNavInput('rollCount', nRoll.value);
+        if(nTv) syncNavInput('targetValue', nTv.value);
+        if(nMod) syncAllMods(nMod.value);
+
+        if (cmd === 'MagicTreasure') {
+            handleMagicTreasure();
+        } else if (cmd) {
+            handleLocalRoll(cmd, label);
+        }
+        navContainer.classList.remove('active');
+    }
+
+    // Drag Events
+    navBtn.addEventListener('mousedown', startDrag);
+    navBtn.addEventListener('touchstart', startDrag, {passive: false});
+
+    function startDrag(e) {
+        isDragging = true;
+        hasMoved = false;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        const rect = navContainer.getBoundingClientRect();
+        startX = clientX;
+        startY = clientY;
+        initialLeft = rect.left;
+        initialTop = rect.top;
+
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('touchmove', onDrag, {passive: false});
+        document.addEventListener('mouseup', stopDrag);
+        document.addEventListener('touchend', stopDrag);
+    }
+
+    function onDrag(e) {
+        if (!isDragging) return;
+        e.preventDefault();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+        
+        // Detect if actually moved to distinguish from click
+        if (Math.abs(dx) > 5 || Math.abs(dy) > 5) hasMoved = true;
+
+        // Update position (using fixed positioning relative to viewport)
+        navContainer.style.left = (initialLeft + dx) + 'px';
+        navContainer.style.top = (initialTop + dy) + 'px';
+        navContainer.style.right = 'auto'; // Reset right once moved
+    }
+
+    function stopDrag() {
+        isDragging = false;
+        document.removeEventListener('mousemove', onDrag);
+        document.removeEventListener('touchmove', onDrag);
+        document.removeEventListener('mouseup', stopDrag);
+        document.removeEventListener('touchend', stopDrag);
+
+        if (!hasMoved) {
+            // Toggle Menu
+            initNavInputs(); // Sync values before showing
+            navContainer.classList.toggle('active');
+        }
+    }
+</script>
 </body>
 </html>
