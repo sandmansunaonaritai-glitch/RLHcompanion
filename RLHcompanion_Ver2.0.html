@@ -1,4 +1,4 @@
-<!--RLHcompanion_Ver2.4-->
+<!--RLHcompanion_Ver2.3-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -686,7 +686,7 @@
         
         <!-- Dice Group -->
         <div class="relative group">
-            <button class="bg-slate-600 hover:bg-slate-500 text-white px-3 py-1 rounded text-[10px] font-bold transition shadow-sm whitespace-nowrap flex items-center">
+            <button class="bg-blue-600 hover:bg-blue-400 text-white px-3 py-1 rounded text-[10px] font-bold transition shadow-sm whitespace-nowrap flex items-center">
                 🎲  <span class="ml-1 text-[8px]">▼</span>
             </button>
             <div class="absolute top-full left-0 bg-white border border-gray-200 rounded shadow-lg hidden group-hover:block z-50 min-w-[80px]">
@@ -699,7 +699,7 @@
 
         <!-- Treasure Group -->
         <div class="relative group">
-            <button class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1 rounded text-[10px] font-bold transition shadow-sm whitespace-nowrap flex items-center">
+            <button class="bg-blue-600 hover:bg-blue-400 text-white px-3 py-1 rounded text-[10px] font-bold transition shadow-sm whitespace-nowrap flex items-center">
                 💎  <span class="ml-1 text-[8px]">▼</span>
             </button>
             <div class="absolute top-full left-0 bg-white border border-gray-200 rounded shadow-lg hidden group-hover:block z-50 min-w-[100px]">
@@ -799,7 +799,7 @@
         const STORAGE_KEY = 'rlh_final_integrated_v1';
         let ttsVoices = []; // TTSの声を格納するグローバル変数
     // --- appState: このアプリの**全データ（心臓部） ---
-        let appState = { theme: 'colorful', showToastNotifications: true, settings: { soundEnabled: true, volume: 50 }, 
+        let appState = { theme: 'colorful', showToastNotifications: true, settings: { soundEnabled: true, volume: 50, showNavBall: true, showHeaderDice: true }, 
             d66GridSettings: { rows: 6, cols: 6 }, enemies: [], activeEnemyId: null, currentRound: 0,
             logTitle: "セッション", logEntries: [], characters: {}, currentCharacterId: null, 
             d66State: [
@@ -4276,7 +4276,7 @@ ${treasureText}
             </section>
 
             <section class="text-[11px] text-gray-500 pt-2 border-t">
-                <p><b>バージョン:</b> 2.4</p>
+                <p><b>バージョン:</b> 2.3</p>
                 <p><b>詳細(note)：</b> https://note.com/sandman_sunao/n/ndaeb94b048f3?sub_rt=share_sb</p>
             </section>
 
@@ -4575,6 +4575,7 @@ ${treasureText}
     navBtn.addEventListener('touchstart', startDrag, {passive: false});
 
     function startDrag(e) {
+        if(e.type === 'touchstart') e.preventDefault();
         isDragging = true;
         hasMoved = false;
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
