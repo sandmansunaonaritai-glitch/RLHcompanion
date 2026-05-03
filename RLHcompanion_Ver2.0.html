@@ -1,5 +1,5 @@
-<!--RLHcompanion_Ver2.4.1-->
-<!DOCTYPE html>
+<!--RLHcompanion_Ver2.4.2-->
+<!DOCTYPE html>                   
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -938,10 +938,16 @@
             if (f.name.toLowerCase().endsWith('.json')) {
                 try {
                     const data = JSON.parse(content);
+                    let items = [];
                     if (Array.isArray(data)) {
-                        scenarioMaster = data;
+                        items = data;
+                    } else if (data && typeof data === 'object' && Array.isArray(data.items)) {
+                        items = data.items;
+                    }
+                    if (items.length > 0) {
+                        scenarioMaster = items;
                         // 設定があれば適用
-                        applyScenarioConfig(data);
+                        applyScenarioConfig(scenarioMaster);
                         try {
                             localStorage.setItem('rlh_scenario_data_v1', JSON.stringify(scenarioMaster));
                         } catch (e) { console.error("Scenario save failed", e); }
@@ -952,7 +958,7 @@
                         }
                         alert("シナリオデータを読み込みました (" + scenarioMaster.length + "件)");
                     } else {
-                        alert("シナリオファイル(JSON配列)ではありません。");
+                        alert("有効なシナリオデータが見つかりませんでした。");
                     }
                 } catch (e) { alert("JSONの読み込みに失敗しました"); }
             } else {
@@ -1130,11 +1136,11 @@
 
         if (id) {
             // ID指定がある場合：そのID 且つ (現在のターン または 共通ターン1) を探す
-            entries = scenarioMaster.filter(s => String(s.id) === String(id) && parseInt(s.turn) === turn);
+            entries = scenarioMaster.filter(s => s.type === targetType && String(s.id) === String(id) && parseInt(s.turn) === turn);
             if (entries.length === 0 && turn !== 1) {
-                entries = scenarioMaster.filter(s => String(s.id) === String(id) && parseInt(s.turn) === 1);
+                entries = scenarioMaster.filter(s => s.type === targetType && String(s.id) === String(id) && parseInt(s.turn) === 1);
             }
-            // ★重要：IDで検索した結果、1件もなければ entries は空のままにする。
+            // ★重要：IDとTypeで検索した結果、1件もなければ entries は空のままにする。
             // （ここでヘタに type 検索に流さないことで、無関係なデータ表示を防ぐ）
         } 
         if (!id) {
@@ -4333,7 +4339,7 @@ ${treasureText}
             </section>
 
             <section class="text-[11px] text-gray-500 pt-2 border-t">
-                <p><b>バージョン:</b> 2.3</p>
+                <p><b>バージョン:</b> 2.4.2</p>
                 <p><b>詳細(note)：</b> https://note.com/sandman_sunao/n/ndaeb94b048f3?sub_rt=share_sb</p>
             </section>
 
