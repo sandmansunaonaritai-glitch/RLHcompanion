@@ -1832,6 +1832,10 @@ function renderCurrentCharacterSheet() {
 
     // 3. 生成したHTMLをDOMに反映
     container.innerHTML = h;
+    // 追加したキャラクターシートの全数値入力欄にフリック機能を付与
+    container.querySelectorAll('input[type="number"]').forEach(input => {
+        enableFlickNumericInput(input);
+    });
 }
 
 function renderTabContent(id, tab) {
@@ -2625,8 +2629,62 @@ function renderTabContent(id, tab) {
             document.getElementById('d66Rows').value = appState.d66GridSettings.rows;
             document.getElementById('d66Cols').value = appState.d66GridSettings.cols;
         }
-        renderD66Grid(); renderD66Table(); renderLogArea(); renderEnemyPanel(); renderCurrentCharacterSheet(); 
+               renderD66Grid(); renderD66Table(); renderLogArea(); renderEnemyPanel(); 
+        renderCurrentCharacterSheet();
+        
+        // ヘッダーの入力欄にフリック機能を付与
+        ['rollCount', 'skillValue', 'targetValue'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                enableFlickNumericInput(el);
+                el.title = "上下スワイプで数値を変更できます";
+            }
+        });
     }
+
+    // --- Flick Numeric Input Utility ---
+    function enableFlickNumericInput(input) {
+        if (!input || input.dataset.flickEnabled) return;
+        input.dataset.flickEnabled = "true";
+
+        let startY = 0;
+        let startX = 0;
+        const threshold = 30; // 誤爆防止: 最低30pxのスワイプが必要
+
+        input.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            startX = e.touches[0].clientX;
+        }, { passive: true });
+
+        input.addEventListener('touchend', (e) => {
+            const endY = e.changedTouches[0].clientY;
+            const endX = e.changedTouches[0].clientX;
+            const dy = startY - endY; // 正なら上スワイプ
+            const dx = endX - startX;
+
+            // 垂直方向の動きが閾値を超え、かつ横方向の動きより大きい場合のみ実行
+            if (Math.abs(dy) > threshold && Math.abs(dy) > Math.abs(dx)) {
+                const currentVal = parseInt(input.value) || 0;
+                const step = parseInt(input.step) || 1;
+                const newVal = dy > 0 ? currentVal + step : currentVal - step;
+                
+                input.value = newVal;
+
+                // 視覚フィードバック: 一瞬背景を変える
+                const originalBg = input.style.backgroundColor;
+                input.style.backgroundColor = dy > 0 ? '#dcfce7' : '#fee2e2'; // 増なら緑、減なら赤
+                setTimeout(() => { input.style.backgroundColor = originalBg; }, 200);
+
+                // 変更を通知
+                input.dispatchEvent(new Event('change'));
+                if (input.onchange) input.onchange();
+                
+                // iPhone等でのフィードバック（可能なら）
+                if (window.navigator.vibrate) window.navigator.vibrate(10);
+            }
+        }, { passive: true });
+    }
+
     // セッション全体の保存
     function downloadData() {
         const title = document.getElementById('logTitle').value || "session";
@@ -2707,6 +2765,8 @@ function renderTabContent(id, tab) {
                 }
                 renderAll(); 
                 saveData();
+                // 読み込み後にフリック入力を再適用
+                renderAll();
             }
             catch (err) { 
                 alert("読み込みに失敗しました。ファイル形式が正しくありません。");
@@ -4598,6 +4658,10 @@ ${treasureText}
         document.getElementById('nav-targetValue').value = document.getElementById('targetValue').value || 4;
         // 修正値は skillValue (キャラクター判定用) を優先して同期
         document.getElementById('nav-quickModValue').value = document.getElementById('skillValue').value || 0;
+        // ナビボール内の入力欄にもフリック機能を付与
+        enableFlickNumericInput(document.getElementById('nav-quickModValue'));
+        enableFlickNumericInput(document.getElementById('nav-targetValue'));
+        enableFlickNumericInput(document.getElementById('nav-rollCount'));    
     }
 
     // Sync function for non-mod inputs: Nav -> Header
