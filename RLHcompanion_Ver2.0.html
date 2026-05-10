@@ -2077,6 +2077,7 @@ function renderTabContent(id, tab) {
             
             <div class="grid grid-cols-4 gap-2 w-full pb-2">
                 <button onclick="event.stopPropagation(); downloadCharacterById('${id}')" class="bg-blue-100 text-blue-700 hover:bg-blue-200 text-[10px] py-2 rounded font-bold">💾 保存</button>
+                <button onclick="event.stopPropagation(); outputCharacterStatusToLog('${id}')" class="bg-teal-100 text-teal-700 hover:bg-teal-200 text-[10px] py-2 rounded font-bold">📋 出力</button>
                 <button onclick="event.stopPropagation(); if(confirm('削除したリソース項目をリセットしますか？')) { appState.characters['${id}'].deletedResources=[]; renderCurrentCharacterSheet(); saveData(); }" class="text-[10px] text-gray-400 bg-gray-50 py-2 rounded border border-gray-100">リセット</button>
                 <button onclick="event.stopPropagation(); if(confirm('${c.name} を削除してもよろしいですか？')) { deleteCharacter('${id}'); }" class="text-[10px] text-red-400 bg-red-50 py-2 rounded border border-red-100">削除</button>
             </div>
@@ -2618,7 +2619,53 @@ function renderTabContent(id, tab) {
             logListEl.scrollTop = logListEl.scrollHeight; // 正しいスクロールコンテナを一番下までスクロール
         }
     }
+	    // キャラクターの現在のステータスをログに出力する
+    function outputCharacterStatusToLog(id) {
+        const c = appState.characters[id];
+        if (!c) return;
+        const d = c.data;
 
+        let text = `**【キャラクター現況報告】**\n`;
+        text += `■ **基本情報**\n`;
+        text += `・名前: ${c.name} (Lv.${d.level})\n`;
+        if (d.occupation) text += `・職業/種族: ${d.occupation}\n`;
+        if (d.hometown) text += `・故郷: ${d.hometown}\n`;
+        
+        text += `\n■ **ステータス**\n`;
+        text += `・技量点: ${d.skill}\n`;
+        text += `・${d.life.label}: ${d.life.current} / ${d.life.max}\n`;
+        if (!c.deletedResources.includes('subAbility')) {
+            text += `・${d.subAbility.label}: ${d.subAbility.current} / ${d.subAbility.max}\n`;
+        }
+        if (!c.deletedResources.includes('follower')) {
+            text += `・従者: ${d.follower.current} / ${d.follower.max}\n`;
+        }
+        if (!c.deletedResources.includes('gold')) text += `・金貨: ${d.gold}枚\n`;
+        if (!c.deletedResources.includes('food')) text += `・食料: ${d.food}\n`;
+        if (!c.deletedResources.includes('clue')) text += `・手がかり: ${d.clue}\n`;
+
+        // 装備
+        if (d.slots && d.slots.equipped) {
+            const equipped = d.slots.equipped.filter(s => s.item).map(s => `・${s.label}: ${s.item.name}${s.item.mod ? ' (' + s.item.mod + ')' : ''}`);
+            if (equipped.length > 0) text += `\n■ **装備**\n${equipped.join('\n')}\n`;
+        }
+
+        // スキル
+        if (d.slots && d.slots.skills && d.slots.skills.length > 0) {
+            text += `\n■ **習得スキル**\n${d.slots.skills.map(s => `・${s.name}`).join('\n')}\n`;
+        }
+
+        // 所持品 (Inventory) - プレースホルダー(続)は除外
+        if (d.slots && d.slots.inventory) {
+            const items = d.slots.inventory.filter(i => i && !i.isPlaceholder).map(i => `・${i.name}${i.mod ? ' (' + i.mod + ')' : ''}${i.uses ? ' [残り' + i.uses + '回]' : ''}`);
+            if (items.length > 0) text += `\n■ **所持品**\n${items.join('\n')}\n`;
+        }
+
+        if (d.memo) text += `\n■ **メモ**\n${d.memo}`;
+
+        addLogEntry('system', 'キャラ現況', text);
+        showToast(`${c.name} のステータスをログに出力しました`);
+    }
     function deleteLog(i){ appState.logEntries.splice(i,1); renderLogArea(); saveData(); }
     function editLog(i){ const n=prompt("編集",appState.logEntries[i].content); if(n!==null){appState.logEntries[i].content=n; renderLogArea(); saveData();}}
     function deleteChar() { if(Object.keys(appState.characters).length > 1 && confirm("削除？")){ delete appState.characters[appState.currentCharacterId]; appState.currentCharacterId = Object.keys(appState.characters)[0]; renderAll(); saveData(); }}        function switchCharacter(id) { appState.currentCharacterId = id; renderCurrentCharacterSheet(); }
