@@ -1,5 +1,5 @@
-<!--RLHcompanion_Ver2.4-->
-<!DOCTYPE html>
+<!--RLHcompanion_Ver2.4.2-->
+<!DOCTYPE html>                   
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -679,7 +679,7 @@
         <span>修正値:</span>
         <input type="number" id="skillValue" value="0" class="w-8 rounded text-gray-900 px-1 text-center" onchange="syncAllMods(this.value)">
         <span>目標値:</span>
-        <input type="number" id="targetValue" value="3" class="w-8 rounded text-gray-900 px-1 text-center" onchange="updateActiveEnemyTv(this.value)">
+        <input type="number" id="targetValue" value="4" class="w-8 rounded text-gray-900 px-1 text-center" onchange="updateActiveEnemyTv(this.value)">
         <button onclick="resetRollSettings()" class="bg-gray-500 hover:bg-gray-400 text-white px-1.5 py-0.5 rounded text-[10px] ml-1 shadow-sm transition-colors" title="設定をデフォルトに戻す">↺</button>
     </div>
 
@@ -758,7 +758,7 @@
             </div>                    
                         <div class="overflow-x-auto">
                             <table class="record-table">
-                            <thead id="recordHead"></thead>
+                                <thead id="recordHead"></thead>
                                 <tbody id="recordBody"></tbody>
                             </table>
                         </div>
@@ -807,6 +807,8 @@
                 { grid: Array(36).fill(0), clickOrder: 1 }
             ],
             d66Table: Array.from({ length: 3 }, () => Array(13).fill("")), activeRow: 0,
+            eventMarkers: Array(13).fill(""),
+            eventNotes: Array(13).fill(""),
             ttsSettings: {
                 enabled: false, // 自動読み上げの有効/無効
                 voiceURI: null, // 選択された声のURI
@@ -905,6 +907,7 @@
             }
 
             if (!appState.eventMarkers) appState.eventMarkers = Array(13).fill("");
+            if (!appState.eventNotes) appState.eventNotes = Array(13).fill("");
             if (Object.keys(appState.characters).length === 0) addFromPreset('pc');
             if (!appState.currentCharacterId || !appState.characters[appState.currentCharacterId]) {
                 appState.currentCharacterId = Object.keys(appState.characters)[0];
@@ -913,7 +916,6 @@
             renderAll();
             applyDisplaySettings(); // 表示設定の適用
         }
-
     // --- Roll Settings Reset ---
     function resetRollSettings() {
         document.getElementById('rollCount').value = 1;
@@ -925,7 +927,7 @@
         if(document.getElementById('nav-targetValue')) document.getElementById('nav-targetValue').value = 4;
         showToast("🎲 判定設定をリセットしました");
     }
-
+    
     // --- 1. handleCsvUpload  ---
     function handleCsvUpload(e) {
         const f = e.target.files[0]; 
@@ -936,10 +938,16 @@
             if (f.name.toLowerCase().endsWith('.json')) {
                 try {
                     const data = JSON.parse(content);
+                    let items = [];
                     if (Array.isArray(data)) {
-                        scenarioMaster = data;
+                        items = data;
+                    } else if (data && typeof data === 'object' && Array.isArray(data.items)) {
+                        items = data.items;
+                    }
+                    if (items.length > 0) {
+                        scenarioMaster = items;
                         // 設定があれば適用
-                        applyScenarioConfig(data);
+                        applyScenarioConfig(scenarioMaster);
                         try {
                             localStorage.setItem('rlh_scenario_data_v1', JSON.stringify(scenarioMaster));
                         } catch (e) { console.error("Scenario save failed", e); }
@@ -950,7 +958,7 @@
                         }
                         alert("シナリオデータを読み込みました (" + scenarioMaster.length + "件)");
                     } else {
-                        alert("シナリオファイル(JSON配列)ではありません。");
+                        alert("有効なシナリオデータが見つかりませんでした。");
                     }
                 } catch (e) { alert("JSONの読み込みに失敗しました"); }
             } else {
@@ -1111,6 +1119,8 @@
         const r = appState.activeRow;
         const turn = r + 1;
         const targetType = type.toLowerCase();
+        const systemTypes = ['d66', 'treasure', 'magictreasure', 'title', 'overview', 'rule', 'linear', 'pro', 'start', 'mid', 'finish', 'clear', 'ending', 'reference'];
+        const isSystemType = systemTypes.includes(targetType);
 
         // --- 1. 特殊イベント（中間・最終）のタイル記録処理 ---
         if (targetType === 'mid' || targetType === 'finish') {
@@ -1128,9 +1138,18 @@
 
         if (id) {
             // ID指定がある場合：そのID 且つ (現在のターン または 共通ターン1) を探す
-            entries = scenarioMaster.filter(s => String(s.id) === String(id) && parseInt(s.turn) === turn);
+            entries = scenarioMaster.filter(s => 
+                String(s.id) === String(id) && 
+                parseInt(s.turn) === turn && 
+                (isSystemType ? s.type === targetType : (s.type !== 'treasure' && s.type !== 'magictreasure'))
+            );
+
             if (entries.length === 0 && turn !== 1) {
-                entries = scenarioMaster.filter(s => String(s.id) === String(id) && parseInt(s.turn) === 1);
+               entries = scenarioMaster.filter(s => 
+                    String(s.id) === String(id) && 
+                    parseInt(s.turn) === 1 && 
+                    (isSystemType ? s.type === targetType : (s.type !== 'treasure' && s.type !== 'magictreasure'))
+                );
             }
             // ★重要：IDで検索した結果、1件もなければ entries は空のままにする。
             // （ここでヘタに type 検索に流さないことで、無関係なデータ表示を防ぐ）
@@ -1402,18 +1421,20 @@ else {
             const head = document.getElementById('recordHead');
             if (head) {
                 const markers = appState.eventMarkers || Array(13).fill("");
+                const notes = appState.eventNotes || Array(13).fill("");
                 head.innerHTML = `
-                    <tr class="text-[9px] text-gray-400 h-4">
-                        <th class="bg-gray-50 border-none"></th>
-                        ${markers.map((m, i) => `<th class="cursor-pointer hover:bg-gray-200 border-b-0" onclick="cycleEventMarker(${i})" title="クリックでイベントマーカー切替">${m}</th>`).join('')}
-                    </tr>
                     <tr>
                         <th style="width: 50px;">回数</th>
-                        ${Array.from({length: 13}).map((_, i) => `<th>${i+1}</th>`).join('')}
-                    </tr>
-                `;
+                        ${Array.from({length: 13}).map((_, i) => {
+                            const display = markers[i] || (i + 1);
+                            const noteAttr = notes[i] ? `title="${notes[i]}"` : `title="${i+1}枚目: クリックで目印切替 / 右クリックでメモ入力"`;
+                            return `<th class="cursor-pointer hover:bg-gray-200 select-none text-[11px] font-bold" 
+                                        onclick="cycleEventMarker(${i})" 
+                                        oncontextmenu="setEventNote(event, ${i})"
+                                        ${noteAttr}>${display}</th>`;
+                        }).join('')}
+                    </tr>`;
             }
-
             const body = document.getElementById('recordBody');
             body.innerHTML = appState.d66Table.map((row, rIdx) => `
                 <tr class="${appState.activeRow === rIdx ? 'active-row' : ''}">
@@ -1421,9 +1442,10 @@ else {
                     ${row.map((cell, cIdx) => `<td onclick="clearTableCell(${rIdx},${cIdx})" class="cursor-pointer">${cell}</td>`).join('')}
                 </tr>`).join('');
         }
+
         function cycleEventMarker(i) {
             if(!appState.eventMarkers) appState.eventMarkers = Array(13).fill("");
-            const states = ["", "🚩", "🏁", "❔"];
+            const states = ["", "🚩", "⑩", "⑳", "㉚", "㊵", "㊿", "🏁"];
             const current = appState.eventMarkers[i];
             let idx = states.indexOf(current);
             if (idx === -1) idx = 0;
@@ -1432,6 +1454,19 @@ else {
             renderD66Table();
             saveData();
         }
+
+        function setEventNote(e, i) {
+            e.preventDefault();
+            if(!appState.eventNotes) appState.eventNotes = Array(13).fill("");
+            const oldNote = appState.eventNotes[i] || "";
+            const newNote = prompt(`${i+1}枚目のタイルにメモを残す（マウスホバーで表示されます）:`, oldNote);
+            if (newNote !== null) {
+                appState.eventNotes[i] = newNote;
+                renderD66Table();
+                saveData();
+            }
+        }
+
         function clearTableCell(r, c) {
             const { cols } = appState.d66GridSettings;
             const val = appState.d66Table[r][c];
@@ -1457,13 +1492,15 @@ else {
                 const newSize = appState.d66GridSettings.rows * appState.d66GridSettings.cols;
                 appState.d66State = appState.d66State.map(() => ({ grid: Array(newSize).fill(0), clickOrder: 1 }));
                 appState.d66Table = [Array(13).fill(""), Array(13).fill(""), Array(13).fill("")];
-                appState.eventMarkers = Array(13).fill("");                
+                appState.eventMarkers = Array(13).fill("");
+                appState.eventNotes = Array(13).fill("");
+                
                 // シナリオデータのクリア
                 scenarioMaster = [];
                 localStorage.removeItem('rlh_scenario_data_v1');
                 const statusEl = document.getElementById('csvStatus');
                 if (statusEl) {
-                    statusEl.textContent = "シナリオ未読込";
+                    statusEl.textContent = "CSV未読込";
                     statusEl.className = "text-[9px] text-gray-400 self-center ml-2 italic";
                 }
                 document.getElementById('csvUpload').value = ""; // input fileのリセット
@@ -1806,6 +1843,10 @@ function renderCurrentCharacterSheet() {
 
     // 3. 生成したHTMLをDOMに反映
     container.innerHTML = h;
+    // 追加したキャラクターシートの全数値入力欄にフリック機能を付与
+    container.querySelectorAll('input[type="number"]').forEach(input => {
+        enableFlickNumericInput(input);
+    });
 }
 
 function renderTabContent(id, tab) {
@@ -2047,6 +2088,7 @@ function renderTabContent(id, tab) {
             
             <div class="grid grid-cols-4 gap-2 w-full pb-2">
                 <button onclick="event.stopPropagation(); downloadCharacterById('${id}')" class="bg-blue-100 text-blue-700 hover:bg-blue-200 text-[10px] py-2 rounded font-bold">💾 保存</button>
+                <button onclick="event.stopPropagation(); outputCharacterStatusToLog('${id}')" class="bg-teal-100 text-teal-700 hover:bg-teal-200 text-[10px] py-2 rounded font-bold">📋 出力</button>
                 <button onclick="event.stopPropagation(); if(confirm('削除したリソース項目をリセットしますか？')) { appState.characters['${id}'].deletedResources=[]; renderCurrentCharacterSheet(); saveData(); }" class="text-[10px] text-gray-400 bg-gray-50 py-2 rounded border border-gray-100">リセット</button>
                 <button onclick="event.stopPropagation(); if(confirm('${c.name} を削除してもよろしいですか？')) { deleteCharacter('${id}'); }" class="text-[10px] text-red-400 bg-red-50 py-2 rounded border border-red-100">削除</button>
             </div>
@@ -2588,7 +2630,53 @@ function renderTabContent(id, tab) {
             logListEl.scrollTop = logListEl.scrollHeight; // 正しいスクロールコンテナを一番下までスクロール
         }
     }
+    // キャラクターの現在のステータスをログに出力する
+    function outputCharacterStatusToLog(id) {
+        const c = appState.characters[id];
+        if (!c) return;
+        const d = c.data;
 
+        let text = `**【キャラクター現況報告】**\n`;
+        text += `■ **基本情報**\n`;
+        text += `・名前: ${c.name} (Lv.${d.level})\n`;
+        if (d.occupation) text += `・職業/種族: ${d.occupation}\n`;
+        if (d.hometown) text += `・故郷: ${d.hometown}\n`;
+        
+        text += `\n■ **ステータス**\n`;
+        text += `・技量点: ${d.skill}\n`;
+        text += `・${d.life.label}: ${d.life.current} / ${d.life.max}\n`;
+        if (!c.deletedResources.includes('subAbility')) {
+            text += `・${d.subAbility.label}: ${d.subAbility.current} / ${d.subAbility.max}\n`;
+        }
+        if (!c.deletedResources.includes('follower')) {
+            text += `・従者: ${d.follower.current} / ${d.follower.max}\n`;
+        }
+        if (!c.deletedResources.includes('gold')) text += `・金貨: ${d.gold}枚\n`;
+        if (!c.deletedResources.includes('food')) text += `・食料: ${d.food}\n`;
+        if (!c.deletedResources.includes('clue')) text += `・手がかり: ${d.clue}\n`;
+
+        // 装備
+        if (d.slots && d.slots.equipped) {
+            const equipped = d.slots.equipped.filter(s => s.item).map(s => `・${s.label}: ${s.item.name}${s.item.mod ? ' (' + s.item.mod + ')' : ''}`);
+            if (equipped.length > 0) text += `\n■ **装備**\n${equipped.join('\n')}\n`;
+        }
+
+        // スキル
+        if (d.slots && d.slots.skills && d.slots.skills.length > 0) {
+            text += `\n■ **習得スキル**\n${d.slots.skills.map(s => `・${s.name}`).join('\n')}\n`;
+        }
+
+        // 所持品 (Inventory) - プレースホルダー(続)は除外
+        if (d.slots && d.slots.inventory) {
+            const items = d.slots.inventory.filter(i => i && !i.isPlaceholder).map(i => `・${i.name}${i.mod ? ' (' + i.mod + ')' : ''}${i.uses ? ' [残り' + i.uses + '回]' : ''}`);
+            if (items.length > 0) text += `\n■ **所持品**\n${items.join('\n')}\n`;
+        }
+
+        if (d.memo) text += `\n■ **メモ**\n${d.memo}`;
+
+        addLogEntry('system', 'キャラ現況', text);
+        showToast(`${c.name} のステータスをログに出力しました`);
+    }
     function deleteLog(i){ appState.logEntries.splice(i,1); renderLogArea(); saveData(); }
     function editLog(i){ const n=prompt("編集",appState.logEntries[i].content); if(n!==null){appState.logEntries[i].content=n; renderLogArea(); saveData();}}
     function deleteChar() { if(Object.keys(appState.characters).length > 1 && confirm("削除？")){ delete appState.characters[appState.currentCharacterId]; appState.currentCharacterId = Object.keys(appState.characters)[0]; renderAll(); saveData(); }}        function switchCharacter(id) { appState.currentCharacterId = id; renderCurrentCharacterSheet(); }
@@ -2599,8 +2687,62 @@ function renderTabContent(id, tab) {
             document.getElementById('d66Rows').value = appState.d66GridSettings.rows;
             document.getElementById('d66Cols').value = appState.d66GridSettings.cols;
         }
-        renderD66Grid(); renderD66Table(); renderLogArea(); renderEnemyPanel(); renderCurrentCharacterSheet(); 
+               renderD66Grid(); renderD66Table(); renderLogArea(); renderEnemyPanel(); 
+        renderCurrentCharacterSheet();
+        
+        // ヘッダーの入力欄にフリック機能を付与
+        ['rollCount', 'skillValue', 'targetValue'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                enableFlickNumericInput(el);
+                el.title = "上下スワイプで数値を変更できます";
+            }
+        });
     }
+
+    // --- Flick Numeric Input Utility ---
+    function enableFlickNumericInput(input) {
+        if (!input || input.dataset.flickEnabled) return;
+        input.dataset.flickEnabled = "true";
+
+        let startY = 0;
+        let startX = 0;
+        const threshold = 30; // 誤爆防止: 最低30pxのスワイプが必要
+
+        input.addEventListener('touchstart', (e) => {
+            startY = e.touches[0].clientY;
+            startX = e.touches[0].clientX;
+        }, { passive: true });
+
+        input.addEventListener('touchend', (e) => {
+            const endY = e.changedTouches[0].clientY;
+            const endX = e.changedTouches[0].clientX;
+            const dy = startY - endY; // 正なら上スワイプ
+            const dx = endX - startX;
+
+            // 垂直方向の動きが閾値を超え、かつ横方向の動きより大きい場合のみ実行
+            if (Math.abs(dy) > threshold && Math.abs(dy) > Math.abs(dx)) {
+                const currentVal = parseInt(input.value) || 0;
+                const step = parseInt(input.step) || 1;
+                const newVal = dy > 0 ? currentVal + step : currentVal - step;
+                
+                input.value = newVal;
+
+                // 視覚フィードバック: 一瞬背景を変える
+                const originalBg = input.style.backgroundColor;
+                input.style.backgroundColor = dy > 0 ? '#dcfce7' : '#fee2e2'; // 増なら緑、減なら赤
+                setTimeout(() => { input.style.backgroundColor = originalBg; }, 200);
+
+                // 変更を通知
+                input.dispatchEvent(new Event('change'));
+                if (input.onchange) input.onchange();
+                
+                // iPhone等でのフィードバック（可能なら）
+                if (window.navigator.vibrate) window.navigator.vibrate(10);
+            }
+        }, { passive: true });
+    }
+
     // セッション全体の保存
     function downloadData() {
         const title = document.getElementById('logTitle').value || "session";
@@ -2608,7 +2750,7 @@ function renderTabContent(id, tab) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${title}.json`;
+        a.download = `RLH_Session_${title}.json`;
         a.click();
         URL.revokeObjectURL(url);
     }
@@ -2655,7 +2797,7 @@ function renderTabContent(id, tab) {
         const b = new Blob([JSON.stringify(exportData, null, 2)], {type:'application/json'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(b);
-        a.download = `Character_${c.name || 'no_name'}.json`;
+        a.download = `RLH_Character_${c.name || 'no_name'}.json`;
         a.click();
     }
 
@@ -2681,6 +2823,8 @@ function renderTabContent(id, tab) {
                 }
                 renderAll(); 
                 saveData();
+                // 読み込み後にフリック入力を再適用
+                renderAll();
             }
             catch (err) { 
                 alert("読み込みに失敗しました。ファイル形式が正しくありません。");
@@ -2830,7 +2974,7 @@ function renderTabContent(id, tab) {
         appState.enemies = appState.enemies.filter(e => e.id !== id);
         if (appState.activeEnemyId === id) {
             appState.activeEnemyId = null;
-            document.getElementById('targetValue').value = 3; // デフォルトに戻す
+            document.getElementById('targetValue').value = 4; // デフォルトに戻す
         }
         // 敵が0になったらラウンドをリセット
         if (appState.enemies.length === 0) {
@@ -2851,7 +2995,7 @@ function renderTabContent(id, tab) {
     function setActiveEnemy(id) {
         if (appState.activeEnemyId === id) {
             appState.activeEnemyId = null;
-            document.getElementById('targetValue').value = 3; // デフォルトに戻す
+            document.getElementById('targetValue').value = 4; // デフォルトに戻す
         } else {
             appState.activeEnemyId = id;
             const enemy = appState.enemies.find(e => e.id === id);
@@ -3039,6 +3183,9 @@ function renderTabContent(id, tab) {
         saveData();
         renderLogArea();
     }
+    function deleteLog(i){ appState.logEntries.splice(i,1); renderLogArea(); saveData(); }
+    function editLog(i){ const n=prompt("編集",appState.logEntries[i].content); if(n!==null){appState.logEntries[i].content=n; renderLogArea(); saveData();}}
+    function deleteChar() { if(Object.keys(appState.characters).length > 1 && confirm("削除？")){ delete appState.characters[appState.currentCharacterId]; appState.currentCharacterId = Object.keys(appState.characters)[0]; renderAll(); saveData(); }}        function switchCharacter(id) { appState.currentCharacterId = id; renderCurrentCharacterSheet(); }
 
     function applyTheme(themeName) {
         document.body.classList.remove('theme-night', 'theme-sepia');
@@ -4313,7 +4460,7 @@ ${treasureText}
             </section>
 
             <section class="text-[11px] text-gray-500 pt-2 border-t">
-                <p><b>バージョン:</b> 2.3</p>
+                <p><b>バージョン:</b> 2.4.2</p>
                 <p><b>詳細(note)：</b> https://note.com/sandman_sunao/n/ndaeb94b048f3?sub_rt=share_sb</p>
             </section>
 
@@ -4543,16 +4690,17 @@ ${treasureText}
         <!-- Single Ring: All Items -->
         <div class="pie-ring outer-ring">
             <div class="nav-item-wrapper" style="--angle:270deg;"><button class="nav-dice-btn" onclick="performNavRoll('1D6', '1D6')">1D6</button></div>
-            <div class="nav-item-wrapper" style="--angle:310deg;"><button class="nav-dice-btn" onclick="performNavRoll('1D3', '1D3')">1D3</button></div>
-            <div class="nav-item-wrapper" style="--angle:350deg;"><button class="nav-dice-btn" onclick="performNavRoll('D66', 'D66')">D66</button></div>
-            <div class="nav-item-wrapper" style="--angle:30deg;"><button class="nav-dice-btn" onclick="performNavRoll('D33', 'D33')">D33</button></div>
-            <div class="nav-item-wrapper" style="--angle:70deg;"><button class="nav-dice-btn" onclick="performNavRoll('Treasure', '宝物')">宝物</button></div>
-            <div class="nav-item-wrapper" style="--angle:110deg;"><button class="nav-dice-btn" onclick="performNavRoll('MagicTreasure')">魔法<br>宝物</button></div>
+            <div class="nav-item-wrapper" style="--angle:306deg;"><button class="nav-dice-btn" onclick="performNavRoll('1D3', '1D3')">1D3</button></div>
+            <div class="nav-item-wrapper" style="--angle:342deg;"><button class="nav-dice-btn" onclick="performNavRoll('D66', 'D66')">D66</button></div>
+            <div class="nav-item-wrapper" style="--angle:18deg;"><button class="nav-dice-btn" onclick="performNavRoll('D33', 'D33')">D33</button></div>
+            <div class="nav-item-wrapper" style="--angle:54deg;"><button class="nav-dice-btn" onclick="performNavRoll('Treasure', '宝物')">宝物</button></div>
+            <div class="nav-item-wrapper" style="--angle:90deg;"><button class="nav-dice-btn" onclick="performNavRoll('MagicTreasure')">魔法<br>宝物</button></div>
             
+            <div class="nav-item-wrapper" style="--angle:126deg;"><button class="nav-dice-btn border-red-400 text-red-400 !rounded-md !w-6 !h-6 !text-[11px]" onclick="resetRollSettings(); navContainer.classList.remove('active');" title="初期値に戻す">↺</button></div>
             <!-- Inputs placed on the same ring -->
-            <div class="nav-item-wrapper" style="--angle:150deg;"><div class="nav-input-item"><span class="nav-label">修正</span><input type="number" id="nav-quickModValue" class="nav-ctrl-input" value="0" onchange="syncAllMods(this.value)"></div></div>
-            <div class="nav-item-wrapper" style="--angle:190deg;"><div class="nav-input-item"><span class="nav-label">目標</span><input type="number" id="nav-targetValue" class="nav-ctrl-input" value="3" onchange="syncNavInput('targetValue', this.value)"></div></div>
-            <div class="nav-item-wrapper" style="--angle:230deg;"><div class="nav-input-item"><span class="nav-label">回数</span><input type="number" id="nav-rollCount" class="nav-ctrl-input" value="1" onchange="syncNavInput('rollCount', this.value)"></div></div>
+            <div class="nav-item-wrapper" style="--angle:162deg;"><div class="nav-input-item"><span class="nav-label">修正</span><input type="number" id="nav-quickModValue" class="nav-ctrl-input" value="0" onchange="syncAllMods(this.value)"></div></div>
+            <div class="nav-item-wrapper" style="--angle:198deg;"><div class="nav-input-item"><span class="nav-label">目標</span><input type="number" id="nav-targetValue" class="nav-ctrl-input" value="4" onchange="syncNavInput('targetValue', this.value)"></div></div>
+            <div class="nav-item-wrapper" style="--angle:234deg;"><div class="nav-input-item"><span class="nav-label">回数</span><input type="number" id="nav-rollCount" class="nav-ctrl-input" value="1" onchange="syncNavInput('rollCount', this.value)"></div></div>
         </div>
     </div>
 </div>
@@ -4568,9 +4716,13 @@ ${treasureText}
     // Initialize nav input values from main header inputs
     function initNavInputs() {
         document.getElementById('nav-rollCount').value = document.getElementById('rollCount').value || 1;
-        document.getElementById('nav-targetValue').value = document.getElementById('targetValue').value || 3;
+        document.getElementById('nav-targetValue').value = document.getElementById('targetValue').value || 4;
         // 修正値は skillValue (キャラクター判定用) を優先して同期
         document.getElementById('nav-quickModValue').value = document.getElementById('skillValue').value || 0;
+        // ナビボール内の入力欄にもフリック機能を付与
+        enableFlickNumericInput(document.getElementById('nav-quickModValue'));
+        enableFlickNumericInput(document.getElementById('nav-targetValue'));
+        enableFlickNumericInput(document.getElementById('nav-rollCount'));    
     }
 
     // Sync function for non-mod inputs: Nav -> Header
