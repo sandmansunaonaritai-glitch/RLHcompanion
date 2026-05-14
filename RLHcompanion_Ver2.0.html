@@ -1,5 +1,4 @@
-<!--RLHcompanion_Ver2.4-->
-<!--26.5.15に分岐が動かなくなったためいったん前のヴァージョンにもどしました-->
+<!--RLHcompanion_Ver2.4--分岐が動かないエラーのため、バージョンを現在4月時点まで戻しています>
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -681,6 +680,7 @@
         <input type="number" id="skillValue" value="0" class="w-8 rounded text-gray-900 px-1 text-center" onchange="syncAllMods(this.value)">
         <span>目標値:</span>
         <input type="number" id="targetValue" value="3" class="w-8 rounded text-gray-900 px-1 text-center" onchange="updateActiveEnemyTv(this.value)">
+        <button onclick="resetRollSettings()" class="bg-gray-500 hover:bg-gray-400 text-white px-1.5 py-0.5 rounded text-[10px] ml-1 shadow-sm transition-colors" title="設定をデフォルトに戻す">↺</button>
     </div>
 
     <div class="flex items-center space-x-1 ml-1 shrink-0">
@@ -758,9 +758,7 @@
             </div>                    
                         <div class="overflow-x-auto">
                             <table class="record-table">
-                                <thead>
-        <tr><th style="width: 50px;">回数</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th></tr>
-                                </thead>
+                            <thead id="recordHead"></thead>
                                 <tbody id="recordBody"></tbody>
                             </table>
                         </div>
@@ -906,6 +904,7 @@
                 });
             }
 
+            if (!appState.eventMarkers) appState.eventMarkers = Array(13).fill("");
             if (Object.keys(appState.characters).length === 0) addFromPreset('pc');
             if (!appState.currentCharacterId || !appState.characters[appState.currentCharacterId]) {
                 appState.currentCharacterId = Object.keys(appState.characters)[0];
@@ -914,6 +913,18 @@
             renderAll();
             applyDisplaySettings(); // 表示設定の適用
         }
+
+    // --- Roll Settings Reset ---
+    function resetRollSettings() {
+        document.getElementById('rollCount').value = 1;
+        document.getElementById('skillValue').value = 0;
+        document.getElementById('targetValue').value = 4;
+        syncAllMods(0);
+        updateActiveEnemyTv(4);
+        if(document.getElementById('nav-rollCount')) document.getElementById('nav-rollCount').value = 1;
+        if(document.getElementById('nav-targetValue')) document.getElementById('nav-targetValue').value = 4;
+        showToast("🎲 判定設定をリセットしました");
+    }
 
     // --- 1. handleCsvUpload  ---
     function handleCsvUpload(e) {
@@ -1388,6 +1399,21 @@ else {
         }
 
         function renderD66Table() {
+            const head = document.getElementById('recordHead');
+            if (head) {
+                const markers = appState.eventMarkers || Array(13).fill("");
+                head.innerHTML = `
+                    <tr class="text-[9px] text-gray-400 h-4">
+                        <th class="bg-gray-50 border-none"></th>
+                        ${markers.map((m, i) => `<th class="cursor-pointer hover:bg-gray-200 border-b-0" onclick="cycleEventMarker(${i})" title="クリックでイベントマーカー切替">${m}</th>`).join('')}
+                    </tr>
+                    <tr>
+                        <th style="width: 50px;">回数</th>
+                        ${Array.from({length: 13}).map((_, i) => `<th>${i+1}</th>`).join('')}
+                    </tr>
+                `;
+            }
+
             const body = document.getElementById('recordBody');
             body.innerHTML = appState.d66Table.map((row, rIdx) => `
                 <tr class="${appState.activeRow === rIdx ? 'active-row' : ''}">
@@ -1395,7 +1421,17 @@ else {
                     ${row.map((cell, cIdx) => `<td onclick="clearTableCell(${rIdx},${cIdx})" class="cursor-pointer">${cell}</td>`).join('')}
                 </tr>`).join('');
         }
-
+        function cycleEventMarker(i) {
+            if(!appState.eventMarkers) appState.eventMarkers = Array(13).fill("");
+            const states = ["", "🚩", "🏁", "❔"];
+            const current = appState.eventMarkers[i];
+            let idx = states.indexOf(current);
+            if (idx === -1) idx = 0;
+            let nextIdx = (idx + 1) % states.length;
+            appState.eventMarkers[i] = states[nextIdx];
+            renderD66Table();
+            saveData();
+        }
         function clearTableCell(r, c) {
             const { cols } = appState.d66GridSettings;
             const val = appState.d66Table[r][c];
@@ -1421,13 +1457,13 @@ else {
                 const newSize = appState.d66GridSettings.rows * appState.d66GridSettings.cols;
                 appState.d66State = appState.d66State.map(() => ({ grid: Array(newSize).fill(0), clickOrder: 1 }));
                 appState.d66Table = [Array(13).fill(""), Array(13).fill(""), Array(13).fill("")];
-                
+                appState.eventMarkers = Array(13).fill("");                
                 // シナリオデータのクリア
                 scenarioMaster = [];
                 localStorage.removeItem('rlh_scenario_data_v1');
                 const statusEl = document.getElementById('csvStatus');
                 if (statusEl) {
-                    statusEl.textContent = "CSV未読込";
+                    statusEl.textContent = "シナリオ未読込";
                     statusEl.className = "text-[9px] text-gray-400 self-center ml-2 italic";
                 }
                 document.getElementById('csvUpload').value = ""; // input fileのリセット
