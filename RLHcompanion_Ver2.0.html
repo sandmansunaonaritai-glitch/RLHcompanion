@@ -96,6 +96,13 @@
         .markdown-body ul { list-style: disc; padding-left: 1.2em; }
         .markdown-body ol { list-style: decimal; padding-left: 1.2em; }
         .markdown-body p { margin-bottom: 0.5em; }
+
+        /* Shared BOX Styles */
+        .rlh-box { padding: 0.8rem; border-radius: 0.25rem; margin-bottom: 0.5rem; }
+        .rlh-box-grey { background-color: #e5e7eb; color: #000000; }
+        .rlh-box-black { background-color: #000000; color: #ffffff; }
+        .rlh-box-border { background-color: #ffffff; border: 2px solid #274cb1; color: #000000; }
+
         /* Table Styles */
         .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 1em; font-size: 0.9em; }
         .markdown-body th, .markdown-body td { border: 1px solid #d1d5db; padding: 4px 8px; text-align: left; }
@@ -915,6 +922,15 @@
             applyTheme(appState.theme || 'colorful');
             renderAll();
             applyDisplaySettings(); // 表示設定の適用
+            // ヘッダーの静的な数字入力フィールドに自動全選択機能を適用
+            autoSelectOnFocus(document.getElementById('rollCount'));
+            autoSelectOnFocus(document.getElementById('skillValue'));
+            autoSelectOnFocus(document.getElementById('targetValue'));
+            autoSelectOnFocus(document.getElementById('quickModValue'));
+        }
+    // 入力フィールドにフォーカスが当たった際に全選択する関数
+    function autoSelectOnFocus(inputElement) {
+        if (inputElement) { inputElement.addEventListener('focus', function() { this.select(); }); inputElement.addEventListener('click', function() { this.select(); }); }
         }
     // --- Roll Settings Reset ---
     function resetRollSettings() {
@@ -957,6 +973,7 @@
                             statusEl.className = "text-[9px] text-teal-600 self-center ml-2 font-bold";
                         }
                         alert("シナリオデータを読み込みました (" + scenarioMaster.length + "件)");
+                        updateScenarioButtonStates();
                     } else {
                         alert("有効なシナリオデータが見つかりませんでした。");
                     }
@@ -971,25 +988,6 @@
         // シナリオデータを保持する変数
         let scenarioData = {};
 
-    function processCSV(csvText) {
-        const lines = csvText.split('\n');
-        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-        scenarioData = {}; // クリア
-
-        for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        const cols = lines[i].split(',').map(c => c.trim());
-        // idをキーにして、行全体を保存
-        const row = {};
-        headers.forEach((header, index) => {
-            row[header] = cols[index] || "";
-        });
-        const id = row['id'];
-        if (id) {scenarioData[id] = row;}
-        }
-        console.log("Scenario Loaded:", scenarioData);
-        document.getElementById('csvStatus').textContent = "CSV読込完了";
-    }
     // --- 2. 複雑なCSVを解析する補助関数 ---
     function parseCSV(text) {
         const result = [];
@@ -1028,6 +1026,36 @@
             result.push(currentRow);
         }
         return result;
+    }
+
+    // --- シナリオ設定適用関数 ---
+    function applyScenarioConfig(data) {
+        const config = data.find(item => item.type === 'config');
+        if (!config) return;
+
+        let r = parseInt(config.rows);
+        let c = parseInt(config.cols);
+
+        // textプロパティからの解析 (CSVや、JSONのtext利用時)
+        if ((!r || !c) && config.text) {
+            const txt = config.text.toLowerCase();
+            // "rows=3" 形式
+            const matchR = txt.match(/rows\s*[=:]\s*(\d+)/);
+            if (matchR) r = parseInt(matchR[1]);
+            const matchC = txt.match(/cols\s*[=:]\s*(\d+)/);
+            if (matchC) c = parseInt(matchC[1]);
+            
+            // "3x3" 形式
+            if (!r && !c) {
+                const matchX = txt.match(/(\d+)\s*x\s*(\d+)/);
+                if (matchX) {
+                    r = parseInt(matchX[1]);
+                    c = parseInt(matchX[2]);
+                }
+            }
+        }
+
+        if (r > 0 && c > 0) changeGridSize(r, c, false);
     }
 
     // --- 3. 解析したデータを scenarioMaster に格納する処理 ---
@@ -1072,36 +1100,26 @@
             statusEl.textContent = "読込済 (" + scenarioMaster.length + "件)";
             statusEl.className = "text-[9px] text-teal-600 self-center ml-2 font-bold";
         }
+        updateScenarioButtonStates();
     }
 
-    // --- シナリオ設定適用関数 ---
-    function applyScenarioConfig(data) {
-        const config = data.find(item => item.type === 'config');
-        if (!config) return;
-
-        let r = parseInt(config.rows);
-        let c = parseInt(config.cols);
-
-        // textプロパティからの解析 (CSVや、JSONのtext利用時)
-        if ((!r || !c) && config.text) {
-            const txt = config.text.toLowerCase();
-            // "rows=3" 形式
-            const matchR = txt.match(/rows\s*[=:]\s*(\d+)/);
-            if (matchR) r = parseInt(matchR[1]);
-            const matchC = txt.match(/cols\s*[=:]\s*(\d+)/);
-            if (matchC) c = parseInt(matchC[1]);
-            
-            // "3x3" 形式
-            if (!r && !c) {
-                const matchX = txt.match(/(\d+)\s*x\s*(\d+)/);
-                if (matchX) {
-                    r = parseInt(matchX[1]);
-                    c = parseInt(matchX[2]);
-                }
-            }
+    // シナリオのタイプによってボタンの有効/無効を切り替える
+    function updateScenarioButtonStates() {
+        const scenarioContainer = document.querySelector('#log-section details .flex-wrap');
+        if (!scenarioContainer) return;
+        const buttons = scenarioContainer.querySelectorAll('button[onclick^="playScenario"]');
+        if (!scenarioMaster || scenarioMaster.length === 0) {
+            buttons.forEach(btn => { btn.style.opacity = ""; btn.style.filter = ""; btn.disabled = false; btn.style.cursor = ""; });
+            return;
         }
-
-        if (r > 0 && c > 0) changeGridSize(r, c, false);
+        const existingTypes = new Set(scenarioMaster.map(item => item.type ? item.type.toLowerCase() : ""));
+        buttons.forEach(btn => {
+            const match = btn.getAttribute('onclick').match(/playScenario\('([^']+)'\)/);
+            if (match) { const type = match[1].toLowerCase();
+                if (existingTypes.has(type)) { btn.style.opacity = ""; btn.style.filter = ""; btn.disabled = false; }
+                else { btn.style.opacity = "0.4"; btn.style.filter = "grayscale(1)"; btn.disabled = true; }
+            }
+        });
     }
 
     // 直前のIDを保存する変数（関数の外に定義）
@@ -1505,6 +1523,7 @@ else {
                 }
                 document.getElementById('csvUpload').value = ""; // input fileのリセット
 
+                updateScenarioButtonStates();
                 renderAll(); saveData();
             }
         }
@@ -1844,6 +1863,9 @@ function renderCurrentCharacterSheet() {
     // 3. 生成したHTMLをDOMに反映
     container.innerHTML = h;
     // 追加したキャラクターシートの全数値入力欄にフリック機能を付与
+    container.querySelectorAll('input[type="number"]').forEach(input => {
+        autoSelectOnFocus(input);
+    });
     container.querySelectorAll('input[type="number"]').forEach(input => {
         enableFlickNumericInput(input);
     });
@@ -2613,6 +2635,11 @@ function renderTabContent(id, tab) {
                 // ルビ記法変換 (|文字《ルビ》 -> <ruby>文字<rt>ルビ</rt></ruby>)
                 processedContent = processedContent.replace(/[\|｜]([^\|｜《》\n]+?)《([^《》\n]+?)》/g, '<ruby>$1<rt>$2</rt></ruby>');
                 
+                // BOX内Markdown対応: div内のテキストを個別にパースする (classとstyleの両方に対応)
+                processedContent = processedContent.replace(/<div[^>]*(class|style)=(['"])(.*?)\2[^>]*>([\s\S]*?)<\/div>/g, function(match, attr, quote, value, content) {
+                    return `<div ${attr}="${value}">${marked.parse(content, { breaks: true })}</div>`;
+                });
+
                 // Markdown変換 (breaks: true で改行を反映)
                 const htmlContent = marked.parse(processedContent, { breaks: true });
                 
@@ -2957,14 +2984,14 @@ function renderTabContent(id, tab) {
         const newId = 'enemy_' + Date.now();
         const newEnemy = {
             id: newId,
-            name: mode === 'strong' ? '強いクリーチャー' : '弱いクリーチャー',
+            name: mode === 'strong' ? 'クリーチャー' : 'クリーチャー',
             mode: mode,
             level: 4,
             tv: 4,
             isLinked: true,
             hp: 10, hpMax: 10, 
-            count: 5, countMax: 5, 
-            attacks: mode === 'strong' ? 1 : 5,
+            count: 10, countMax: 10, 
+            attacks: mode === 'strong' ? 1 : 10,
         };
         appState.enemies.push(newEnemy);
         setActiveEnemy(newId);
@@ -3031,12 +3058,15 @@ function renderTabContent(id, tab) {
 
         enemy[key] = val
 
-        // hpMaxやcountMaxを更新した際に、現在値がそれを超えていたら調整
-        if (key === 'hpMax' && enemy.hp > val) {
+        // hpMaxやcountMaxを更新した際に、現在値も同値になるようにする
+        if (key === 'hpMax') {
             enemy.hp = val;
         }
-        if (key === 'countMax' && enemy.count > val) {
+        if (key === 'countMax') {
             enemy.count = val;
+            // countMaxが更新された際に、弱いクリーチャーであれば攻撃回数も更新する
+            // (countMax変更時にenemy.countが更新されるが、keyは'countMax'のままなので、別途チェックが必要)
+            if (enemy.mode === 'weak') enemy.attacks = val;
         }
 
         if (key === 'level' && enemy.isLinked) {
@@ -4718,6 +4748,9 @@ ${treasureText}
         document.getElementById('nav-rollCount').value = document.getElementById('rollCount').value || 1;
         document.getElementById('nav-targetValue').value = document.getElementById('targetValue').value || 4;
         // 修正値は skillValue (キャラクター判定用) を優先して同期
+        autoSelectOnFocus(document.getElementById('nav-rollCount'));
+        autoSelectOnFocus(document.getElementById('nav-targetValue'));
+        autoSelectOnFocus(document.getElementById('nav-quickModValue'));
         document.getElementById('nav-quickModValue').value = document.getElementById('skillValue').value || 0;
         // ナビボール内の入力欄にもフリック機能を付与
         enableFlickNumericInput(document.getElementById('nav-quickModValue'));
