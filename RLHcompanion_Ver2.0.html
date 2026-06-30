@@ -2881,6 +2881,23 @@ function renderTabContent(id, tab) {
         }
     });
     window.speechSynthesis.onvoiceschanged = populateVoiceList;
+// --- 入力欄の自動全選択ロジック ---
+document.addEventListener('focusin', function(e) {
+    if (e.target && e.target.type === 'number') {
+        // タップ時に中身を全選択する（number型でも安全な方法）
+        e.target.select();
+        
+        // モバイル（iOS Safari等）で選択が解除されるのを防ぐおまじない
+        setTimeout(function() {
+            if (typeof e.target.select === 'function') {
+                e.target.select();
+            }
+        }, 50);
+    }
+}, true);
+
+window.onload = loadData; // ←ここにつながるようにする
+
     window.onload = loadData;
         
     // ------------------------
