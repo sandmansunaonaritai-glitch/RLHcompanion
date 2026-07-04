@@ -20,6 +20,12 @@
         .markdown-preview blockquote { border-left: 4px solid #ccc; padding-left: 1em; color: #666; margin-bottom: 0.8em; }
         .markdown-preview strong { font-weight: bold; } /* 強調を赤っぽく */
         .markdown-preview em { font-style: italic; background-color: #fef3c7; }
+
+        /* Shared BOX Styles */
+        .rlh-box { padding: 0.8rem; border-radius: 0.25rem; margin-bottom: 0.5rem; }
+        .rlh-box-grey { background-color: #e5e7eb; color: #000000; }
+        .rlh-box-black { background-color: #000000; color: #ffffff; }
+        .rlh-box-border { background-color: #ffffff; border: 2px solid #274cb1; color: #000000; } /* ここをメインアプリと合わせるように変更してください */
         
         /* Table Styles */
         .markdown-preview table { width: 100%; border-collapse: collapse; margin-bottom: 1em; font-size: 0.9em; }
@@ -36,46 +42,101 @@
         .tag-chip {
             display: inline-flex; align-items: center; padding: 1px 6px; margin: 1px;
             background-color: #e0f2fe; color: #0369a1; border-radius: 9999px; font-size: 0.65rem; font-weight: bold;
+            white-space: nowrap;
         }
         .tag-chip button { margin-left: 2px; color: #0284c7; cursor: pointer; border: none; background: none; padding: 0; font-size: 0.8rem; line-height: 0.5; }
         .tag-chip button:hover { color: #075985; }
+        #idea-drawer { transition: margin-left 0.3s ease-in-out; margin-left: -320px; }
+        #idea-drawer.open { margin-left: 0; }
+        .right-panel-content {
+            flex: 1; /* Take remaining space */
+            overflow-y: auto; /* Allow scrolling within the panel */
+        }
+        .scenario-card-item * { pointer-events: none; }
+        .locked-overlay { position: absolute; inset: 0; background: rgba(243, 244, 246, 0.4); z-index: 40; cursor: not-allowed; display: none; }
     </style>
 </head>
 <body class="text-gray-800">
 
-<header class="bg-slate-800 text-white p-3 flex justify-between items-center shadow-md shrink-0">
+<header class="bg-slate-800 text-white p-3 flex justify-between items-center shadow-md shrink-0 relative z-50">
     <div class="flex items-center gap-4">
-        <h1 class="text-lg font-bold">📝 RLH Scenario Editor</h1>
-        <button onclick="openHelpModal()" class="bg-slate-600 hover:bg-slate-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow-sm transition-colors" title="ヘルプ">?</button>
+        <button onclick="toggleIdeaDrawer()" class="bg-yellow-600 hover:bg-yellow-500 px-3 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
+            💡 <span class="hidden sm:inline">ネタ帳</span>
+        </button>
         <input type="text" id="scenario-title" class="bg-slate-700 border border-slate-600 rounded px-2 py-1 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-indigo-500 w-64" placeholder="シナリオタイトル" oninput="saveTitle()">
+        <span id="lock-badge" class="hidden bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse cursor-pointer hover:bg-red-700 inline-flex items-center" onclick="unlockScenario()" title="クリックしてパスワード解除">🔒 頒布用ロック中</span>
     </div>
-    <div class="flex gap-2">
-        <button onclick="togglePreview()" class="bg-slate-500 hover:bg-slate-400 px-3 py-1.5 rounded text-xs font-bold transition" title="プレビュー表示切替">👀</button>
-        <button onclick="createNewScenario()" class="bg-red-600 hover:bg-red-500 px-3 py-1.5 rounded text-xs font-bold transition" title="現在の内容を破棄してリセット">新規作成</button>
-        <button onclick="document.getElementById('importCsvFile').click()" class="bg-teal-600 hover:bg-teal-500 px-3 py-1.5 rounded text-xs font-bold transition">📂 CSV読込</button>
-        <input type="file" id="importCsvFile" accept=".csv" class="hidden" onchange="importCsv(event)">
-        <button onclick="document.getElementById('importFile').click()" class="bg-green-600 hover:bg-green-500 px-3 py-1.5 rounded text-xs font-bold transition">📂 JSON読込</button>
-        <input type="file" id="importFile" accept=".json" class="hidden" onchange="importJson(event)">
-        <div class="relative group">
-            <button class="bg-blue-600 hover:bg-blue-500 px-3 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">💾 保存 ▼</button>
-            <div class="absolute right-0 top-full bg-white border border-gray-200 rounded shadow-lg hidden group-hover:block z-50 min-w-[120px]">
-                <button onclick="exportJson()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 font-normal">JSON保存</button>
-                <button onclick="exportCsv()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 font-normal">CSV保存</button>
-                <button onclick="exportMarkdown()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 font-normal">Markdown保存</button>
-                <button onclick="exportText()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-gray-800 font-normal">Text保存</button>
+    <div class="flex gap-2 items-center">
+        <button onclick="toggleRightPanel()" class="bg-slate-500 hover:bg-slate-400 px-3 py-1.5 rounded text-xs font-bold transition" title="右パネル表示切替">👀 枠切替</button>
+        
+        <!-- Hamburger Menu -->
+        <div class="relative">
+            <button id="main-menu-btn" onclick="toggleMainMenu()" class="bg-slate-700 hover:bg-slate-600 text-white p-2 rounded transition flex flex-col justify-center items-center gap-1 w-8 h-8">
+                <span class="block w-5 h-0.5 bg-white"></span>
+                <span class="block w-5 h-0.5 bg-white"></span>
+                <span class="block w-5 h-0.5 bg-white"></span>
+            </button>
+            
+            <!-- Dropdown -->
+            <div id="main-menu" class="absolute right-0 top-full mt-2 bg-white border border-gray-200 rounded shadow-xl hidden z-50 w-48 text-gray-800 font-normal">
+                <button onclick="createNewScenario(); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100 border-b border-gray-100">新規作成</button>
+                
+                <div class="relative group">
+                    <button class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100 flex justify-between items-center">読込 <span class="text-gray-400">◀</span></button>
+                    <div class="absolute right-full top-0 bg-white border border-gray-200 rounded shadow-lg hidden group-hover:block w-40">
+                        <button onclick="document.getElementById('importCsvFile').click(); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100">CSVを読込</button>
+                        <button onclick="document.getElementById('importFile').click(); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100">JSONを読込</button>
+                        <button onclick="document.getElementById('importTextFile').click(); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100">TEXTを読込</button>
+                    </div>
+                </div>
+
+                <div class="relative group">
+                    <button class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100 flex justify-between items-center">保存 <span class="text-gray-400">◀</span></button>
+                    <div class="absolute right-full top-0 bg-white border border-gray-200 rounded shadow-lg hidden group-hover:block w-40">
+                        <button onclick="exportJson(); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100">JSON保存</button>
+                        <button onclick="exportDistributionArray(); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-green-600 font-bold">頒布用JSON (ロックなし)</button>
+                        <button id="menu-export-locked" onclick="exportJson(true); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100 text-indigo-600 font-bold border-t">頒布用JSON (ロック)</button>
+                        <button onclick="exportCsv(); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100">CSV保存</button>
+                        <button onclick="exportText(); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100">TEXT保存</button>
+                        <button onclick="exportMarkdown(); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100">Markdown保存</button>
+                    </div>
+                </div>
+
+                <button onclick="openHelpModal(); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100 border-t border-gray-100">ヘルプ</button>
             </div>
         </div>
+
+        <!-- Hidden Inputs -->
+        <input type="file" id="importCsvFile" accept=".csv" class="hidden" onchange="importCsv(event)">
+        <input type="file" id="importFile" accept=".json" class="hidden" onchange="importJson(event)">
+        <input type="file" id="importTextFile" accept=".txt" class="hidden" onchange="importText(event)">
     </div>
 </header>
 
 <main class="flex-1 flex overflow-hidden">
+    <!-- Idea Pool Drawer (Left) -->
+    <aside id="idea-drawer" class="w-80 bg-yellow-50 border-r border-yellow-200 flex flex-col shrink-0 relative z-20 shadow-xl">
+        <div class="p-2 border-b border-yellow-200 bg-yellow-100 flex justify-between items-center">
+            <span id="idea-drawer-title" class="text-xs font-bold text-yellow-800">💡 ネタ帳 (Idea Pool)</span>
+            <div class="flex gap-1">
+                <button onclick="toggleArchiveView()" id="btn-archive-view" class="text-gray-500 hover:text-yellow-700 px-1 rounded text-xs" title="アーカイブ表示切替">📦</button>
+                <button onclick="addIdea()" class="bg-yellow-600 text-white px-2 py-1 rounded text-xs font-bold hover:bg-yellow-500 shadow-sm">＋</button>
+            </div>
+        </div>
+        <div id="idea-list" class="flex-1 overflow-y-auto custom-scroll p-2 space-y-2" ondragover="handleIdeaDragOver(event)" ondrop="handleIdeaDrop(event)">
+            <!-- Ideas injected here -->
+        </div>
+    </aside>
+
     <!-- List Sidebar -->
     <aside class="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
         <div class="p-2 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
             <span class="text-xs font-bold text-gray-500">シナリオ一覧</span>
             <div class="flex gap-1">
-                <button onclick="openBatchModal()" class="bg-orange-500 hover:bg-orange-400 text-white px-2 py-1 rounded text-xs font-bold" title="グリッドを指定して一括作成">⚡ 一括</button>
-                <button onclick="addNewEntry()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded text-xs font-bold">＋ 追加</button>
+                <button id="btn-filter-incomplete" onclick="toggleIncompleteFilter()" class="bg-white border border-gray-300 text-gray-500 hover:text-green-600 hover:border-green-400 px-2 py-1 rounded text-xs font-bold shadow-sm" title="未完了の項目のみ表示">✔</button>
+                <button id="btn-batch-create" onclick="openBatchModal()" class="bg-orange-500 hover:bg-orange-400 text-white px-2 py-1 rounded text-xs font-bold" title="グリッドを指定して一括作成">⚡</button>
+                <button id="btn-add-placeholder" onclick="addPlaceholderEntry()" class="bg-white border border-gray-300 text-gray-500 hover:text-indigo-600 hover:border-indigo-400 px-2 py-1 rounded text-xs font-bold shadow-sm" title="空枠(プレースホルダー)を追加">□</button>
+                <button id="btn-add-entry" onclick="addNewEntry()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-2 py-1 rounded text-xs font-bold">＋</button>
             </div>
         </div>
         <div class="p-2 border-b border-gray-100 bg-white">
@@ -88,9 +149,21 @@
                     <option value="type">タイプ順</option>
                 </select>
             </div>
-            <input type="text" id="search-input" class="w-full border rounded p-1.5 text-xs outline-none focus:border-indigo-400 bg-gray-50 focus:bg-white transition-colors" placeholder="🔍 検索 (ID/Type/内容)..." oninput="renderList()">
+            <div class="flex gap-1">
+                <input type="text" id="search-input" class="flex-1 border rounded p-1.5 text-xs outline-none focus:border-indigo-400 bg-gray-50 focus:bg-white transition-colors" placeholder="🔍 検索 (ID/Type/内容)..." oninput="renderList()">
+                <button onclick="openReplaceModal()" class="px-2 bg-white border border-gray-300 rounded text-gray-500 hover:bg-gray-50 transition-colors shadow-sm" title="全体置換">🔄</button>
+            </div>
         </div>
-        <div id="entry-list" class="flex-1 overflow-y-auto custom-scroll p-2 space-y-1">
+        <!-- Filter Indicator -->
+        <div id="type-filter-indicator" class="px-2 py-1.5 bg-blue-50 border-b border-blue-100 hidden flex justify-between items-center shrink-0">
+            <span class="text-[10px] font-bold text-blue-600">フィルタ: <span id="filter-label"></span></span>
+            <button onclick="clearFilters()" class="text-blue-400 hover:text-blue-600 font-bold px-1">✕</button>
+        </div>
+        <div id="entry-list" 
+             class="flex-1 overflow-y-auto custom-scroll p-2 space-y-1 bg-gray-50 transition-colors"
+             ondragover="handleListContainerDragOver(event)"
+             ondragleave="event.currentTarget.style.backgroundColor = ''"
+             ondrop="handleListContainerDrop(event)">
             <!-- List Items Injected Here -->
         </div>
     </aside>
@@ -98,16 +171,17 @@
     <!-- Editor Area -->
     <section class="flex-1 flex flex-col md:flex-row overflow-hidden bg-gray-100">
         
-        <!-- Input Form -->
-        <div class="flex-1 flex flex-col p-4 overflow-y-auto custom-scroll border-r border-gray-200 min-w-[300px]">
+        <!-- Input Form (Flex container for editor) -->
+        <div id="editor-container" class="flex-1 flex flex-col p-4 overflow-y-auto custom-scroll border-r border-gray-200 min-w-[300px]">
+            <div id="locked-overlay" class="locked-overlay"></div>
             <div id="editor-form" class="bg-white p-4 rounded shadow-sm space-y-4 hidden">
                 
-                <div class="grid grid-cols-3 gap-4 shrink-0">
-                    <div>
+                <div class="grid grid-cols-7 gap-2 shrink-0">
+                    <div class="col-span-2">
                         <label class="block text-xs font-bold text-gray-500 mb-1">ID（出目）</label>
                         <input type="text" id="edit-id" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none bg-gray-50" placeholder="例: 11, start..." oninput="updateCurrentEntry('id', this.value)">
                     </div>
-                    <div>
+                    <div class="col-span-2">
                         <label class="block text-xs font-bold text-gray-500 mb-1">タイプ</label>
                         <select id="edit-type" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" onchange="updateCurrentEntry('type', this.value)">
                             <option value="title">タイトル</option>
@@ -126,9 +200,17 @@
                             <option value="magictreasure">魔法の宝物</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1">回目の冒険</label>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-gray-500 mb-1">回目</label>
                         <input type="number" id="edit-turn" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" min="1" max="3" value="1" oninput="updateCurrentEntry('turn', parseInt(this.value))">
+                    </div>
+                    <div class="col-span-1">
+                        <label class="block text-xs font-bold text-gray-500 mb-1">コスト</label>
+                        <input type="number" id="edit-cost" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" value="0" oninput="updateCurrentEntry('cost', parseInt(this.value) || 0)">
+                    </div>
+                    <div class="col-span-1 flex flex-col items-center justify-center pt-1">
+                        <label class="block text-[10px] font-bold text-gray-400 mb-1">完了</label>
+                        <input type="checkbox" id="edit-is-done" class="w-5 h-5 accent-green-600 cursor-pointer" onchange="updateCurrentEntry('isDone', this.checked)">
                     </div>
                 </div>
                 <!-- New: List Title Input -->
@@ -145,7 +227,7 @@
                 <div class="shrink-0">
                     <label class="block text-xs font-bold text-gray-500 mb-1 flex justify-between items-center">
                         <span>タグ</span>
-                        <button onclick="openTagModal()" class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded text-[10px] border border-indigo-100">＋</button>
+                        <button id="btn-tag-add" onclick="openTagModal('scenario')" class="text-indigo-600 hover:text-indigo-800 bg-indigo-50 px-2 py-0.5 rounded text-[10px] border border-indigo-100">＋</button>
                     </label>
                     <div id="current-tags" class="flex flex-wrap gap-1 min-h-[26px] p-1 border rounded bg-white items-center"></div>
                 </div>
@@ -187,7 +269,30 @@
                         <button onclick="insertMarkdown('\n---\n', '')" class="px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-xs" title="区切り線">HR</button>
                         <button onclick="insertMarkdown('<span style=\'color:red\'>', '</span>')" class="px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-xs text-red-500 font-bold" title="赤文字">A</button>
                         <button onclick="insertMarkdown('|', '《》')" class="px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-xs font-bold" title="ルビ">Rb</button>
+                        <div class="relative group">
+                            <button class="px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-xs font-bold flex items-center" title="テキストボックス">BOX <span class="text-[8px] ml-0.5">▼</span></button>
+                            <div class="absolute left-0 top-full bg-white border border-gray-200 rounded shadow-lg hidden group-hover:block z-50 min-w-[120px]">
+                                <button onclick="insertMarkdown('<div class=\'rlh-box rlh-box-grey\'>\n', '\n</div>')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-gray-100 text-gray-800 font-bold whitespace-nowrap">灰色背景・黒文字</button>
+                                <button onclick="insertMarkdown('<div class=\'rlh-box rlh-box-black\'>\n', '\n</div>')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-gray-100 text-gray-800 font-bold whitespace-nowrap">黒背景・白文字</button>
+                                <button onclick="insertMarkdown('<div class=\'rlh-box rlh-box-border\'>\n', '\n</div>')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-gray-100 text-gray-800 font-bold whitespace-nowrap">白背景・濃青枠</button>
+                            </div>
+                        </div>
                         <button onclick="insertMarkdown('\n| Head1 | Head2 |\n| :--- | :--- |\n| Cell1 | Cell2 |\n', '')" class="px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-xs" title="表(テーブル)">TBL</button>
+
+                        <div class="relative group">
+                            <button class="px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-xs font-bold flex items-center" title="クリーチャーテンプレート">CR <span class="text-[8px] ml-0.5">▼</span></button>
+                            <div id="creature-template-menu" class="absolute left-0 top-full bg-white border border-gray-200 rounded shadow-lg hidden group-hover:block z-50 min-w-[120px]"></div>
+                        </div>
+
+                        <div class="relative group">
+                            <button class="px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-xs font-bold flex items-center" title="反応表の種類">RE <span class="text-[8px] ml-0.5">▼</span></button>
+                            <div id="reaction-template-menu" class="absolute left-0 top-full bg-white border border-gray-200 rounded shadow-lg hidden group-hover:block z-50 min-w-[120px] max-h-60 overflow-y-auto custom-scroll"></div>
+                        </div>
+
+                        <div class="relative group">
+                            <button class="px-2 py-1 bg-white border border-gray-300 rounded hover:bg-gray-100 text-xs font-bold flex items-center" title="統一タグ（分類）">TAG <span class="text-[8px] ml-0.5">▼</span></button>
+                            <div id="tag-template-menu" class="absolute left-0 top-full bg-white border border-gray-200 rounded shadow-lg hidden group-hover:block z-50 min-w-[120px] max-h-60 overflow-y-auto custom-scroll"></div>
+                        </div>
 
                     </div>
                     <textarea id="edit-text" class="w-full border rounded p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-mono leading-relaxed resize-y" 
@@ -216,8 +321,37 @@
                     </div>
                 </div>
 
+                <!-- Role Memo -->
+                <div class="shrink-0 bg-blue-50/50 p-2 rounded border border-blue-100">
+                    <label class="block text-xs font-bold text-blue-600 mb-1">役割メモ（プロット上の意図）</label>
+                    <input type="text" id="edit-role-note" class="w-full border rounded p-2 text-xs focus:ring-2 focus:ring-indigo-400 outline-none bg-white" placeholder="例: ボス戦前の休息地点、食料不足を狙うトラップなど..." oninput="updateCurrentEntry('roleNote', this.value)">
+                </div>
+
+                <!-- Reference Source -->
+                <div class="border-t pt-4 shrink-0">
+                    <label class="block text-xs font-bold text-gray-500 mb-2">参照元情報</label>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-[10px] text-gray-400 mb-0.5">1. 使用した〈できごと〉の名称 (複数可)</label>
+                            <input type="text" id="edit-ref-event" class="w-full border rounded p-2 text-xs focus:ring-2 focus:ring-indigo-400 outline-none bg-gray-50" oninput="updateCurrentEntry('refEvent', this.value)">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-400 mb-0.5">2. もととなった作品名</label>
+                            <input type="text" id="edit-ref-work" class="w-full border rounded p-2 text-xs focus:ring-2 focus:ring-indigo-400 outline-none bg-gray-50" oninput="updateCurrentEntry('refWork', this.value)">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-400 mb-0.5">3. 作者を識別する情報 (全員記述)</label>
+                            <input type="text" id="edit-ref-author" class="w-full border rounded p-2 text-xs focus:ring-2 focus:ring-indigo-400 outline-none bg-gray-50" oninput="updateCurrentEntry('refAuthor', this.value)">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-400 mb-0.5">4. 購入先ページのURL (存在する場合)</label>
+                            <input type="text" id="edit-ref-url" class="w-full border rounded p-2 text-xs focus:ring-2 focus:ring-indigo-400 outline-none bg-gray-50" oninput="updateCurrentEntry('refUrl', this.value)">
+                        </div>
+                    </div>
+                </div>
+
                 <div class="border-t pt-4 flex justify-between items-center shrink-0">
-                    <button onclick="deleteCurrentEntry()" class="text-red-500 hover:text-red-700 text-xs font-bold border border-red-200 bg-red-50 px-3 py-2 rounded">この項目を削除</button>
+                    <button id="btn-delete-entry" onclick="deleteCurrentEntry()" class="text-red-500 hover:text-red-700 text-xs font-bold border border-red-200 bg-red-50 px-3 py-2 rounded">この項目を削除</button>
                     <span class="text-xs text-gray-400" id="save-status">自動保存中...</span>
                 </div>
             </div>
@@ -227,13 +361,159 @@
             </div>
         </div>
 
-        <!-- Preview -->
-        <div id="preview-container" class="w-full md:w-1/2 bg-white p-6 overflow-y-auto custom-scroll border-l border-gray-200 relative">
-            <div class="absolute top-0 right-0 bg-gray-100 text-gray-500 text-[10px] px-2 py-1 rounded-bl">PREVIEW</div>
-            <div id="preview-area" class="markdown-preview text-sm">
-                <!-- Preview Rendered Here -->
+        <!-- Resizer Bar -->
+        <div id="right-panel-resizer" class="hidden md:block w-1.5 bg-gray-200 hover:bg-indigo-400 cursor-col-resize shrink-0 transition-colors active:bg-indigo-600 border-l border-r border-gray-300"></div>
+
+        <!-- Right Panel Wrapper (for Preview, Synopsis, Stats) -->
+        <div id="right-panel-wrapper" class="w-full md:w-1/2 bg-white flex flex-col shrink-0 border-l border-gray-200">
+            <!-- Tab Buttons for Right Panel -->
+            <div class="flex justify-around bg-gray-100 p-1 border-b border-gray-200 shrink-0">
+                <button id="tab-btn-preview" onclick="switchRightPanel('preview-container')" class="panel-tab-btn flex-1 py-1 text-xs font-bold text-gray-600 bg-white rounded shadow-sm active">プレビュー</button>
+                <button id="tab-btn-synopsis" onclick="openSynopsisModal()" class="panel-tab-btn flex-1 py-1 text-xs font-bold text-gray-500 hover:bg-gray-50 rounded">あらすじ</button>
+                <button id="tab-btn-stats" onclick="showStats()" class="panel-tab-btn flex-1 py-1 text-xs font-bold text-gray-500 hover:bg-gray-50 rounded">統計</button>
+                <button id="tab-btn-npc" onclick="switchRightPanel('npc-panel')" class="panel-tab-btn flex-1 py-1 text-xs font-bold text-gray-500 hover:bg-gray-50 rounded">人物</button>
             </div>
-            <div id="preview-choices" class="mt-4 flex flex-wrap gap-2"></div>
+
+            <!-- Preview Panel -->
+            <div id="preview-container" class="right-panel-content relative active">
+                <div class="absolute top-0 right-0 bg-gray-100 text-gray-500 text-[10px] px-2 py-1 rounded-bl">PREVIEW</div>
+                <div id="preview-area" class="markdown-preview text-sm p-6">
+                    <!-- Preview Rendered Here -->
+                </div>
+                <div id="preview-choices" class="mt-4 flex flex-wrap gap-2 p-6"></div>
+            </div>
+
+            <!-- Synopsis Panel -->
+            <div id="synopsis-panel" class="right-panel-content hidden p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex justify-between items-center border-b pb-2">
+                    <span>📝 シナリオ全体のあらすじ・プロット</span>
+                </h2>
+                <!-- Global Config Area in Synopsis Panel -->
+                <div class="mb-6 bg-orange-50 p-4 rounded-lg border border-orange-200">
+                    <h3 class="text-xs font-bold text-orange-600 uppercase mb-3 flex items-center gap-1">⚙️ シナリオシステム設定</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] text-gray-500 font-bold mb-1">グリッド行数 (Rows)</label>
+                            <input type="number" id="panel-config-rows" class="w-full border rounded p-2 text-sm outline-none focus:ring-2 focus:ring-orange-400" oninput="updateGlobalConfig('rows', this.value)">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-500 font-bold mb-1">グリッド列数 (Cols)</label>
+                            <input type="number" id="panel-config-cols" class="w-full border rounded p-2 text-sm outline-none focus:ring-2 focus:ring-orange-400" oninput="updateGlobalConfig('cols', this.value)">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-500 font-bold mb-1">最小通過数 (プレイ目安)</label>
+                            <input type="number" id="panel-config-min-tiles" class="w-full border rounded p-2 text-sm outline-none focus:ring-2 focus:ring-orange-400" oninput="updateGlobalConfig('minTiles', this.value)">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-gray-500 font-bold mb-1">最大通過数 (プレイ目安)</label>
+                            <input type="number" id="panel-config-max-tiles" class="w-full border rounded p-2 text-sm outline-none focus:ring-2 focus:ring-orange-400" oninput="updateGlobalConfig('maxTiles', this.value)">
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <textarea id="edit-synopsis-text" class="w-full border rounded p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-sans leading-relaxed resize-none h-80" placeholder="このシナリオ全体の目的や大きな流れをメモしてください..."></textarea>
+                </div>
+                <div class="mt-6 pt-4 border-t flex justify-between">
+                    <span class="text-[10px] text-gray-400 self-center">※この内容はJSON保存に含まれます</span>
+                    <div class="flex gap-2">
+                        <button onclick="saveSynopsis()" class="bg-indigo-600 text-white px-6 py-2 rounded text-sm font-bold hover:bg-indigo-700 transition-colors">保存</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NPC Panel -->
+            <div id="npc-panel" class="right-panel-content hidden p-6 flex flex-col h-full overflow-hidden">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex justify-between items-center shrink-0 border-b pb-2">
+                    <span>👥 人物・NPC管理</span>
+                    <button onclick="addNewNpc()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded text-xs font-bold shadow-sm transition-colors shrink-0">＋ 人物を追加</button>
+                </h2>
+                <div id="npc-list" class="flex-grow overflow-y-auto custom-scroll space-y-3 pb-4">
+                    <!-- NPC cards rendered here -->
+                </div>
+            </div>
+
+            <!-- Stats Panel -->
+            <div id="stats-panel" class="right-panel-content hidden p-6">
+                <h2 class="text-xl font-bold text-gray-800 mb-4 flex justify-between items-center shrink-0 border-b pb-2">
+                    <span>📊 シナリオ統計・集計</span>
+                </h2>
+                <div class="space-y-6">
+                    <!-- Celebration Message -->
+                    <div id="stat-congrats" class="hidden bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-4 rounded-lg text-center shadow-lg animate-bounce">
+                        <div class="text-white font-bold text-lg">🎉 シナリオ完成！おめでとうございます！ 🎉</div>
+                        <div class="text-white/90 text-xs mt-1">すべての項目が完了しました。</div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 text-center">
+                        <div class="bg-blue-50 p-3 rounded border border-blue-100 cursor-pointer hover:bg-blue-100 transition-colors" onclick="clearFilters()">
+                            <div class="text-[10px] font-bold text-blue-500 uppercase">全項目数</div>
+                            <div id="stat-entry-count" class="text-xl font-bold text-blue-800">0</div>
+                        </div>
+                        <div class="bg-green-50 p-3 rounded border border-green-100">
+                            <div class="text-[10px] font-bold text-green-500 uppercase">進捗状況</div>
+                            <div id="stat-progress-percent" class="text-xl font-bold text-green-800">0% (0/0)</div>
+                        </div>
+                        <div class="bg-orange-50 p-3 rounded border border-orange-100">
+                            <div class="text-[10px] font-bold text-orange-500 uppercase">合計コスト</div>
+                            <div id="stat-total-cost" class="text-xl font-bold text-orange-800">0</div>
+                        </div>
+                        <div class="bg-slate-50 p-3 rounded border border-slate-100">
+                            <div class="text-[10px] font-bold text-slate-500 uppercase">合計文字数</div>
+                            <div id="stat-total-chars" class="text-xl font-bold text-slate-800">0</div>
+                        </div>
+                        <div class="bg-indigo-50 p-3 rounded border border-indigo-100 col-span-2">
+                            <div class="text-[10px] font-bold text-indigo-500 uppercase">推定プレイ時間</div>
+                            <div id="stat-estimated-time" class="text-xl font-bold text-indigo-800">約 0 分</div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">タイプごとの集計</h3>
+                        <div id="stat-types-list" class="grid grid-cols-2 gap-2"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">タグごとの集計</h3>
+                        <div id="stat-tags-list" class="grid grid-cols-2 gap-2"></div>
+                    </div>
+                    <div>
+                        <h3 class="text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">シナリオ構成（役割メモ一覧）</h3>
+                        <div class="border rounded overflow-hidden">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-2 text-[10px] font-bold text-gray-500 uppercase">ID</th>
+                                        <th class="p-2 text-[10px] font-bold text-gray-500 uppercase">Type</th>
+                                        <th class="p-2 text-[10px] font-bold text-gray-500 uppercase">Title</th>
+                                        <th class="p-2 text-[10px] font-bold text-gray-500 uppercase">Role / Intent</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stat-plot-list" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider">参照情報一覧</h3>
+                            <button onclick="copyReferenceInfo()" class="text-[10px] bg-indigo-50 text-indigo-600 border border-indigo-200 px-2 py-1 rounded hover:bg-indigo-100 font-bold transition-colors shadow-sm">📋 まとめてコピー</button>
+                        </div>
+                        <div class="border rounded overflow-hidden">
+                            <table class="w-full text-left border-collapse">
+                                <thead class="bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="p-2 text-[10px] font-bold text-gray-500 uppercase">ID</th>
+                                        <th class="p-2 text-[10px] font-bold text-gray-500 uppercase">タイトル</th>
+                                        <th class="p-2 text-[10px] font-bold text-gray-500 uppercase">参照内容</th>
+                                        <th class="p-2 text-[10px] font-bold text-gray-500 uppercase">作者</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="stat-ref-list" class="divide-y divide-gray-100"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 pt-4 border-t text-right">
+                    <button onclick="closeStatsModal()" class="bg-gray-800 text-white px-6 py-2 rounded text-sm font-bold hover:bg-gray-700 transition-colors">閉じる</button>
+                </div>
+            </div>
         </div>
 
     </section>
@@ -242,9 +522,36 @@
 <script>
     const STORAGE_KEY = 'rlh_scenario_editor_data';
     const STORAGE_KEY_TITLE = 'rlh_scenario_editor_title';
+    const STORAGE_KEY_IDEAS = 'rlh_scenario_editor_ideas';
+    const STORAGE_KEY_LOCKED = 'rlh_scenario_editor_locked';
+    const STORAGE_KEY_PASSWORD = 'rlh_scenario_editor_password';
+    const STORAGE_KEY_CONFIG = 'rlh_scenario_editor_config'; // シナリオシステム設定のストレージキー
+    // グローバル設定の初期値
+    let scenarioConfig = { rows: 6, cols: 6, minTiles: 6, maxTiles: 8 }; // デフォルトの最大通過数を13から8に変更
+    const DEFAULT_CREATURE_TEMPLATES = [
+        { name: "弱いクリーチャー", text: "〈弱いクリーチャー〉\n出現数：♪　　レベル：♪　　宝物：♪\n≪反応表≫　１-３【♪】　４-６【♪】\n\n（見た目など説明）\n\nこのクリーチャーは【】【】である。このクリーチャーは【打撃】【斬撃】の攻撃特性を持つ。\n" },
+        { name: "強いクリーチャー", text: "〈強いクリーチャー〉\nレベル：♪　　生命点：♪　　攻撃回数：♪　　宝物：♪\n≪反応表≫　１-３【♪】　４-６【♪】\n\n（見た目など説明）\n\nこのクリーチャーは【】【】である。このクリーチャーは【打撃】【斬撃】の攻撃特性を持つ。\n" }
+    ];
+    const DEFAULT_REACTIONS = ["歓待", "友好的", "中立", "逃走", "劣勢であれば逃走", "ワイロ", "敵対的", "死ぬまで戦う"];
+    const DEFAULT_CLASSIFICATIONS = ["善の種族", "悪の種族", "少数種族", "人間型", "アンデッド", "ゴーレム", "混沌", "悪魔", "家畜", "騎乗生物", "巨大生物", "植物", "精霊", "怪物", "神霊", "動物", "鳥類", "龍族", "虫類", "水中", "兵器", "建造物", "魔法使い"];
+
+    let creatureTemplates = [...DEFAULT_CREATURE_TEMPLATES];
+    let reactionTemplates = [...DEFAULT_REACTIONS];
+    let classificationTags = [...DEFAULT_CLASSIFICATIONS];
+
     let scenarioData = [];
+    let ideaData = [];
+    let isScenarioLocked = false;
+    let scenarioPassword = "";
+    let showArchivedIdeas = false;
     let currentUuid = null;
+    let scenarioSynopsis = "";
+    let showOnlyIncomplete = false;
+    let currentTypeFilter = null;
+    let currentTagFilter = null;
+    let draggedIdeaId = null;
     let draggedUuid = null;
+    let editingTagTarget = null; // { type: 'scenario'|'idea', id: string }
     const TYPE_ORDER = {
         'title': 1, 'overview': 2, 'rule': 3, 'linear': 4, 'pro': 5, 'start': 6,'d66': 7,
         'mid': 8,  'finish':9, 'clear': 10, 'ending': 11,'treasure': 12, 'magictreasure': 13, 'reference': 14
@@ -265,13 +572,42 @@
         magictreasure: "魔法の宝物",
         // d66 is handled separately for "出目: ID"
     };
-    const PRESET_TAG_VALUES = [
+    const STORAGE_KEY_TAGS = 'rlh_scenario_editor_managed_tags';
+    const DEFAULT_TAGS = [
         "隠された何か",
         "中立または友好的な弱いクリーチャー",
         "イベント",
         "トラップ",
         "弱いクリーチャー",
-        "強いクリーチャー"
+        "強いクリーチャー",
+        "幸運ロール",
+        "器用ロール",
+        "魔術ロール",
+        "筋力ロール",
+        "生命ロール",
+    ];
+    let managedTags = JSON.parse(localStorage.getItem(STORAGE_KEY_TAGS)) || DEFAULT_TAGS;
+
+    function saveManagedTags() {
+        localStorage.setItem(STORAGE_KEY_TAGS, JSON.stringify(managedTags));
+    }
+
+    const IDEA_TYPES = [
+        {val: 'note', label: '📝 メモ'},
+        {val: 'npc', label: '👤 NPC'},
+        {val: 'item', label: '💎 アイテム'},
+        {val: 'plot', label: '📐 プロット'},
+        {val: 'd66', label: '🎲 D66'},
+        {val: 'mid', label: '🚩 中間'},
+        {val: 'finish', label: '🏁 最終'},
+        {val: 'title', label: 'T タイトル'},
+        {val: 'overview', label: 'i 概要'},
+        {val: 'start', label: '▶ 導入'},
+        {val: 'clear', label: '🎉 達成'},
+        {val: 'ending', label: '🎬 結末'},
+        {val: 'rule', label: '📏 ルール'},
+        {val: 'treasure', label: '💰 宝物'},
+        {val: 'magictreasure', label: '✨ 魔法宝物'}
     ];
 
     const OVERVIEW_TEMPLATE = `## シナリオ概要
@@ -360,14 +696,36 @@
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
 
-    function togglePreview() {
-        const preview = document.getElementById('preview-container');
-        if (preview.classList.contains('hidden')) {
-            preview.classList.remove('hidden');
-        } else {
-            preview.classList.add('hidden');
+    function toggleRightPanel() {
+        const panel = document.getElementById('right-panel-wrapper');
+        const resizer = document.getElementById('right-panel-resizer');
+        const isHidden = panel.classList.toggle('hidden');
+        
+        if (resizer) {
+            if (isHidden) resizer.classList.add('md:hidden');
+            else resizer.classList.remove('md:hidden');
         }
     }
+
+    function toggleIdeaDrawer() {
+        const drawer = document.getElementById('idea-drawer');
+        drawer.classList.toggle('open');
+    }
+
+    function toggleMainMenu() {
+        const menu = document.getElementById('main-menu');
+        menu.classList.toggle('hidden');
+    }
+    function closeMainMenu() {
+        document.getElementById('main-menu').classList.add('hidden');
+    }
+    window.addEventListener('click', function(e) {
+        const menu = document.getElementById('main-menu');
+        const btn = document.getElementById('main-menu-btn');
+        if (menu && !menu.classList.contains('hidden') && !menu.contains(e.target) && !btn.contains(e.target)) {
+            closeMainMenu();
+        }
+    });
 
     // --- Core Logic ---
     function init() {
@@ -382,18 +740,93 @@
                 });
             } catch (e) { console.error("Data load error", e); }
         }
+
+        // 並び替え設定の復元
+        const storedSort = localStorage.getItem('rlh_scenario_editor_sort');
+        if (storedSort) {
+            const sortSelect = document.getElementById('sort-select');
+            if(sortSelect) sortSelect.value = storedSort;
+        }
+
+        // ネタ帳データの読み込み
+        const storedIdeas = localStorage.getItem(STORAGE_KEY_IDEAS);
+        if (storedIdeas) {
+            ideaData = JSON.parse(storedIdeas);
+            // タグデータのマイグレーション（文字列 -> 配列）
+            ideaData.forEach(idea => {
+                if (typeof idea.tags === 'string') {
+                    idea.tags = idea.tags.split(',').map(t => t.trim()).filter(t => t);
+                } else if (!Array.isArray(idea.tags)) {
+                    idea.tags = [];
+                }
+            });
+        }
         
         const storedTitle = localStorage.getItem(STORAGE_KEY_TITLE);
         if (storedTitle) {
             document.getElementById('scenario-title').value = storedTitle;
         }
 
+        isScenarioLocked = localStorage.getItem(STORAGE_KEY_LOCKED) === 'true';
+        scenarioPassword = localStorage.getItem(STORAGE_KEY_PASSWORD) || "";
+        const storedConfig = localStorage.getItem(STORAGE_KEY_CONFIG);
+        if (storedConfig) {
+            scenarioConfig = JSON.parse(storedConfig);
+        }
+        creatureTemplates = JSON.parse(localStorage.getItem('rlh_creature_templates')) || [...DEFAULT_CREATURE_TEMPLATES];
+        reactionTemplates = JSON.parse(localStorage.getItem('rlh_reaction_templates')) || [...DEFAULT_REACTIONS];
+        classificationTags = JSON.parse(localStorage.getItem('rlh_classification_tags')) || [...DEFAULT_CLASSIFICATIONS];
+        const storedNpcs = localStorage.getItem('rlh_scenario_npcs');
+        if (storedNpcs) {
+            try {
+                scenarioNpcs = JSON.parse(storedNpcs);
+            } catch (e) { console.error("NPC load error", e); }
+        }
+
+        const storedSynopsis = localStorage.getItem('rlh_scenario_synopsis');
+        if (storedSynopsis) {
+            scenarioSynopsis = storedSynopsis;
+        }
+
         // 初期データ（サンプル）
         if(scenarioData.length === 0) {
             scenarioData.push({ _uuid: generateUuid(), id: "11", type: "d66", turn: 1, text: "### サンプルイベント\n森の中で**奇妙なキノコ**を見つけた。\n\nどうする？", choice1_label: "食べる", choice1_next_id: "11-a", listTitle: "森の探索" });
         }
-        renderPresetTags();
         renderList();
+        renderIdeaList();
+        applyLockUI();
+        renderTemplateMenus();
+        initResizer();
+        renderNpcList();
+
+        // 本文エリアでの「♪」記号へのTabジャンプ機能
+        const textarea = document.getElementById('edit-text');
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Tab') {
+                const text = this.value;
+                if (!text.includes('♪')) return; // ♪記号がない場合は通常のTab挙動
+
+                e.preventDefault();
+                const start = this.selectionStart;
+                const end = this.selectionEnd;
+                let targetPos = -1;
+
+                if (!e.shiftKey) {
+                    // 次の「♪」を検索（現在の選択範囲の直後から）
+                    targetPos = text.indexOf('♪', end);
+                    if (targetPos === -1) targetPos = text.indexOf('♪'); // 末尾まで行ったら最初に戻る
+                } else {
+                    // 前の「♪」を検索（現在の選択範囲の直前から）
+                    targetPos = text.lastIndexOf('♪', start - 1);
+                    if (targetPos === -1) targetPos = text.lastIndexOf('♪'); // 先頭まで戻ったら最後へ
+                }
+
+                if (targetPos !== -1) {
+                    // ♪記号を選択状態にする（そのまま入力すれば上書きされる）
+                    this.setSelectionRange(targetPos, targetPos + 1);
+                }
+            }
+        });
     }
 
     function saveTitle() {
@@ -413,6 +846,13 @@
         localStorage.removeItem(STORAGE_KEY_TITLE);
         
         renderList();
+        creatureTemplates = [...DEFAULT_CREATURE_TEMPLATES];
+        reactionTemplates = [...DEFAULT_REACTIONS];
+        classificationTags = [...DEFAULT_CLASSIFICATIONS];
+        isScenarioLocked = false;
+        scenarioPassword = "";
+        applyLockUI();
+        renderTemplateMenus();
         saveData();
         document.getElementById('editor-form').classList.add('hidden');
         document.getElementById('no-selection').classList.remove('hidden');
@@ -420,6 +860,180 @@
 
     function saveData() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarioData));
+        localStorage.setItem(STORAGE_KEY_LOCKED, isScenarioLocked);
+        localStorage.setItem(STORAGE_KEY_PASSWORD, scenarioPassword);
+        localStorage.setItem('rlh_creature_templates', JSON.stringify(creatureTemplates));
+        localStorage.setItem('rlh_reaction_templates', JSON.stringify(reactionTemplates));
+        localStorage.setItem('rlh_classification_tags', JSON.stringify(classificationTags));
+        localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(scenarioConfig));
+        localStorage.setItem('rlh_scenario_npcs', JSON.stringify(scenarioNpcs));
+    }
+
+    function renderTemplateMenus() {
+        // Creature Menu
+        const crMenu = document.getElementById('creature-template-menu');
+        let crHtml = creatureTemplates.map((t, i) => 
+            `<button onclick="insertCreatureTemplate(${i})" class="block w-full text-left px-3 py-2 text-xs hover:bg-gray-100 text-gray-800 font-bold whitespace-nowrap">${t.name}</button>`
+        ).join('');
+        crHtml += `<button onclick="openTemplateEditor('creature')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-indigo-50 text-indigo-600 font-bold border-t border-gray-100">⚙ 編集...</button>`;
+        crMenu.innerHTML = crHtml;
+
+        // Reaction Menu
+        const reMenu = document.getElementById('reaction-template-menu');
+        let reHtml = reactionTemplates.map(r => 
+            `<button onclick="insertMarkdown('【${r}】', '')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-gray-100 text-gray-800 font-bold whitespace-nowrap">${r}</button>`
+        ).join('');
+        reHtml += `<button onclick="openTemplateEditor('reaction')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-indigo-50 text-indigo-600 font-bold border-t border-gray-100">⚙ 編集...</button>`;
+        reMenu.innerHTML = reHtml;
+
+        // Tag Menu
+        const tagMenu = document.getElementById('tag-template-menu');
+        let tagHtml = classificationTags.map(t => 
+            `<button onclick="insertMarkdown('【${t}】', '')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-gray-100 text-gray-800 font-bold whitespace-nowrap">${t}</button>`
+        ).join('');
+        tagHtml += `<button onclick="openTemplateEditor('tag')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-indigo-50 text-indigo-600 font-bold border-t border-gray-100">⚙ 編集...</button>`;
+        tagMenu.innerHTML = tagHtml;
+    }
+
+    function applyLockUI() {
+        const overlay = document.getElementById('locked-overlay');
+        const badge = document.getElementById('lock-badge');
+        const titleInput = document.getElementById('scenario-title');
+        const editInputs = document.querySelectorAll('#editor-form input, #editor-form textarea, #editor-form select');
+        const actionBtns = [
+            'btn-batch-create', 'btn-add-placeholder', 'btn-add-entry', 
+            'btn-tag-add', 'btn-delete-entry', 'menu-export-locked'
+        ];
+
+        if (isScenarioLocked) {
+            overlay.style.display = 'block';
+            badge.classList.remove('hidden');
+            titleInput.disabled = true;
+            editInputs.forEach(el => el.disabled = true);
+            actionBtns.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden');
+            });
+        } else {
+            overlay.style.display = 'none';
+            badge.classList.add('hidden');
+            titleInput.disabled = false;
+            editInputs.forEach(el => el.disabled = false);
+            actionBtns.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.remove('hidden');
+            });
+        }
+    }
+
+    function unlockScenario() {
+        if (!isScenarioLocked) return;
+        
+        if (scenarioPassword) {
+            const input = prompt("ロックを解除するにはパスワードを入力してください：");
+            if (input === null) return;
+            const encodedInput = btoa(encodeURIComponent(input));
+            if (encodedInput !== scenarioPassword) {
+                alert("パスワードが正しくありません。");
+                return;
+            }
+        } else {
+            if (!confirm("パスワードは設定されていません。ロックを解除しますか？")) return;
+        }
+        
+        isScenarioLocked = false;
+        scenarioPassword = "";
+        applyLockUI();
+        saveData();
+        alert("ロックを解除しました。編集が可能です。");
+    }
+
+    // --- Idea Pool Logic ---
+    function saveIdeas() {
+        localStorage.setItem(STORAGE_KEY_IDEAS, JSON.stringify(ideaData));
+    }
+
+    function addIdea() {
+        const newIdea = {
+            id: generateUuid(),
+            type: 'note',
+            tags: [],
+            text: ''
+        };
+        ideaData.unshift(newIdea);
+        saveIdeas();
+        renderIdeaList();
+    }
+
+    function toggleArchiveView() {
+        showArchivedIdeas = !showArchivedIdeas;
+        renderIdeaList();
+    }
+
+    function archiveIdea(id) {
+        const idea = ideaData.find(i => i.id === id);
+        if (idea) { idea.archived = true; saveIdeas(); renderIdeaList(); }
+    }
+
+    function unarchiveIdea(id) {
+        const idea = ideaData.find(i => i.id === id);
+        if (idea) { idea.archived = false; saveIdeas(); renderIdeaList(); }
+    }
+
+    function deleteIdea(id) {
+        if(!confirm("このネタを削除しますか？")) return;
+        ideaData = ideaData.filter(i => i.id !== id);
+        saveIdeas();
+        renderIdeaList();
+    }
+
+    function updateIdea(id, key, value) {
+        const idea = ideaData.find(i => i.id === id);
+        if (idea) {
+            idea[key] = value;
+            saveIdeas();
+        }
+    }
+
+    function renderIdeaList() {
+        const container = document.getElementById('idea-list');
+        const titleEl = document.getElementById('idea-drawer-title');
+        const archiveBtn = document.getElementById('btn-archive-view');
+
+        if (titleEl) titleEl.textContent = showArchivedIdeas ? "📦 アーカイブ" : "💡 ネタ帳 (Idea Pool)";
+        if (archiveBtn) archiveBtn.className = showArchivedIdeas ? "text-yellow-700 bg-yellow-200 px-1 rounded text-xs" : "text-gray-500 hover:text-yellow-700 px-1 rounded text-xs";
+
+        const visibleIdeas = ideaData.filter(i => !!i.archived === showArchivedIdeas);
+
+        if (visibleIdeas.length === 0) {
+            container.innerHTML = `<div class="text-xs text-gray-400 p-4 text-center">${showArchivedIdeas ? 'アーカイブはありません' : 'ネタがありません。<br>右上の「＋」で追加'}</div>`;
+            return;
+        }
+        
+        container.innerHTML = visibleIdeas.map((idea) => {
+            const archiveAction = showArchivedIdeas ? `<button onclick="unarchiveIdea('${idea.id}')" class="text-[10px] text-blue-400 hover:text-blue-600 mr-2">戻す</button>` : `<button onclick="archiveIdea('${idea.id}')" class="text-[10px] text-gray-400 hover:text-yellow-600 mr-2">保管</button>`;
+            const tags = Array.isArray(idea.tags) ? idea.tags : [];
+            const tagsHtml = tags.map(tag => `<span class="tag-chip bg-white border border-yellow-200 text-yellow-800">${tag}<button onclick="removeTag('${tag}', 'idea', '${idea.id}')" class="text-yellow-600 hover:text-red-500">×</button></span>`).join('');
+            
+            return `
+            <div class="bg-white border border-yellow-200 rounded p-2 shadow-sm text-xs group hover:border-yellow-400 transition-colors cursor-move" draggable="true" ondragstart="handleIdeaDragStart(event, '${idea.id}')">
+                <div class="flex gap-1 mb-1">
+                    <select class="border rounded px-1 py-0.5 text-[10px] bg-gray-50 focus:ring-1 focus:ring-yellow-400 outline-none text-gray-600 font-bold max-w-[80px]" onchange="updateIdea('${idea.id}', 'type', this.value)">
+                        ${IDEA_TYPES.map(t => `<option value="${t.val}" ${idea.type === t.val ? 'selected' : ''}>${t.label}</option>`).join('')}
+                    </select>
+                    <div class="flex-1 flex flex-wrap gap-1 items-center border rounded px-1 py-0.5 min-h-[22px] bg-yellow-50/20">${tagsHtml}
+                    <button onclick="openTagModal('idea', '${idea.id}')" class="text-yellow-600 hover:text-yellow-800 bg-yellow-100 px-1.5 rounded text-[9px] border border-yellow-200 font-bold ml-auto">＋</button></div>
+                </div>
+                <input type="text" class="w-full border rounded p-1 text-[10px] bg-yellow-50/10 mb-1 outline-none focus:ring-1 focus:ring-yellow-400 font-bold" 
+                       placeholder="リストタイトル" value="${idea.listTitle || ''}" 
+                       onchange="updateIdea('${idea.id}', 'listTitle', this.value)">
+                <textarea class="w-full border rounded p-1.5 text-xs focus:ring-1 focus:ring-yellow-400 outline-none resize-none bg-yellow-50/30 mb-1" rows="3" placeholder="ネタを入力..." onchange="updateIdea('${idea.id}', 'text', this.value)">${idea.text || ''}</textarea>
+                <div class="flex justify-end">
+                    ${archiveAction}
+                    <button onclick="deleteIdea('${idea.id}')" class="text-[10px] text-gray-400 hover:text-red-500">削除</button>
+                </div>
+            </div>
+        `}).join('');
     }
 
     function renderList() {
@@ -427,7 +1041,23 @@
         const term = document.getElementById('search-input')?.value.toLowerCase().trim() || "";
         const sortMode = document.getElementById('sort-select')?.value || "default";
 
+        // 並び替え設定を保存
+        localStorage.setItem('rlh_scenario_editor_sort', sortMode);
+
+        updateFilterIndicator();
+
+        // 重複チェック: IDとturnが同一のものをカウント（IDが空の場合は除外）
+        const duplicateCounts = {};
+        scenarioData.forEach(e => {
+            if (e.isPlaceholder || !e.id) return;
+            const key = e.id + "|" + (e.turn || 1);
+            duplicateCounts[key] = (duplicateCounts[key] || 0) + 1;
+        });
+
         const filtered = scenarioData.filter(e => {
+            if (showOnlyIncomplete && e.isDone) return false;
+            if (currentTypeFilter && e.type !== currentTypeFilter) return false;
+            if (currentTagFilter && (!e.tags || !e.tags.includes(currentTagFilter))) return false;
             if (!term) return true;
             return (e.id || "").toLowerCase().includes(term) || 
                    (e.type || "").toLowerCase().includes(term) || 
@@ -441,39 +1071,62 @@
         }
 
         // Sort Logic
-        filtered.sort((a, b) => {
-            if (sortMode === 'manual') return 0;
+        if (sortMode !== 'manual') {
+            filtered.sort((a, b) => {
+                if (sortMode === 'id') {
+                    return (a.id || "").localeCompare(b.id || "", undefined, {numeric: true});
+                } else if (sortMode === 'id_desc') {
+                    return (b.id || "").localeCompare(a.id || "", undefined, {numeric: true});
+                } else if (sortMode === 'type') {
+                    const tA = (a.type || "").toLowerCase();
+                    const tB = (b.type || "").toLowerCase();
+                    if (tA !== tB) return tA.localeCompare(tB);
+                    return (a.id || "").localeCompare(b.id || "", undefined, {numeric: true});
+                } else {
+                    // Default (Smart) Sort
+                    const typeA = (a.type || "").toLowerCase();
+                    const typeB = (b.type || "").toLowerCase();
+                    const orderA = TYPE_ORDER[typeA] || 99;
+                    const orderB = TYPE_ORDER[typeB] || 99;
 
-            if (sortMode === 'id') {
-                return (a.id || "").localeCompare(b.id || "", undefined, {numeric: true});
-            } else if (sortMode === 'id_desc') {
-                return (b.id || "").localeCompare(a.id || "", undefined, {numeric: true});
-            } else if (sortMode === 'type') {
-                const tA = (a.type || "").toLowerCase();
-                const tB = (b.type || "").toLowerCase();
-                if (tA !== tB) return tA.localeCompare(tB);
-                return (a.id || "").localeCompare(b.id || "", undefined, {numeric: true});
-            } else {
-                // Default (Smart) Sort
-                const typeA = (a.type || "").toLowerCase();
-                const typeB = (b.type || "").toLowerCase();
-                const orderA = TYPE_ORDER[typeA] || 99;
-                const orderB = TYPE_ORDER[typeB] || 99;
-
-                if (orderA !== orderB) return orderA - orderB;
-                
-                // Same type priority, sort by ID
-                return (a.id || "").localeCompare(b.id || "", undefined, {numeric: true});
-            }
-        });
+                    if (orderA !== orderB) return orderA - orderB;
+                    
+                    // Same type priority, sort by ID
+                    return (a.id || "").localeCompare(b.id || "", undefined, {numeric: true});
+                }
+            });
+        }
 
         list.innerHTML = filtered.map(entry => {
-            const active = entry._uuid === currentUuid ? "bg-indigo-50 border-indigo-500 text-indigo-700" : "bg-white border-gray-200 hover:bg-gray-50";
-            const shortText = entry.text ? entry.text.substring(0, 20).replace(/\n/g, "") + "..." : "(No Text)";
+            if (entry.isPlaceholder) {
+                return `
+                <div draggable="true"
+                     ondragstart="handleDragStart(event, '${entry._uuid}')"
+                     ondragover="handleDragOver(event)"
+                     ondragleave="handleDragLeave(event)"
+                     ondrop="handleDrop(event, '${entry._uuid}')"
+                     ondragend="handleDragEnd(event)"
+                     class="placeholder-card p-2 border-2 border-dashed border-gray-300 rounded cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-colors flex flex-col justify-center items-center min-h-[60px] text-gray-400 group relative mb-1"
+                     onclick="convertPlaceholder('${entry._uuid}')"
+                     title="クリックで作成 / ネタをドロップして反映">
+                    <div class="text-[10px] font-bold font-mono">${entry.id ? entry.id : ''}</div>
+                    <div class="text-xs font-bold">+ ${SCENARIO_LABELS[entry.type] || entry.type} (予定)</div>
+                </div>`;
+            }
+
+            const isDuplicate = entry.id && (duplicateCounts[entry.id + "|" + (entry.turn || 1)] > 1);
+            // 重複時は背景を赤く、選択時はインディゴ。選択中かつ重複時は赤いリングを表示
+            const baseClass = isDuplicate ? "bg-red-50 border-red-400" : "bg-white border-gray-200 hover:bg-gray-50";
+            const active = entry._uuid === currentUuid ? "bg-indigo-50 border-indigo-500 text-indigo-700" : baseClass;
+            const duplicateRing = (isDuplicate && entry._uuid === currentUuid) ? "ring-2 ring-red-500" : "";
+
+            // プレビュー用の短いテキスト。HTMLタグが含まれているとネスト崩れの原因になるため除去する
+            const cleanTextForList = (entry.text || "").replace(/<[^>]*>?/gm, '');
+            const shortText = cleanTextForList ? cleanTextForList.substring(0, 20).replace(/\n/g, "") + "..." : (entry.text ? "..." : "(No Text)");
             const displayId = entry.id || '<span class="text-gray-300 italic">No ID</span>';
+            const doneIcon = entry.isDone ? '<span class="text-green-600 mr-1">✔</span>' : '';
             const listTitle = entry.listTitle ? `<span class="ml-2 text-xs font-bold text-gray-600 truncate">${entry.listTitle}</span>` : '';
             const tagsHtml = (entry.tags && entry.tags.length > 0) ? `<div class="mt-1 flex flex-wrap gap-0.5">${entry.tags.map(t => `<span class="text-[9px] bg-blue-50 text-blue-600 px-1 rounded border border-blue-100">${t}</span>`).join('')}</div>` : '';
-
             return `
             <div draggable="true" 
                  ondragstart="handleDragStart(event, '${entry._uuid}')"
@@ -481,35 +1134,82 @@
                  ondragleave="handleDragLeave(event)"
                  ondrop="handleDrop(event, '${entry._uuid}')"
                  ondragend="handleDragEnd(event)"
-                 onclick="selectEntry('${entry._uuid}')" class="p-2 border rounded cursor-pointer transition-colors ${active}">
+                 onclick="selectEntry('${entry._uuid}')" class="p-2 border rounded cursor-pointer transition-colors scenario-card-item ${active} ${duplicateRing}">
                 <div class="flex justify-between items-center mb-1">
                     <div class="flex items-center min-w-0 overflow-hidden mr-1">
-                        <span class="font-bold text-xs bg-gray-200 px-1.5 rounded text-gray-700 shrink-0">${displayId}</span>
+                        <span class="font-bold text-xs bg-gray-200 px-1.5 rounded text-gray-700 shrink-0 flex items-center">${doneIcon}${displayId}</span>
                         ${listTitle}
                     </div>
                     <span class="text-[10px] text-gray-400 uppercase shrink-0">${entry.type}</span>
                 </div>
                 <div class="text-[11px] text-gray-600 truncate">${shortText}</div>
+                ${entry.roleNote ? `<div class="text-[9px] text-blue-400 italic truncate mt-0.5">📌 ${entry.roleNote}</div>` : ''}
                 ${tagsHtml}
             </div>`;
         }).join('');
     }
 
+    function updateFilterIndicator() {
+        const indicator = document.getElementById('type-filter-indicator');
+        const labelEl = document.getElementById('filter-label');
+        const filterBtn = document.getElementById('btn-filter-incomplete');
+        
+        if (filterBtn) {
+            if (showOnlyIncomplete) {
+                filterBtn.classList.add('text-green-600', 'border-green-400', 'bg-green-50');
+            } else {
+                filterBtn.classList.remove('text-green-600', 'border-green-400', 'bg-green-50');
+            }
+        }
+        
+        let parts = [];
+        if (currentTypeFilter) {
+            const typeLabel = currentTypeFilter === 'd66' ? "D66（できごと）" : (SCENARIO_LABELS[currentTypeFilter] || currentTypeFilter);
+            parts.push(typeLabel);
+        }
+        if (currentTagFilter) {
+            parts.push(`タグ: ${currentTagFilter}`);
+        }
+        if (showOnlyIncomplete) {
+            parts.push("未完了のみ");
+        }
+
+        if (parts.length > 0) {
+            labelEl.textContent = parts.join(' + ');
+            indicator.classList.remove('hidden');
+            indicator.classList.add('flex');
+        } else {
+            indicator.classList.add('hidden');
+            indicator.classList.remove('flex');
+        }
+    }
+
     // --- Drag & Drop Handlers ---
     function handleDragStart(e, uuid) {
         draggedUuid = uuid;
-        e.dataTransfer.effectAllowed = 'move';
+        draggedIdeaId = null; // Clear idea drag
+        e.dataTransfer.effectAllowed = 'copyMove';
         e.target.style.opacity = '0.5';
     }
 
     function handleDragEnd(e) {
         e.target.style.opacity = '1';
         draggedUuid = null;
-        document.querySelectorAll('.drop-top, .drop-bottom').forEach(el => el.classList.remove('drop-top', 'drop-bottom'));
+        draggedIdeaId = null;
+        document.querySelectorAll('.drop-top, .drop-bottom, .bg-indigo-100').forEach(el => el.classList.remove('drop-top', 'drop-bottom', 'bg-indigo-100'));
     }
 
     function handleDragOver(e) {
         if(e.preventDefault) e.preventDefault();
+
+        // Placeholderへのドロップハイライト
+        if (draggedIdeaId && e.currentTarget.classList.contains('placeholder-card')) {
+             e.dataTransfer.dropEffect = 'copy';
+             e.currentTarget.classList.add('bg-indigo-100');
+             e.currentTarget.classList.remove('drop-top', 'drop-bottom');
+             return;
+        }
+
         e.dataTransfer.dropEffect = 'move';
         
         const target = e.currentTarget;
@@ -525,15 +1225,25 @@
     }
 
     function handleDragLeave(e) {
-        e.currentTarget.classList.remove('drop-top', 'drop-bottom');
+        e.currentTarget.classList.remove('drop-top', 'drop-bottom', 'bg-indigo-100');
     }
 
     function handleDrop(e, targetUuid) {
         e.preventDefault();
         e.stopPropagation();
-        e.currentTarget.classList.remove('drop-top', 'drop-bottom');
+        e.currentTarget.classList.remove('drop-top', 'drop-bottom', 'bg-indigo-100');
         if (draggedUuid && draggedUuid !== targetUuid) {
             reorderItems(draggedUuid, targetUuid, e.clientY, e.currentTarget);
+        } else if (draggedUuid === targetUuid) {
+            renderList(); // 自己ドロップ時は表示をリセット
+        } else if (draggedIdeaId) {
+            const targetEntry = scenarioData.find(e => e._uuid === targetUuid);
+            if (targetEntry && targetEntry.isPlaceholder) {
+                fillPlaceholderWithIdea(targetUuid, draggedIdeaId);
+            } else {
+                convertIdeaToCard(draggedIdeaId, targetUuid, e.clientY, e.currentTarget);
+            }
+            draggedIdeaId = null;
         }
     }
 
@@ -551,10 +1261,139 @@
         
         // Auto switch to manual sort
         const sortSelect = document.getElementById('sort-select');
-        if(sortSelect.value !== 'manual') sortSelect.value = 'manual';
+        if(sortSelect && sortSelect.value !== 'manual') {
+            sortSelect.value = 'manual';
+            localStorage.setItem('rlh_scenario_editor_sort', 'manual');
+        }
         
         renderList();
         saveData();
+    }
+
+    // --- Idea Drag & Drop Logic ---
+    function handleIdeaDragStart(e, id) {
+        draggedIdeaId = id;
+        draggedUuid = null; // Clear scenario card drag
+        e.dataTransfer.effectAllowed = 'copy';
+        const idea = ideaData.find(i => i.id === id);
+        if(idea) e.dataTransfer.setData('text/plain', idea.text); // Allow dropping text into editor
+    }
+
+    function convertIdeaToCard(ideaId, targetUuid, clientY, targetElement) {
+        const idea = ideaData.find(i => i.id === ideaId);
+        if (!idea) return;
+
+        // Map Idea Type to Scenario Type if possible, else default to 'd66'
+        let cardType = 'd66';
+        if (['d66','mid','finish','title','overview','start','clear','ending','rule','treasure','magictreasure'].includes(idea.type)) {
+            cardType = idea.type;
+        }
+
+        const newEntry = {
+            _uuid: generateUuid(),
+            id: "",
+            type: cardType,
+            turn: 1,
+            text: idea.text || "",
+            listTitle: idea.listTitle || (Array.isArray(idea.tags) ? idea.tags.join(' ') : (idea.tags || "")),
+            tags: Array.isArray(idea.tags) ? [...idea.tags] : []
+        };
+
+        let tgtIdx = scenarioData.findIndex(e => e._uuid === targetUuid);
+        const rect = targetElement.getBoundingClientRect();
+        if ((clientY - rect.top) > (rect.height / 2)) tgtIdx++;
+        
+        scenarioData.splice(tgtIdx, 0, newEntry);
+        renderList();
+        saveData();
+    }
+
+    function handleListContainerDragOver(e) {
+        e.preventDefault();
+        // Only show a drop effect if an idea is being dragged
+        if (draggedIdeaId) {
+            e.dataTransfer.dropEffect = 'copy';
+            e.currentTarget.style.backgroundColor = '#e0f2fe'; // A light blue to indicate droppable
+        } else {
+            e.dataTransfer.dropEffect = 'none';
+        }
+    }
+
+    function handleListContainerDrop(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.currentTarget.style.backgroundColor = ''; // Reset background
+        if (draggedUuid) {
+            // シナリオカードを背景（隙間）にドロップした場合はリストの末尾に移動
+            const srcIdx = scenarioData.findIndex(entry => entry._uuid === draggedUuid);
+            if (srcIdx >= 0) {
+                const item = scenarioData.splice(srcIdx, 1)[0];
+                scenarioData.push(item);
+                
+                const sortSelect = document.getElementById('sort-select');
+                if(sortSelect && sortSelect.value !== 'manual') {
+                    sortSelect.value = 'manual';
+                    localStorage.setItem('rlh_scenario_editor_sort', 'manual');
+                }
+                
+                renderList();
+                saveData();
+            }
+            draggedUuid = null;
+        } else if (draggedIdeaId) {
+            // This is a drop from the idea pool into an empty area of the list
+            // We'll append it to the end.
+            const idea = ideaData.find(i => i.id === draggedIdeaId);
+            if (!idea) return;
+
+            let cardType = 'd66';
+            if (['d66','mid','finish','title','overview','start','clear','ending','rule','treasure','magictreasure'].includes(idea.type)) {
+                cardType = idea.type;
+            }
+
+            const newEntry = { 
+                _uuid: generateUuid(), 
+                id: "", 
+                type: cardType, 
+                turn: 1, 
+                text: idea.text || "", 
+                listTitle: idea.listTitle || (Array.isArray(idea.tags) ? idea.tags.join(' ') : (idea.tags || "")), 
+                tags: Array.isArray(idea.tags) ? [...idea.tags] : [] 
+            };
+
+            scenarioData.push(newEntry); // Append to the end
+            renderList();
+            saveData();
+            
+            draggedIdeaId = null; // Clean up
+        }
+    }
+
+    function handleIdeaDragOver(e) {
+        e.preventDefault();
+        if (draggedUuid) e.dataTransfer.dropEffect = 'copy';
+    }
+
+    function handleIdeaDrop(e) {
+        e.preventDefault();
+        if (draggedUuid) {
+            const entry = scenarioData.find(e => e._uuid === draggedUuid);
+            if (entry) {
+                const newIdea = { 
+                    id: generateUuid(), type: 'note', 
+                    tags: entry.tags ? [...entry.tags] : [], 
+                    text: entry.text || '',
+                    listTitle: entry.listTitle || ""
+                };
+                // Try to keep type if compatible
+                if (IDEA_TYPES.some(t => t.val === entry.type)) newIdea.type = entry.type;
+                
+                ideaData.unshift(newIdea);
+                saveIdeas();
+                renderIdeaList();
+            }
+            draggedUuid = null;
+        }
     }
 
     function selectEntry(uuid) {
@@ -569,8 +1408,15 @@
         document.getElementById('edit-id').value = entry.id || "";
         document.getElementById('edit-type').value = entry.type || 'd66';
         document.getElementById('edit-turn').value = entry.turn || 1;
+        document.getElementById('edit-is-done').checked = !!entry.isDone;
         document.getElementById('edit-text').value = entry.text || '';
+        document.getElementById('edit-cost').value = entry.cost || 0;
         document.getElementById('edit-list-title').value = entry.listTitle || '';
+        document.getElementById('edit-ref-event').value = entry.refEvent || '';
+        document.getElementById('edit-ref-work').value = entry.refWork || '';
+        document.getElementById('edit-role-note').value = entry.roleNote || '';
+        document.getElementById('edit-ref-author').value = entry.refAuthor || '';
+        document.getElementById('edit-ref-url').value = entry.refUrl || '';
         renderTags();
         
         // Image handling
@@ -622,11 +1468,46 @@
         if(searchInput) searchInput.value = "";
 
         const uuid = generateUuid();
-        const newEntry = { _uuid: uuid, id: "", type: "d66", turn: 1, text: "", listTitle: "" };
+        const newEntry = { _uuid: uuid, id: "", type: "d66", turn: 1, text: "", listTitle: "", cost: 0 };
         scenarioData.unshift(newEntry); // 先頭に追加
         selectEntry(uuid);
         renderList();
         saveData();
+    }
+
+    function addPlaceholderEntry() {
+        const uuid = generateUuid();
+        const newEntry = { _uuid: uuid, id: "", type: "d66", turn: 1, text: "", listTitle: "", isPlaceholder: true, cost: 0 };
+        scenarioData.unshift(newEntry);
+        renderList();
+        saveData();
+    }
+
+    function convertPlaceholder(uuid) {
+        const entry = scenarioData.find(e => e._uuid === uuid);
+        if(entry) {
+            delete entry.isPlaceholder;
+            // デフォルトテキストの設定
+            if (!entry.text) entry.text = `### ${SCENARIO_LABELS[entry.type] || entry.type}\n\n`;
+            saveData();
+            renderList();
+            selectEntry(uuid);
+        }
+    }
+
+    function fillPlaceholderWithIdea(uuid, ideaId) {
+        const entry = scenarioData.find(e => e._uuid === uuid);
+        const idea = ideaData.find(i => i.id === ideaId);
+        if(entry && idea) {
+            delete entry.isPlaceholder;
+            entry.text = idea.text || "";
+            entry.listTitle = idea.listTitle || "";
+            if (idea.tags && idea.tags.length > 0) entry.tags = [...idea.tags];
+            if (IDEA_TYPES.some(t => t.val === idea.type) && idea.type !== 'note') entry.type = idea.type;
+            saveData();
+            renderList();
+            selectEntry(uuid);
+        }
     }
 
     function createTargetEntry(index) {
@@ -651,7 +1532,7 @@
         if(searchInput) searchInput.value = "";
 
         const uuid = generateUuid();
-        const newEntry = { _uuid: uuid, id: targetId, type: "d66", turn: entry.turn || 1, text: "", listTitle: "" };
+        const newEntry = { _uuid: uuid, id: targetId, type: "d66", turn: entry.turn || 1, text: "", listTitle: "", cost: 0 };
         scenarioData.unshift(newEntry);
         renderList();
         selectEntry(uuid);
@@ -685,6 +1566,11 @@
         // リストのID表示更新などは遅延させるか、ID変更時のみ再描画
         if(key === 'id' || key === 'text' || key === 'type' || key === 'listTitle' || key === 'image') renderList(); 
         renderRelations(entry); // ID変更時などに関係図を更新
+        saveData();
+    }
+
+    function updateGlobalConfig(key, value) {
+        scenarioConfig[key] = parseInt(value) || 0;
         saveData();
     }
 
@@ -756,6 +1642,11 @@ function updatePreview(entry) {
         // ルビ記法変換 (|文字《ルビ》 -> <ruby>文字<rt>ルビ</rt></ruby>)
         contentToParse = contentToParse.replace(/[\|｜]([^\|｜《》\n]+?)《([^《》\n]+?)》/g, '<ruby>$1<rt>$2</rt></ruby>');
 
+        // BOX内Markdown対応: div内のテキストを個別にパースする (classとstyleの両方に対応)
+        contentToParse = contentToParse.replace(/<div[^>]*(class|style)=(['"])(.*?)\2[^>]*>([\s\S]*?)<\/div>/g, function(match, attr, quote, value, innerContent) {
+            return `<div ${attr}="${value}">${marked.parse(innerContent, { breaks: true })}</div>`;
+        });
+
         // 1. RLHcompanion-style prefix
         if (entry.type === 'd66' && entry.id) {
             finalPrefix += `出目：${entry.id}\n`;
@@ -763,14 +1654,19 @@ function updatePreview(entry) {
             finalPrefix += `【${SCENARIO_LABELS[entry.type]}】\n`;
         }
 
-        // 2. List Title as H2/H3
-        if (entry.listTitle && entry.listTitle.trim() !== '') {
+        // ===========================================================
+        // 【修正】2. List Title as H2/H3 (RLHcompanionの実機では非表示のためコメントアウト)
+        // ===========================================================
+        /*
+        const titleStr = typeof entry.listTitle === 'string' ? entry.listTitle : String(entry.listTitle || "");
+        if (titleStr && titleStr.trim() !== '') {
             const firstLineOfText = (entry.text || '').split('\n')[0].trim();
-            const isAlreadyHeadingWithTitle = (firstLineOfText.startsWith('## ') || firstLineOfText.startsWith('### ')) && firstLineOfText.includes(entry.listTitle);
+            const isAlreadyHeadingWithTitle = (firstLineOfText.startsWith('## ') || firstLineOfText.startsWith('### ')) && firstLineOfText.includes(titleStr);
             if (!isAlreadyHeadingWithTitle) {
-                finalPrefix += `## ${entry.listTitle}\n\n`;
+                finalPrefix += `## ${titleStr}\n\n`;
             }
         }
+        */
 
         // 連続する改行（3つ以上）を保持するための処理
         const processedContent = (finalPrefix + contentToParse).replace(/\n{3,}/g, m => '\n\n' + '&nbsp;\n\n'.repeat(m.length - 2));
@@ -833,22 +1729,58 @@ function updatePreview(entry) {
         childrenContainer.innerHTML = childrenHtml || '<div class="text-gray-300 italic text-[10px] p-1">なし (End)</div>';
     }
 
-    function insertMarkdown(before, after) {
-        const textarea = document.getElementById('edit-text');
-        if (!textarea) return;
+function insertMarkdown(before, after) {
+    const textarea = document.getElementById('edit-text');
+    const container = document.getElementById('editor-container');
+    if (!textarea) return;
+
+    // ★ 画面全体のスクロール位置と、テキストエリア内のスクロール位置を両方記憶
+    const currentContainerScroll = container ? container.scrollTop : 0;
+    const currentTextareaScroll = textarea.scrollTop;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+    const selectedText = text.substring(start, end);
+
+    // 装飾文字を挿入
+    const replacement = before + selectedText + after;
+    textarea.value = text.substring(0, start) + replacement + text.substring(end);
+
+    // 選択範囲を再設定（装飾された文字を挟んだ状態にする）
+    textarea.selectionStart = start + before.length;
+    textarea.selectionEnd = start + before.length + selectedText.length;
+
+    // データを同期
+    updateCurrentEntry('text', textarea.value);
+
+    // ★ 強制的に元のスクロール位置に固定する
+    textarea.focus();
+    textarea.scrollTop = currentTextareaScroll;
+    if (container) {
+        container.scrollTop = currentContainerScroll;
+    }
+}
+
+    function insertCreatureTemplate(index) {
+        const templateObj = creatureTemplates[index];
+        if (!templateObj) return;
+        const template = templateObj.text;
         
+        const textarea = document.getElementById('edit-text');
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
         const text = textarea.value;
         const scrollTop = textarea.scrollTop;
-        const selected = text.substring(start, end);
-        const replacement = before + selected + after;
         
-        textarea.value = text.substring(0, start) + replacement + text.substring(end);
+        const before = text.substring(0, start);
+        const after = text.substring(end);
+        const newlinePrefix = (before.length > 0 && !before.endsWith('\n')) ? '\n' : '';
         
+        textarea.value = before + newlinePrefix + template + after;
         textarea.focus();
-        textarea.selectionStart = start + before.length;
-        textarea.selectionEnd = start + before.length + selected.length;
+        textarea.selectionStart = start + newlinePrefix.length;
+        textarea.selectionEnd = start + newlinePrefix.length + template.length;
         textarea.scrollTop = scrollTop;
         
         updateCurrentEntry('text', textarea.value);
@@ -916,41 +1848,80 @@ function updatePreview(entry) {
         const sortMode = document.getElementById('sort-select')?.value || "default";
         const data = [...scenarioData]; // shallow copy
         
-        data.sort((a, b) => {
-            if (sortMode === 'manual') return 0;
-
-            if (sortMode === 'id') {
-                return (a.id || "").localeCompare(b.id || "", undefined, {numeric: true});
-            } else if (sortMode === 'id_desc') {
-                return (b.id || "").localeCompare(a.id || "", undefined, {numeric: true});
-            } else if (sortMode === 'type') {
-                const tA = (a.type || "").toLowerCase();
-                const tB = (b.type || "").toLowerCase();
-                if (tA !== tB) return tA.localeCompare(tB);
-                return (a.id || "").localeCompare(b.id || "", undefined, {numeric: true});
-            } else {
-                const typeA = (a.type || "").toLowerCase();
-                const typeB = (b.type || "").toLowerCase();
-                const orderA = TYPE_ORDER[typeA] || 99;
-                const orderB = TYPE_ORDER[typeB] || 99;
-                if (orderA !== orderB) return orderA - orderB;
-                return (a.id || "").localeCompare(b.id || "", undefined, {numeric: true});
-            }
-        });
+        if (sortMode !== 'manual') {
+            data.sort((a, b) => {
+                if (sortMode === 'id') {
+                    return (a.id || "").localeCompare(b.id || "", undefined, {numeric: true});
+                } else if (sortMode === 'id_desc') {
+                    return (b.id || "").localeCompare(a.id || "", undefined, {numeric: true});
+                } else if (sortMode === 'type') {
+                    const tA = (a.type || "").toLowerCase();
+                    const tB = (b.type || "").toLowerCase();
+                    if (tA !== tB) return tA.localeCompare(tB);
+                    return (a.id || "").localeCompare(b.id || "", undefined, {numeric: true});
+                } else {
+                    const typeA = (a.type || "").toLowerCase();
+                    const typeB = (b.type || "").toLowerCase();
+                    const orderA = TYPE_ORDER[typeA] || 99;
+                    const orderB = TYPE_ORDER[typeB] || 99;
+                    if (orderA !== orderB) return orderA - orderB;
+                    return (a.id || "").localeCompare(b.id || "", undefined, {numeric: true});
+                }
+            });
+        }
         return data;
     }
 
-    function exportJson() {
-        const exportData = getSortedData().map(e => {
-            const { _uuid, tags, ...rest } = e; // _uuidとtagsを除外してエクスポート
+    function exportJson(lock = false) {
+        let password = "";
+        if (lock) {
+            const input = prompt("このシナリオをロックするためのパスワードを設定してください（任意）\n未入力の場合はパスワードなしでロックされます。");
+            if (input === null) return;
+            password = input ? btoa(encodeURIComponent(input)) : "";
+        }
+
+        const sortedItems = getSortedData().map(e => {
+            const { _uuid, ...rest } = e; // _uuidのみ除外
             return rest;
         });
+        
+        const exportData = {
+            title: document.getElementById('scenario-title').value.trim(),
+            synopsis: scenarioSynopsis,
+            isLocked: lock,
+            password: password,
+            creatureTemplates: creatureTemplates,
+            reactionTemplates: reactionTemplates,
+            classificationTags: classificationTags,
+            npcs: scenarioNpcs,
+            items: sortedItems,
+            exportDate: new Date().toISOString()
+        };
         
         let title = document.getElementById('scenario-title').value.trim();
         if (!title) title = "rlh_scenario";
         title = title.replace(/[\\/:*?"<>|]/g, "_"); // ファイル名に使えない文字を置換
 
-        downloadFile(title + ".json", JSON.stringify(exportData, null, 2), "application/json");
+        const prefix = lock ? "RLH_LockedScenario_" : "RLH_EditorScenario_";
+        downloadFile(prefix + title + ".json", JSON.stringify(exportData, null, 2), "application/json");
+    }
+
+    function exportDistributionArray() {
+        const data = getSortedData()
+            .filter(e => !e.isPlaceholder)
+            .map(e => {
+                // プレイに必要な最小限のプロパティのみ抽出 (エディタ用管理データを除外)
+                const { _uuid, isDone, roleNote, refEvent, refWork, refAuthor, refUrl, ...rest } = e;
+                return rest;
+            });
+        
+        if (data.length === 0) return alert("出力するデータがありません");
+
+        let title = document.getElementById('scenario-title').value.trim();
+        if (!title) title = "rlh_scenario";
+        title = "RLH_Scenario_" + title.replace(/[\\/:*?"<>|]/g, "_");
+
+        downloadFile(title + ".json", JSON.stringify(data, null, 2), "application/json");
     }
 
     function importJson(event) {
@@ -965,19 +1936,42 @@ function updatePreview(entry) {
         const reader = new FileReader();
         reader.onload = function(e) {
             try {
-                const json = JSON.parse(e.target.result);
-                if (Array.isArray(json)) {
-                    // インポート時にUUIDを付与
-                    json.forEach(e => {
+                const data = JSON.parse(e.target.result);
+                let items = [];
+                
+                if (data.items && Array.isArray(data.items)) {
+                    // 新形式 (Object)
+                    items = data.items;
+                    scenarioSynopsis = data.synopsis || "";
+                    if (data.config) scenarioConfig = data.config;
+                    localStorage.setItem('rlh_scenario_synopsis', scenarioSynopsis);
+                    isScenarioLocked = !!data.isLocked;
+                    scenarioPassword = data.password || "";
+
+                    if(data.creatureTemplates) creatureTemplates = data.creatureTemplates;
+                    if(data.reactionTemplates) reactionTemplates = data.reactionTemplates;
+                    if(data.classificationTags) classificationTags = data.classificationTags;
+                    if(data.npcs) scenarioNpcs = data.npcs;
+                    else scenarioNpcs = [];
+                    renderNpcList();
+                    renderTemplateMenus();
+                } else if (Array.isArray(data)) {
+                    // 旧形式 (Array)
+                    items = data;
+                }
+
+                if (items.length > 0 || confirm("空のデータを読み込みますか？")) {
+                    items.forEach(e => {
                         if(!e._uuid) e._uuid = generateUuid();
                     });
-                    scenarioData = json;
+                    scenarioData = items;
                     currentUuid = null;
                     renderList();
+                    applyLockUI();
                     saveData();
                     document.getElementById('editor-form').classList.add('hidden');
                     document.getElementById('no-selection').classList.remove('hidden');
-                    alert("読み込み完了: " + json.length + "件");
+                    alert("読み込み完了: " + items.length + "件");
                 } else {
                     alert("無効なJSON形式です（配列である必要があります）");
                 }
@@ -993,9 +1987,8 @@ function updatePreview(entry) {
     function exportCsv() {
         const data = getSortedData();
         if (data.length === 0) return;
-
         // CSV Headers
-        const standardKeys = ['id', 'type', 'turn', 'listTitle', 'image', 'text'];
+        const standardKeys = ['id', 'type', 'turn', 'listTitle', 'tags', 'image', 'cost', 'text'];
         for(let i=1; i<=4; i++) {
              standardKeys.push(`choice${i}_label`);
              standardKeys.push(`choice${i}_next_id`);
@@ -1006,6 +1999,9 @@ function updatePreview(entry) {
         const rows = data.map(entry => {
             return standardKeys.map(key => {
                 let val = entry[key];
+                if (key === 'tags' && Array.isArray(val)) {
+                    val = val.join('|');
+                }
                 val = val === undefined || val === null ? "" : String(val);
                 // Escape CSV (Excel compatible)
                 if (val.search(/("|,|\n)/g) >= 0) {
@@ -1051,6 +2047,7 @@ function updatePreview(entry) {
                     if(val === undefined) val = "";
                     if (h === 'turn') val = parseInt(val) || 1;
                     if (h === 'tags') val = val ? val.split('|') : [];
+                    if (h === 'cost') val = parseInt(val) || 0;
                     obj[h] = val;
                 });
                 if(!obj.type) obj.type = 'd66';
@@ -1067,6 +2064,408 @@ function updatePreview(entry) {
         };
         reader.readAsText(file);
         event.target.value = '';
+    }
+
+    function importText(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const fileName = file.name.replace(/\.txt$/i, "");
+        document.getElementById('scenario-title').value = fileName;
+        saveTitle();
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const text = e.target.result;
+                
+                // ひらがな（\u3040-\u309F）が含まれているかチェック
+                const hiraganaRegex = /[\u3040-\u309F]/;
+                if (!hiraganaRegex.test(text)) {
+                    // ひらがなが無い場合は Shift_JIS として読み直す
+                    const sjisReader = new FileReader();
+                    sjisReader.onload = function(sjisEvent) {
+                        try {
+                            const sjisText = sjisEvent.target.result;
+                            processImportedText(sjisText);
+                        } catch (err) {
+                            alert("読み込みエラー: " + err);
+                        }
+                    };
+                    sjisReader.readAsText(file, "Shift_JIS");
+                } else {
+                    processImportedText(text);
+                }
+            } catch (err) {
+                alert("読み込みエラー: " + err);
+            }
+        };
+        reader.readAsText(file, "UTF-8");
+        event.target.value = '';
+    }
+
+    function processImportedText(text) {
+        const data = parseTextScenario(text);
+
+        if (data.length > 0) {
+            scenarioData = data;
+            currentUuid = null;
+            renderList();
+            saveData();
+            document.getElementById('editor-form').classList.add('hidden');
+            document.getElementById('no-selection').classList.remove('hidden');
+            alert("TEXT読み込み完了: " + scenarioData.length + "件");
+        } else {
+            alert("解析可能なイベントブロックが見つかりませんでした。");
+        }
+    }
+
+    function toHalfWidth(str) {
+        return str.replace(/[！-～]/g, function(s) {
+            return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+        }).replace(/　/g, " ");
+    }
+
+    function parseTextScenario(text) {
+        const data = [];
+        
+        // タイトルの抽出（テキストの最初の300文字の中から『』を探す）
+        const titleMatch = text.substring(0, 300).match(/『([^』]+)』/);
+        if (titleMatch && titleMatch[1] && titleMatch[1] !== "☆") {
+            document.getElementById('scenario-title').value = titleMatch[1];
+            saveTitle();
+        }
+
+        // 区切り線（70文字以上のハイフン）でブロックに分割
+        const rawBlocks = text.split(/^-{10,}\s*$/m);
+        const blocks = rawBlocks.map(b => b.trim()).filter(b => b.length > 0);
+
+        const specialKeywords = [
+            { key: "プロローグ", type: "pro" },
+            { key: "ゲームの概要", type: "overview" },
+            { key: "概要", type: "overview" },
+            { key: "冒険のはじまり", type: "start" },
+            { key: "中間イベント", type: "mid" },
+            { key: "最終イベント", type: "finish" },
+            { key: "冒険の達成", type: "clear" },
+            { key: "エンディング", type: "ending" },
+            { key: "特殊ルール", type: "rule" },
+            { key: "一本道モード", type: "linear" },
+            { key: "参考文献", type: "reference" }
+        ];
+
+        for (let index = 0; index < blocks.length; index++) {
+            let block = blocks[index];
+            const headerCheckText = block.substring(0, 50); // 先頭50文字を抽出
+            const lines = block.split(/\r?\n/);
+            const titleLine = lines[0] ? lines[0].trim() : "";
+
+            // -----------------------------------------------------------
+            // 【超重要】同じブロック内に「通常の宝物表」と「魔法の宝物表」が同居している場合の救済処置
+            // -----------------------------------------------------------
+            if (headerCheckText.includes("宝物表") && !headerCheckText.includes("魔法の宝物表") && block.includes("魔法の宝物表")) {
+                // 「魔法の宝物表」という文字が出現する位置で、1つのブロックを2つに強制切断する
+                const targetKeyword = "魔法の宝物表";
+                const cutIndex = block.indexOf(targetKeyword);
+                
+                if (cutIndex !== -1) {
+                    // 2つに分けたブロックを現在の blocks 配列の次の位置に無理やり割り込ませる
+                    const firstPart = block.substring(0, cutIndex).trim();
+                    const secondPart = block.substring(cutIndex).trim();
+                    
+                    blocks[index] = firstPart; // 現在のブロックは前半（普通の宝物表）だけにする
+                    blocks.splice(index + 1, 0, secondPart); // 次のループで後半（魔法の宝物表）を処理させる
+                    
+                    // 現在のブロック（前半）を再定義してそのまま下の判定へ進む
+                    block = firstPart;
+                }
+            }
+
+            // 修正された block で再度先頭チェック用のテキストを作成
+            const updatedHeaderCheckText = block.substring(0, 50);
+
+            // -----------------------------------------------------------
+            // 1. 魔法の宝物表の判定（詳細ブロックを正しく解析する）
+            // -----------------------------------------------------------
+            // 先頭付近に「●魔法の宝物表」や「魔法の宝物表」があり、かつ出目の詳細（●【1】など）が含まれているか、
+            // あるいは直前の目次から続く詳細ブロックであるかを判定
+            if (headerCheckText.includes("魔法の宝物表") || headerCheckText.includes("Magic Treasure Table") || (headerCheckText.match(/^●\s*[【\[][１-６1-6][】\]]/))) {
+                
+                // このブロックが「目次（リスト）だけ」のブロック（詳細の中身がない）である場合は、
+                // データの重複登録を防ぐために無視して次の詳細ブロックに任せる
+                if (block.includes("出目【１】") && !block.includes("●【１】")) {
+                    continue; 
+                }
+
+                // ブロック内を「●【１】」や「●【2】」などの出目の始まりで分割する
+                // （前後に改行やスペースがあっても対応できるように正規表現を使用）
+                const items = block.split(/(?=\n?●\s*[【\[][１-６1-6１-６][】\]])/);
+
+                items.forEach(item => {
+                    item = item.trim();
+                    if (!item) return;
+
+                    // 行ごとに分解して、出目とタイトルを探す
+                    const itemLines = item.split(/\r?\n/);
+                    let matchedId = null;
+                    let listTitle = "";
+                    let textStartIndex = -1;
+
+                    for (let i = 0; i < itemLines.length; i++) {
+                        const line = itemLines[i].trim();
+                        // 「●【１】」または「● [1]」のような形にマッチ
+                        const idMatch = line.match(/^●\s*[【\[]([１-６1-6])[】\]]/);
+                        
+                        if (idMatch) {
+                            matchedId = toHalfWidth(idMatch[1]); // "1"〜"6" に変換
+                            
+                    // 『』または〈〉のどちらかの中身をタイトルとして抽出する
+                        const titleMatch = line.match(/(?:『([^』]*)』|〈([^〉]*)〉)/);
+                        if (titleMatch) {
+                            listTitle = titleMatch[1] || titleMatch[2]; // マッチした方を代入
+                        }
+                            textStartIndex = i + 1;
+                            break;
+                        }
+                    }
+
+                    // 無事に「●【出目】」が見つかった場合、それ以降の行を本文として登録
+                    if (matchedId) {
+                        const sbText = itemLines.slice(textStartIndex).join('\n').trim();
+                        data.push({
+                            _uuid: generateUuid(),
+                            id: matchedId,
+                            type: "magictreasure",
+                            turn: 1,
+                            listTitle: listTitle,
+                            text: sbText,
+                            cost: 0
+                        });
+                    }
+                });
+                continue; // 魔法の宝物表として処理を終了
+            }
+
+            // -----------------------------------------------------------
+            // 2. 通常の宝物表の判定（デフォルト以外なら出目1〜7に分解して登録）
+            // -----------------------------------------------------------
+            if (updatedHeaderCheckText.includes("宝物表") || updatedHeaderCheckText.includes("Treasure Table")) { 
+                // デフォルトの宝物表かどうかの厳密なチェック
+                const isDefault = block.includes("金貨１枚") && 
+                                  (block.includes("１ｄ６枚の金貨") || block.includes("１ｄ６枚 of 金貨")) && 
+                                  block.includes("２ｄ６枚の金貨") &&
+                                  block.includes("アクセサリー") &&
+                                  block.includes("宝石・小") &&
+                                  block.includes("宝石・大") &&
+                                  block.includes("魔法の宝物表");
+
+                if (isDefault) {
+                    // デフォルトと同一ならデータを作成せず無視する
+                    continue;
+                } else {
+                    // 独自の内容に書き換わっている場合、行ごとに分解して1〜7の出目を抽出する
+                    let listTitle = "宝物表";
+                    if (titleLine.includes("宝物表")) {
+                        listTitle = titleLine.replace(/^\d+[:：]\s*/, '').replace(/^[ \s\d：:]+/, '');
+                    }
+
+                    lines.forEach(line => {
+                        const trimmedLine = line.trim();
+                        if (!trimmedLine) return;
+
+                        // 「出目【１以下】」「出目【２】」「出目【７以上】」などのパターンにマッチさせる
+                        // カッコは【】、［］、[]、() すべてに対応
+                        const diceMatch = trimmedLine.match(/^出目\s*[【\[\s(]([１-７1-7]|１以下|7以上)[】\]\s)]\s*(.*)$/);
+                        
+                        if (diceMatch) {
+                            let rawId = diceMatch[1];
+                            let itemText = diceMatch[2].trim(); // 「金貨１枚」などの本文部分
+
+                            // 「１以下」は "1"、「７以上」は "7"、全角数字は半角に変換して一意のIDにする
+                            let matchedId = "";
+                            if (rawId.includes("以下") || rawId.includes("1") || rawId.includes("１")) matchedId = "1";
+                            else if (rawId.includes("以上") || rawId.includes("7") || rawId.includes("７")) matchedId = "7";
+                            else matchedId = toHalfWidth(rawId);
+
+                            // 見つかった出目のデータを1つずつ登録
+                            if (matchedId && itemText) {
+                                data.push({
+                                    _uuid: generateUuid(),
+                                    id: matchedId,          // "1" 〜 "7" のいずれか
+                                    type: "treasure",       // 宝物表タイプ
+                                    turn: 1,
+                                    listTitle: listTitle,   // 「宝物表」
+                                    text: itemText,         // 「金貨１枚」などの本文データ
+                                    cost: 0
+                                });
+                            }
+                        }
+                    });
+                }
+                continue; // 通常の宝物表として処理を終了
+            }
+
+            // 3. 除外すべきセクションの判定
+            if (
+                titleLine.includes("出目表") || 
+                titleLine.includes("遊ぶにあたって") || 
+                titleLine.includes("ゲームに必要なもの") || 
+                titleLine.includes("ゲームの準備") || 
+                titleLine.includes("ゲームの進行") ||
+                titleLine.includes("ライセンス") ||
+                titleLine.includes("地下迷宮と隊列") ||
+                titleLine.includes("ゲームの終了") ||
+                titleLine.includes("冒険とゲームの勝利") ||
+                titleLine.includes("〈できごと〉")
+            ) {
+                continue;
+            }
+
+            // ===========================================================
+            // 【一括共通化】特殊イベント・特殊ルールの判定（誤爆・分断防止マージ機能付き）
+            // ===========================================================
+            // specialKeywords 配列に定義されているキーワードが先頭50文字に含まれているかチェック
+            const matchedKw = specialKeywords.find(kw => headerCheckText.includes(kw.key));
+
+            if (matchedKw) {
+                let eventTitle = matchedKw.key;
+                if (titleLine.includes(matchedKw.key)) {
+                    // 「９：一本道モード」や「２２：エンディング」などの番号・記号を除去
+                    eventTitle = titleLine.replace(/^\d+[:：]\s*/, '').replace(/^[ \s\d：:]+/, '');
+                }
+
+                // ≪〇回目の冒険≫ などのターン数を判定
+                let eventTurn = 1;
+                const turnMatch = titleLine.match(/≪([１２３123一二三])回目の冒険≫/);
+                if (turnMatch) {
+                    const turnChar = turnMatch[1];
+                    if (turnChar === '１' || turnChar === '1' || turnChar === '一') eventTurn = 1;
+                    else if (turnChar === '２' || turnChar === '2' || turnChar === '二') eventTurn = 2;
+                    else if (turnChar === '３' || turnChar === '3' || turnChar === '三') eventTurn = 3;
+                }
+
+                // 初期状態の本文テキストを取得（タイトル行を省いた、ブロック内の残りのテキスト）
+                let blockText = lines.slice(1).join('\n').trim();
+                
+                // もしタイトル行だけでブロックが終わっている（＝本文が区切り線で次のブロックに隔離されている）場合
+                if (blockText === "" && index + 1 < blocks.length) {
+                    const nextBlock = blocks[index + 1].trim();
+                    const nextLines = nextBlock.split(/\r?\n/);
+                    
+                    // 次のブロックが、別の重要セクション（出目イベントや宝物表）で始まっていないかチェック
+                    const hasD66 = nextLines.slice(0, 5).some(l => l.match(/出目\s*\d{2}/));
+                    const hasMagic = nextBlock.includes("●魔法の宝物表") || nextBlock.includes("Magic Treasure Table");
+                    const hasTreasure = nextBlock.includes("宝物表") || nextBlock.includes("Treasure Table");
+
+                    // 誤爆でなければ、隔離された純粋な本文ブロックとみなして吸収する
+                    if (!hasD66 && !hasMagic && !hasTreasure) {
+                        blockText = nextBlock;
+                        index++; // 次のブロックを消費したため全体のループを1つ進める
+                    }
+                }
+
+                // 綺麗に1つにまとまったデータを登録
+                data.push({
+                    _uuid: generateUuid(),
+                    id: "",
+                    type: matchedKw.type,
+                    turn: eventTurn,
+                    listTitle: eventTitle,
+                    text: blockText,
+                    cost: 0
+                });
+                continue; // 特殊イベントとして処理を確定させ、下のD66判定には絶対に流さない
+            }
+
+
+            // 4. 通常イベント（出目イベント）の判定
+            let matchedD66Id = null;
+            let d66Title = "";
+            let d66TextStartIndex = -1;
+
+            for (let i = 0; i < Math.min(5, lines.length); i++) {
+                const line = lines[i].trim();
+                const d66Match = line.match(/出目\s*(\d{2})[　 ]*(?:〈([^〉]*)〉|《([^》]*)》|「([^」]*)」)?/);
+                if (d66Match) {
+                    matchedD66Id = toHalfWidth(d66Match[1]);
+                    d66Title = d66Match[2] || d66Match[3] || d66Match[4] || "";
+                    d66TextStartIndex = i + 1;
+                    break;
+                }
+            }
+
+            if (matchedD66Id) {
+                const blockText = lines.slice(d66TextStartIndex).join('\n').trim();
+                data.push({
+                    _uuid: generateUuid(),
+                    id: matchedD66Id,
+                    type: "d66",
+                    turn: 1,
+                    listTitle: d66Title,
+                    text: blockText,
+                    cost: 0
+                });
+                continue;
+            }
+
+            // 5. 特殊イベントの判定
+            let matchedType = null;
+            let matchedTurn = 1;
+            let matchedTitle = "";
+            let textStartIndex = -1;
+
+            for (let i = 0; i < Math.min(3, lines.length); i++) {
+                const line = lines[i].trim();
+                const matchedKw = specialKeywords.find(kw => line.includes(kw.key));
+                if (matchedKw) {
+                    matchedType = matchedKw.type;
+                    matchedTitle = line.replace(/^\d+[:：]\s*/, '').replace(/^[　\s\d：:]+/, '');
+                    
+                    const turnMatch = line.match(/≪([１２３123一二三])回目の冒険≫/);
+                    if (turnMatch) {
+                        const turnChar = turnMatch[1];
+                        if (turnChar === '１' || turnChar === '1' || turnChar === '一') matchedTurn = 1;
+                        else if (turnChar === '２' || turnChar === '2' || turnChar === '二') matchedTurn = 2;
+                        else if (turnChar === '３' || turnChar === '3' || turnChar === '三') matchedTurn = 3;
+                    }
+                    textStartIndex = i + 1;
+                    break;
+                }
+            }
+
+            if (matchedType) {
+                let blockText = lines.slice(textStartIndex).join('\n').trim();
+                
+                // 本文が空で、かつ次のブロックが存在する場合、次のブロックを本文としてマージする
+                if (blockText === "" && index + 1 < blocks.length) {
+                    const nextBlock = blocks[index + 1].trim();
+                    const nextLines = nextBlock.split(/\r?\n/);
+                    
+                    // 次のブロックが他のイベント見出し（出目や他の特殊イベント）で始まっていないかチェック
+                    const hasD66 = nextLines.slice(0, 5).some(l => l.match(/出目\s*\d{2}/));
+                    const hasSpecial = nextLines.slice(0, 3).some(l => specialKeywords.some(kw => l.includes(kw.key)));
+                    const hasMagic = nextBlock.includes("●魔法の宝物表") || nextBlock.includes("Magic Treasure Table");
+                    
+                    if (!hasD66 && !hasSpecial && !hasMagic) {
+                        blockText = nextBlock;
+                        index++; // 次のブロックを消費したためスキップ
+                    }
+                }
+
+                data.push({
+                    _uuid: generateUuid(),
+                    id: "",
+                    type: matchedType,
+                    turn: matchedTurn,
+                    listTitle: matchedTitle,
+                    text: blockText,
+                    cost: 0
+                });
+                continue;
+            }
+        }
+
+        return data;
     }
 
     function parseCSV(text) {
@@ -1158,6 +2557,67 @@ function updatePreview(entry) {
         URL.revokeObjectURL(url);
     }
 
+    // --- Preview Resizer Logic ---
+    function initResizer() {
+        const resizer = document.getElementById('right-panel-resizer');
+        const panel = document.getElementById('right-panel-wrapper');
+        const mainSection = panel ? panel.parentElement : null;
+        let isResizing = false;
+
+        if (!resizer || !panel || !mainSection) return;
+
+        const startResizing = (e) => {
+            e.preventDefault(); // Prevent text selection during drag
+            isResizing = true;
+            document.body.style.cursor = 'col-resize';
+            document.body.classList.add('select-none');
+        };
+
+        const onResize = (e) => {
+            if (!isResizing) return;
+
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const sectionRect = mainSection.getBoundingClientRect();
+            // プレビュー画面の新しい幅を計算（右端からマウス位置までの距離）
+            let newWidth = sectionRect.right - clientX;
+            
+            // 最小幅と最大幅の制限
+            const minWidth = 200;
+            const maxWidth = sectionRect.width - 350; // エディタ側の最小幅を確保
+
+            newWidth = Math.max(minWidth, Math.min(newWidth, maxWidth));
+
+            panel.style.width = `${newWidth}px`;
+            panel.classList.remove('md:w-1/2');
+        };
+
+        const stopResizing = () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = '';
+                document.body.classList.remove('select-none');
+                localStorage.setItem('rlh_editor_preview_width', panel.style.width);
+            }
+        };
+
+        // Mouse Events
+        resizer.addEventListener('mousedown', startResizing);
+        document.addEventListener('mousemove', onResize);
+        document.addEventListener('mouseup', stopResizing);
+
+        // Touch Events
+        resizer.addEventListener('touchstart', startResizing, { passive: false });
+        document.addEventListener('touchmove', onResize, { passive: false });
+        document.addEventListener('touchend', stopResizing);
+
+        // 保存された幅があれば復元
+        const savedWidth = localStorage.getItem('rlh_editor_preview_width');
+        if (savedWidth) {
+            panel.style.width = savedWidth;
+            panel.classList.remove('md:w-1/2');
+        }
+    }
+
     // Start
     window.addEventListener('DOMContentLoaded', init);
 
@@ -1207,6 +2667,7 @@ function updatePreview(entry) {
     function runBatchCreate() {
         const type = document.getElementById('batch-type').value;
         const newEntries = [];
+        const isPlaceholder = document.getElementById('batch-as-placeholder').checked;
 
         if (type === 'treasure' || type === 'magictreasure') {
             const count = parseInt(document.getElementById('batch-count').value) || 0;
@@ -1226,7 +2687,9 @@ function updatePreview(entry) {
                     listTitle: "",
                     choice1_label: "",
                     choice1_next_id: "",
-                    image: ""
+                    cost: 0,
+                    image: "",
+                    isPlaceholder: isPlaceholder
                 });
             }
         } else {
@@ -1241,6 +2704,55 @@ function updatePreview(entry) {
 
             if (!confirm(`${r}×${c} のグリッドで ${r * c} 件のデータを作成しますか？\n(タイプ: ${type})\n\n※IDは ${11} ～ ${r}${c} の形式で生成されます`)) return;
 
+            // 設定値を更新
+            scenarioConfig.rows = r;
+            scenarioConfig.cols = c;
+            scenarioConfig.minTiles = 6; // グリッド作成時はデフォルト値にリセット
+            scenarioConfig.maxTiles = 13; // グリッド作成時はデフォルト値にリセット
+            saveData();
+
+            // 2. Story Events (Start, Mid, Finish, Clear, etc.)
+            if (document.getElementById('batch-story-include').checked) {
+                const turns = parseInt(document.getElementById('batch-story-turns').value) || 1;
+                
+                const storyTemplates = [
+                    { type: 'title', listTitle: 'シナリオタイトル', text: '# シナリオタイトル\n\n## サブタイトル\n\n作者名' },
+                    { type: 'overview', listTitle: 'シナリオ概要', text: OVERVIEW_TEMPLATE },
+                    { type: 'pro', listTitle: 'プロローグ', text: '### プロローグ\n\n冒険の導入部です。' },
+                    { type: 'start', listTitle: '冒険のはじまり', text: '### 冒険のはじまり\n\nここから冒険が始まります。' },
+                    { type: 'mid', listTitle: '中間イベント', text: '### 中間イベント\n\n物語の中盤です。' },
+                    { type: 'finish', listTitle: '最終イベント', text: '### 最終イベント\n\n物語のクライマックスです。' },
+                    { type: 'clear', listTitle: '冒険の達成', text: '### 冒険の達成\n\nおめでとうございます！冒険は成功しました。\n\n- 経験点を獲得します。' },
+                    { type: 'ending', listTitle: 'エンディング', text: '### エンディング\n\n物語の結末です。' }
+                ];
+
+                for (let t = 1; t <= turns; t++) {
+                    storyTemplates.forEach(st => {
+                        // titleとoverviewは通常1ターン目のみで良いが、複数ターン指定された場合はターン数を付与
+                        let currentListTitle = st.listTitle;
+                        if (turns > 1 && (st.type !== 'title' && st.type !== 'overview')) {
+                            currentListTitle += ` (Turn ${t})`;
+                        } else if (turns > 1 && (st.type === 'title' || st.type === 'overview') && t > 1) {
+                            // titleとoverviewは1ターン目のみ生成し、それ以降はスキップ
+                            return;
+                        }
+
+                        newEntries.push({
+                            _uuid: generateUuid(),
+                            id: "", // These typically don't have D66 IDs
+                            type: st.type,
+                            turn: t,
+                            text: st.text,
+                            listTitle: currentListTitle,
+                            cost: 0,
+                            isDone: false,
+                            isPlaceholder: isPlaceholder // Apply placeholder status to story events too
+                        });
+                    });
+                }
+            }
+
+            // 1. Grid Events (Turn 1 Base)
             for (let i = 1; i <= r; i++) {
                 for (let j = 1; j <= c; j++) {
                     const id = `${i}${j}`;
@@ -1253,7 +2765,37 @@ function updatePreview(entry) {
                     listTitle: "",
                         choice1_label: "",
                         choice1_next_id: "",
-                        image: ""
+                        cost: 0,
+                        image: "",
+                        isPlaceholder: isPlaceholder
+                    });
+                }
+            }
+
+            // 2. Story Events (Start, Mid, Finish, Clear) for each turn
+            if (document.getElementById('batch-story-include').checked) {
+                const turns = parseInt(document.getElementById('batch-story-turns').value) || 1;
+                
+                const storyTypes = [
+                    { type: 'start', label: '冒険のはじまり', text: '### 冒険のはじまり\n\nここから冒険が始まります。' },
+                    { type: 'mid', label: '中間イベント', text: '### 中間イベント\n\n物語の中盤です。' },
+                    { type: 'finish', label: '最終イベント', text: '### 最終イベント\n\n物語のクライマックスです。' },
+                    { type: 'clear', label: '冒険の達成', text: '### 冒険の達成\n\nおめでとうございます！冒険は成功しました。\n\n- 経験点を獲得します。' }
+                ];
+
+                for (let t = 1; t <= turns; t++) {
+                    storyTypes.forEach(st => {
+                        newEntries.push({
+                            _uuid: generateUuid(),
+                            id: "", // Usually no ID for these flow events
+                            type: st.type,
+                            turn: t,
+                            text: st.text,
+                            listTitle: `${st.label} (Turn ${t})`,
+                            choice1_label: "",
+                            choice1_next_id: "",
+                            image: ""
+                        });
                     });
                 }
             }
@@ -1267,33 +2809,117 @@ function updatePreview(entry) {
     }
 
     // --- Tags Logic ---
+    function collectAllUsedTags() {
+        const tags = new Set(managedTags);
+        // シナリオデータのタグを収集
+        scenarioData.forEach(e => {
+            if(Array.isArray(e.tags)) e.tags.forEach(t => tags.add(t));
+        });
+        // ネタ帳データのタグを収集
+        ideaData.forEach(i => {
+            if(Array.isArray(i.tags)) i.tags.forEach(t => tags.add(t));
+        });
+        return Array.from(tags).sort();
+    }
+
     function renderPresetTags() {
         const container = document.getElementById('preset-tags-container');
         if(!container) return;
-        container.innerHTML = PRESET_TAG_VALUES.map(tag => 
-            `<button onclick="addTag('${tag}')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded text-[10px] text-gray-600 transition-colors whitespace-nowrap">${tag}</button>`
-        ).join('');
+        
+        // 実際にデータ内で使われているタグを特定
+        const usedInProject = new Set();
+        scenarioData.forEach(e => e.tags?.forEach(t => usedInProject.add(t)));
+        ideaData.forEach(i => i.tags?.forEach(t => usedInProject.add(t)));
+
+        const allTags = collectAllUsedTags();
+        container.innerHTML = allTags.map(tag => {
+            const isUsed = usedInProject.has(tag);
+            const isManaged = managedTags.includes(tag);
+            
+            // 使用中でない、かつ管理リストにあるタグにのみ「忘れる(候補から削除)」ボタンを出す
+            const deleteBtn = (isManaged && !isUsed) 
+                ? `<button onclick="forgetTag(event, '${tag}')" class="ml-1.5 text-gray-400 hover:text-red-500 font-bold leading-none" title="候補一覧から削除">×</button>` 
+                : '';
+            
+            const btnClass = isUsed 
+                ? "bg-blue-50 text-blue-700 border-blue-200" 
+                : "bg-gray-50 text-gray-600 border-gray-300";
+
+            return `
+            <div class="flex items-center ${btnClass} border rounded px-2 py-1 text-[10px] transition-colors whitespace-nowrap">
+                <button onclick="addTag('${tag}')" class="font-bold">${tag}</button>
+                ${deleteBtn}
+            </div>`;
+        }).join('');
     }
 
     function addTag(tag) {
-        if (!currentUuid || !tag) return;
-        const entry = scenarioData.find(e => e._uuid === currentUuid);
-        if (!entry) return;
-        if (!entry.tags) entry.tags = [];
-        if (!entry.tags.includes(tag)) {
-            entry.tags.push(tag);
-            renderTags();
-            renderList();
-            saveData();
+        if (!tag) return;
+        
+        // 管理リストにない場合は追加して保存
+        if (!managedTags.includes(tag)) {
+            managedTags.push(tag);
+            saveManagedTags();
         }
+
+        if (editingTagTarget && editingTagTarget.type === 'idea') {
+            // ネタ帳への追加
+            const idea = ideaData.find(i => i.id === editingTagTarget.id);
+            if (idea) {
+                if (!Array.isArray(idea.tags)) idea.tags = [];
+                if (!idea.tags.includes(tag)) {
+                    idea.tags.push(tag);
+                    saveIdeas();
+                    renderIdeaList();
+                }
+            }
+        } else {
+            // シナリオエントリへの追加 (デフォルト)
+            const targetUuid = (editingTagTarget && editingTagTarget.type === 'scenario') ? editingTagTarget.id : currentUuid;
+            if (!targetUuid) return;
+
+            const entry = scenarioData.find(e => e._uuid === targetUuid);
+            if (entry) {
+                if (!entry.tags) entry.tags = [];
+                if (!entry.tags.includes(tag)) {
+                    entry.tags.push(tag);
+                    saveData();
+                    if (targetUuid === currentUuid) renderTags();
+                    renderList();
+                }
+            }
+        }
+    }
+
+    function forgetTag(event, tag) {
+        event.stopPropagation();
+        managedTags = managedTags.filter(t => t !== tag);
+        saveManagedTags();
+        renderPresetTags();
     }
 
     function addTagFromInput() {
         const input = document.getElementById('new-tag-input');
         const val = input.value.trim();
-        if (val) {
-            addTag(val);
-            input.value = '';
+        if (val) { addTag(val); input.value = ''; }
+    }
+
+    function removeTag(tag, type = 'scenario', id = null) {
+        if (type === 'idea') {
+            const idea = ideaData.find(i => i.id === id);
+            if (idea && Array.isArray(idea.tags)) {
+                idea.tags = idea.tags.filter(t => t !== tag);
+                saveIdeas();
+                renderIdeaList();
+            }
+        } else {
+            const targetUuid = id || currentUuid;
+            const entry = scenarioData.find(e => e._uuid === targetUuid);
+            if (!entry || !entry.tags) return;
+            entry.tags = entry.tags.filter(t => t !== tag);
+            saveData();
+            if (targetUuid === currentUuid) renderTags();
+            renderList();
         }
     }
 
@@ -1315,11 +2941,15 @@ function updatePreview(entry) {
             return;
         }
         container.innerHTML = entry.tags.map(tag => 
-            `<span class="tag-chip">${tag}<button onclick="removeTag('${tag}')">×</button></span>`
+            `<span class="tag-chip">${tag}<button onclick="removeTag('${tag}', 'scenario', '${entry._uuid}')">×</button></span>`
         ).join('');
     }
 
-    function openTagModal() {
+    function openTagModal(type = 'scenario', id = null) {
+        editingTagTarget = { type: type, id: id || currentUuid };
+        
+        renderPresetTags(); // 全タグ一覧を更新して表示
+        
         document.getElementById('tag-modal').classList.remove('hidden');
         document.getElementById('tag-modal').classList.add('flex');
         document.getElementById('new-tag-input')?.focus();
@@ -1328,6 +2958,7 @@ function updatePreview(entry) {
     function closeTagModal() {
         document.getElementById('tag-modal').classList.add('hidden');
         document.getElementById('tag-modal').classList.remove('flex');
+        editingTagTarget = null;
     }
 
     function openHelpModal() {
@@ -1339,6 +2970,576 @@ function updatePreview(entry) {
         document.getElementById('help-modal').classList.add('hidden');
         document.getElementById('help-modal').classList.remove('flex');
     }
+
+    function switchRightPanel(panelId) {
+        // Hide all right panel contents
+        document.querySelectorAll('.right-panel-content').forEach(panel => {
+            panel.classList.add('hidden');
+            panel.classList.remove('active');
+        });
+        // Deactivate all tab buttons
+        document.querySelectorAll('.panel-tab-btn').forEach(btn => {
+            btn.classList.remove('active', 'bg-white', 'shadow-sm');
+            btn.classList.add('text-gray-500', 'hover:bg-gray-50');
+        });
+
+        // Show the selected panel and activate its button
+        document.getElementById(panelId).classList.remove('hidden');
+        document.getElementById(panelId).classList.add('active');
+        document.getElementById(`tab-btn-${panelId.replace('-container', '').replace('-panel', '')}`).classList.add('active', 'bg-white', 'shadow-sm');
+        document.getElementById(`tab-btn-${panelId.replace('-container', '').replace('-panel', '')}`).classList.remove('text-gray-500', 'hover:bg-gray-50');
+    }
+
+    function openSynopsisModal() {
+        document.getElementById('edit-synopsis-text').value = scenarioSynopsis; // Populate the textarea
+        document.getElementById('panel-config-rows').value = scenarioConfig.rows;
+        document.getElementById('panel-config-cols').value = scenarioConfig.cols;
+        document.getElementById('panel-config-min-tiles').value = scenarioConfig.minTiles;
+        document.getElementById('panel-config-max-tiles').value = scenarioConfig.maxTiles;
+        switchRightPanel('synopsis-panel'); // Switch to the synopsis panel
+        document.getElementById('edit-synopsis-text').value = scenarioSynopsis; // Populate the synopsis textarea
+        switchRightPanel('synopsis-panel'); // Switch to the synopsis panel (which now contains config settings)
+        // Hide config settings by default when opening synopsis, unless a config entry is selected
+        document.getElementById('config-settings').classList.add('hidden');
+    }    
+
+    function closeSynopsisModal() {
+        document.getElementById('synopsis-modal').classList.add('hidden');
+        document.getElementById('synopsis-modal').classList.remove('flex');
+    }
+
+    function saveSynopsis() {
+        scenarioSynopsis = document.getElementById('edit-synopsis-text').value;
+        localStorage.setItem('rlh_scenario_synopsis', scenarioSynopsis);
+        scenarioConfig.rows = parseInt(document.getElementById('panel-config-rows').value) || 6;
+        scenarioConfig.cols = parseInt(document.getElementById('panel-config-cols').value) || 6;
+        scenarioConfig.minTiles = parseInt(document.getElementById('panel-config-min-tiles').value) || 6;
+        scenarioConfig.maxTiles = parseInt(document.getElementById('panel-config-max-tiles').value) || 13;
+        saveData();
+        switchRightPanel('preview-container'); // Switch back to preview after saving
+    }
+
+    function showStats() {
+        const data = scenarioData;
+        let totalCost = 0;
+        let totalChars = 0;
+        let entryCount = 0;
+        let doneCount = 0;
+        const tagCounts = {};
+        const typeCounts = {};
+        const plotMap = [];
+        const refInfo = [];
+
+        data.forEach(entry => {
+            if (entry.isPlaceholder) return;
+            entryCount++;
+            if (entry.isDone) doneCount++;
+
+            const type = entry.type || 'd66';
+            typeCounts[type] = (typeCounts[type] || 0) + 1;
+
+            plotMap.push({
+                id: entry.id || "-",
+                label: entry.type === 'd66' ? `D66(${entry.id})` : (SCENARIO_LABELS[entry.type] || entry.type),
+                title: entry.listTitle || "",
+                role: entry.roleNote || ""
+            });
+
+            totalCost += parseInt(entry.cost) || 0;
+            totalChars += (entry.text || "").length;
+
+            if (Array.isArray(entry.tags)) {
+                entry.tags.forEach(tag => {
+                    tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+                });
+            }
+
+            if (entry.refEvent || entry.refWork || entry.refAuthor || entry.refUrl) {
+                refInfo.push({
+                    id: entry.id || "",
+                    title: entry.listTitle || (SCENARIO_LABELS[entry.type] || entry.type),
+                    event: entry.refEvent || "",
+                    work: entry.refWork || "",
+                    author: entry.refAuthor || "",
+                    url: entry.refUrl || ""
+                });
+            }
+        });
+
+        const sortedTags = Object.entries(tagCounts).sort((a, b) => b[1] - a[1]);
+        const sortedTypes = Object.entries(typeCounts).sort((a, b) => b[1] - a[1]);
+
+        document.getElementById('stat-entry-count').textContent = entryCount;
+        document.getElementById('stat-total-cost').textContent = totalCost;
+        document.getElementById('stat-total-chars').textContent = totalChars.toLocaleString();
+        // グローバル設定(scenarioConfig)から通過枚数の目安を取得
+        const minTiles = scenarioConfig.minTiles;
+        const maxTiles = scenarioConfig.maxTiles;
+        // 推定プレイ時間の算出（1セッションあたり6～13項目を通過すると想定して幅を持たせる）
+        const timePerEntry = entryCount > 0 ? ((totalChars / entryCount / 400) + (totalCost / entryCount * 1.5)) : 0;
+        let minMinutes = Math.floor(timePerEntry * minTiles);
+        let maxMinutes = Math.ceil(timePerEntry * maxTiles);
+
+        if (entryCount > 0 && minMinutes < 5) minMinutes = 5; 
+        document.getElementById('stat-estimated-time').textContent = entryCount > 0 ? `約 ${minMinutes} ～ ${maxMinutes} 分` : "約 0 分";
+
+        const progressPercent = entryCount > 0 ? Math.round((doneCount / entryCount) * 100) : 0;
+        document.getElementById('stat-progress-percent').textContent = `${progressPercent}% (${doneCount}/${entryCount})`;
+
+        const congratsEl = document.getElementById('stat-congrats');
+        if (progressPercent === 100 && entryCount > 0) {
+            congratsEl.classList.remove('hidden');
+        } else {
+            congratsEl.classList.add('hidden');
+        }
+
+        const typeContainer = document.getElementById('stat-types-list');
+        typeContainer.innerHTML = sortedTypes.map(([type, count]) => {
+            const label = type === 'd66' ? "D66（できごと）" : (SCENARIO_LABELS[type] || type);
+            return `<div class="flex justify-between items-center bg-gray-50 p-1.5 px-3 rounded border border-gray-200 cursor-pointer hover:bg-blue-50 transition-colors" onclick="filterListByType('${type}')">
+                <span class="font-bold text-blue-600 text-[11px]">${label}</span>
+                <span class="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full text-[10px] font-bold">${count}</span>
+            </div>`;
+        }).join('') || '<div class="text-gray-400 italic text-xs">データがありません</div>';
+
+        const tagContainer = document.getElementById('stat-tags-list');
+        tagContainer.innerHTML = sortedTags.map(([tag, count]) => 
+            `<div class="flex justify-between items-center bg-gray-50 p-1.5 px-3 rounded border border-gray-200 cursor-pointer hover:bg-indigo-50 transition-colors" onclick="filterListByTag('${tag}')">
+                <span class="font-bold text-indigo-600 text-[11px]">${tag}</span>
+                <span class="bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full text-[10px] font-bold">${count}</span>
+            </div>`
+        ).join('') || '<div class="text-gray-400 italic text-xs">タグがありません</div>';
+
+        const plotContainer = document.getElementById('stat-plot-list');
+        plotContainer.innerHTML = plotMap.map(p => `
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="p-2 font-mono text-[9px] text-gray-400">${p.id}</td>
+                <td class="p-2 text-[10px] font-bold">${p.label}</td>
+                <td class="p-2 text-[10px] truncate max-w-[100px]">${p.title}</td>
+                <td class="p-2 text-[10px] text-blue-600 italic">${p.role}</td>
+            </tr>
+        `).join('') || '<tr><td colspan="4" class="p-4 text-center text-gray-400 italic text-xs">データがありません</td></tr>';
+
+        const refContainer = document.getElementById('stat-ref-list');
+        refContainer.innerHTML = refInfo.map(ref => `
+            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <td class="p-2 font-mono text-[10px]">${ref.id}</td>
+                <td class="p-2 text-xs truncate max-w-[100px]">${ref.title}</td>
+                <td class="p-2 text-[10px] leading-tight">${ref.event}${ref.work ? '<br><span class="text-gray-400">@</span>'+ref.work : ''}</td>
+                <td class="p-2 text-[10px]">${ref.author}</td>
+            </tr>
+        `).join('') || '<tr><td colspan="4" class="p-4 text-center text-gray-400 italic text-xs">参照情報がありません</td></tr>';
+
+        document.getElementById('stats-panel').classList.remove('hidden');
+        switchRightPanel('stats-panel'); // Switch to the stats panel
+    }
+
+    function filterListByType(type) {
+        currentTypeFilter = type;
+        closeStatsModal();
+        renderList();
+    }
+
+    function filterListByTag(tag) {
+        currentTagFilter = tag;
+        closeStatsModal();
+        renderList();
+    }
+
+    function toggleIncompleteFilter() {
+        showOnlyIncomplete = !showOnlyIncomplete;
+        renderList();
+    }
+
+    function clearFilters() {
+        currentTypeFilter = null;
+        currentTagFilter = null;
+        showOnlyIncomplete = false;
+        renderList();
+    }
+
+    function copyReferenceInfo() {
+        const data = scenarioData;
+        let text = "### 参照元情報（出典）\n\n";
+
+        let hasRef = false;
+        data.forEach(entry => {
+            if (entry.isPlaceholder) return;
+            if (entry.refEvent || entry.refWork || entry.refAuthor || entry.refUrl) {
+                hasRef = true;
+                const idPart = entry.id ? `出目：${entry.id} ` : "";
+                const titlePart = entry.listTitle || (SCENARIO_LABELS[entry.type] || entry.type);
+                const authorPart = entry.refAuthor ? ` (作者：${entry.refAuthor})` : "";
+                const eventPart = entry.refEvent ? ` 参照：${entry.refEvent}` : "";
+                const workPart = entry.refWork ? ` (@${entry.refWork})` : "";
+                const urlPart = entry.refUrl ? ` ${entry.refUrl}` : "";
+                
+                text += `- ${idPart}${titlePart}${authorPart}${eventPart}${workPart}${urlPart}\n`;
+            }
+        });
+
+        if (!hasRef) return alert("参照情報が設定されている項目がありません。");
+
+        navigator.clipboard.writeText(text).then(() => {
+            alert("参照情報を箇条書き形式でクリップボードにコピーしました。");
+        });
+    }
+
+    function closeStatsModal() {
+        switchRightPanel('preview-container'); // Switch back to preview
+    }
+
+    function openReplaceModal() {
+        document.getElementById('replace-modal').classList.remove('hidden');
+        document.getElementById('replace-modal').classList.add('flex');
+        document.getElementById('replace-find').value = "";
+        document.getElementById('replace-with').value = "";
+        document.getElementById('replace-preview-area').classList.add('hidden');
+        document.getElementById('replace-find').focus();
+    }
+
+    function closeReplaceModal() {
+        document.getElementById('replace-modal').classList.add('hidden');
+        document.getElementById('replace-modal').classList.remove('flex');
+    }
+
+    function updateReplacePreview() {
+        const findText = document.getElementById('replace-find').value;
+        const previewArea = document.getElementById('replace-preview-area');
+        const previewList = document.getElementById('replace-preview-list');
+        const previewCount = document.getElementById('replace-preview-count');
+
+        if (!findText) {
+            previewArea.classList.add('hidden');
+            return;
+        }
+
+        const fields = [];
+        if (document.getElementById('rep-check-text').checked) fields.push('text');
+        if (document.getElementById('rep-check-title').checked) fields.push('listTitle');
+        if (document.getElementById('rep-check-id').checked) fields.push('id');
+        if (document.getElementById('rep-check-choices').checked) fields.push('choice1_label', 'choice2_label', 'choice3_label', 'choice4_label');
+
+        const escapedFind = findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escapedFind, 'g');
+        let totalMatches = 0;
+        let html = '';
+
+        scenarioData.forEach(entry => {
+            if (entry.isPlaceholder) return;
+            let entryMatches = [];
+            fields.forEach(f => {
+                if (entry[f] && typeof entry[f] === 'string' && entry[f].match(regex)) {
+                    entryMatches.push(f);
+                    totalMatches += (entry[f].match(regex) || []).length;
+                }
+            });
+
+            if (entryMatches.length > 0) {
+                const label = entry.id || entry.listTitle || entry.type;
+                html += `<div class="p-1.5 bg-white border border-gray-200 rounded text-[10px] flex justify-between items-center">
+                    <span class="font-bold text-gray-700 truncate mr-2">${label}</span>
+                    <span class="text-indigo-500 shrink-0">[${entryMatches.join(', ')}]</span>
+                </div>`;
+            }
+        });
+
+        previewCount.textContent = totalMatches;
+        previewList.innerHTML = html || '<div class="text-gray-400 italic text-center py-2">一致する箇所はありません</div>';
+        previewArea.classList.remove('hidden');
+    }
+
+    function runGlobalReplace() {
+        const findText = document.getElementById('replace-find').value;
+        const replaceText = document.getElementById('replace-with').value;
+        if (!findText) return alert("検索する文字列を入力してください");
+
+        const fields = [];
+        if (document.getElementById('rep-check-text').checked) fields.push('text');
+        if (document.getElementById('rep-check-title').checked) fields.push('listTitle');
+        if (document.getElementById('rep-check-id').checked) fields.push('id');
+        if (document.getElementById('rep-check-choices').checked) fields.push('choice1_label', 'choice2_label', 'choice3_label', 'choice4_label');
+
+        if (fields.length === 0) return alert("置換対象の項目を少なくとも1つ選択してください");
+        if (!confirm(`「${findText}」を「${replaceText}」に一括置換します。よろしいですか？`)) return;
+
+        let totalReplacements = 0;
+        const escapedFind = findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(escapedFind, 'g');
+
+        scenarioData.forEach(entry => {
+            fields.forEach(f => {
+                if (entry[f] && typeof entry[f] === 'string') {
+                    const matches = entry[f].match(regex);
+                    if (matches) {
+                        totalReplacements += matches.length;
+                        entry[f] = entry[f].replace(regex, replaceText);
+                    }
+                }
+            });
+        });
+
+        alert(`${totalReplacements} 箇所の置換を完了しました。`);
+        saveData();
+        renderList();
+        if (currentUuid) selectEntry(currentUuid);
+        closeReplaceModal();
+    }
+
+    let editingTemplateType = '';
+    let tempTemplates = [];
+
+    function openTemplateEditor(type) {
+        editingTemplateType = type;
+        if (type === 'creature') tempTemplates = JSON.parse(JSON.stringify(creatureTemplates));
+        else if (type === 'reaction') tempTemplates = [...reactionTemplates];
+        else if (type === 'tag') tempTemplates = [...classificationTags];
+
+        document.getElementById('template-editor-title').textContent = 
+            type === 'creature' ? 'クリーチャー定型文の編集' : 
+            type === 'reaction' ? '反応表定型句の編集' : '分類タグの編集';
+        
+        renderTemplateEditorList();
+        document.getElementById('template-editor-modal').classList.remove('hidden');
+        document.getElementById('template-editor-modal').classList.add('flex');
+    }
+
+    function closeTemplateEditor() {
+        document.getElementById('template-editor-modal').classList.add('hidden');
+        document.getElementById('template-editor-modal').classList.remove('flex');
+    }
+
+    function renderTemplateEditorList() {
+        const container = document.getElementById('template-editor-list');
+        let html = '';
+
+        tempTemplates.forEach((item, i) => {
+            if (editingTemplateType === 'creature') {
+                html += `
+                <div class="border p-2 rounded bg-gray-50 space-y-2">
+                    <div class="flex gap-2">
+                        <input type="text" class="flex-1 border rounded p-1 text-xs font-bold" value="${item.name}" oninput="tempTemplates[${i}].name = this.value" placeholder="表示名">
+                        <button onclick="removeTemplateItem(${i})" class="text-red-500 hover:text-red-700 text-xs font-bold">削除</button>
+                    </div>
+                    <textarea class="w-full border rounded p-1 text-xs font-mono h-24 outline-none focus:ring-1 focus:ring-indigo-400" oninput="tempTemplates[${i}].text = this.value" placeholder="挿入されるテキスト">${item.text}</textarea>
+                </div>`;
+            } else {
+                html += `
+                <div class="flex gap-2 items-center">
+                    <input type="text" class="flex-1 border rounded p-1 text-xs font-bold" value="${item}" oninput="tempTemplates[${i}] = this.value">
+                    <button onclick="removeTemplateItem(${i})" class="text-red-500 hover:text-red-700 text-xs font-bold px-1">×</button>
+                </div>`;
+            }
+        });
+        container.innerHTML = html;
+    }
+
+    function addTemplateItem() {
+        if (editingTemplateType === 'creature') {
+            tempTemplates.push({ name: "新規テンプレート", text: "" });
+        } else {
+            tempTemplates.push("新規項目");
+        }
+        renderTemplateEditorList();
+    }
+
+    function removeTemplateItem(index) {
+        tempTemplates.splice(index, 1);
+        renderTemplateEditorList();
+    }
+
+    function saveTemplateChanges() {
+        if (editingTemplateType === 'creature') creatureTemplates = tempTemplates;
+        else if (editingTemplateType === 'reaction') reactionTemplates = tempTemplates;
+        else if (editingTemplateType === 'tag') classificationTags = tempTemplates;
+
+        saveData();
+        renderTemplateMenus();
+        closeTemplateEditor();
+    }
+
+    // --- NPC / 人物管理ロジック ---
+    let scenarioNpcs = [];
+
+    function addNewNpc() {
+        const id = 'npc_' + generateUuid();
+        const newNpc = {
+            id: id,
+            isOpen: true, // 新規作成時は展開しておく
+            fields: [
+                { key: "name", label: "名前", value: "新しい人物", enabled: true, isLong: false },
+                { key: "age", label: "年齢", value: "", enabled: true, isLong: false },
+                { key: "gender", label: "性別", value: "", enabled: true, isLong: false },
+                { key: "occupation", label: "職業", value: "", enabled: true, isLong: false },
+                { key: "hometown", label: "出身地", value: "", enabled: true, isLong: false },
+                { key: "memo", label: "メモ", value: "", enabled: true, isLong: true }
+            ]
+        };
+        scenarioNpcs.push(newNpc);
+        saveData();
+        renderNpcList();
+    }
+
+    function removeNpc(id) {
+        if (!confirm("この人物データを削除しますか？")) return;
+        scenarioNpcs = scenarioNpcs.filter(npc => npc.id !== id);
+        saveData();
+        renderNpcList();
+    }
+
+    function toggleNpcOpen(id) {
+        const npc = scenarioNpcs.find(n => n.id === id);
+        if (npc) {
+            npc.isOpen = !npc.isOpen;
+            renderNpcList();
+        }
+    }
+
+    function toggleNpcField(npcId, fieldKey) {
+        const npc = scenarioNpcs.find(n => n.id === npcId);
+        if (npc) {
+            const field = npc.fields.find(f => f.key === fieldKey);
+            if (field) {
+                field.enabled = !field.enabled;
+                saveData();
+                renderNpcList();
+            }
+        }
+    }
+
+    function updateNpcFieldLabel(npcId, fieldKey, newLabel) {
+        const npc = scenarioNpcs.find(n => n.id === npcId);
+        if (npc) {
+            const field = npc.fields.find(f => f.key === fieldKey);
+            if (field) {
+                field.label = newLabel;
+                saveData();
+                renderNpcList();
+            }
+        }
+    }
+
+    function updateNpcFieldValue(npcId, fieldKey, newValue) {
+        const npc = scenarioNpcs.find(n => n.id === npcId);
+        if (npc) {
+            const field = npc.fields.find(f => f.key === fieldKey);
+            if (field) {
+                field.value = newValue;
+                saveData();
+                renderNpcList();
+            }
+        }
+    }
+
+    function insertNpcNameToText(name) {
+        const textarea = document.getElementById('edit-text');
+        if (!textarea) return;
+        if (!currentUuid) {
+            alert("エディタでシナリオ項目を選択した状態で挿入してください。");
+            return;
+        }
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const currentText = textarea.value;
+        const scrollTop = textarea.scrollTop;
+
+        textarea.value = currentText.substring(0, start) + name + currentText.substring(end);
+        textarea.selectionStart = start + name.length;
+        textarea.selectionEnd = start + name.length;
+        textarea.focus();
+        textarea.scrollTop = scrollTop;
+
+        updateCurrentEntry('text', textarea.value);
+    }
+
+    function renderNpcList() {
+        const listEl = document.getElementById('npc-list');
+        if (!listEl) return;
+
+        if (scenarioNpcs.length === 0) {
+            listEl.innerHTML = `
+                <div class="text-center py-8 text-xs text-gray-400 italic">
+                    登録されている人物がいません。<br>「＋ 人物を追加」ボタンから追加できます。
+                </div>
+            `;
+            return;
+        }
+
+        listEl.innerHTML = scenarioNpcs.map(npc => {
+            const nameField = npc.fields.find(f => f.key === 'name') || { value: "" };
+            const nameVal = nameField.value || "(無名)";
+
+            // サマリーテキストの生成
+            // 有効化されていて、かつ名前以外の項目で、かつ値が入っているもの
+            const summaryParts = npc.fields
+                .filter(f => f.key !== 'name' && f.enabled && f.value.trim() !== '')
+                .map(f => `${f.label}: ${f.value}`);
+            
+            const summaryText = summaryParts.length > 0 ? summaryParts.join(' / ') : '詳細なし';
+
+            let cardContent = '';
+            if (npc.isOpen) {
+                cardContent = `
+                    <div class="border-t p-3 bg-white space-y-2.5 text-xs">
+                        ${npc.fields.map(field => {
+                            const isName = field.key === 'name';
+                            return `
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" ${field.enabled ? 'checked' : ''} 
+                                           onchange="toggleNpcField('${npc.id}', '${field.key}')" 
+                                           class="accent-indigo-600 rounded shrink-0 w-3.5 h-3.5">
+                                    <input type="text" value="${field.label}" 
+                                           onchange="updateNpcFieldLabel('${npc.id}', '${field.key}', this.value)" 
+                                           class="w-16 font-bold bg-transparent border-b border-transparent hover:border-gray-300 focus:border-indigo-500 focus:bg-white px-1 py-0.5 outline-none text-gray-700 text-[11px] shrink-0">
+                                    <span class="text-gray-400 shrink-0">:</span>
+                                    ${field.isLong ? 
+                                        `<textarea onchange="updateNpcFieldValue('${npc.id}', '${field.key}', this.value)" 
+                                                   class="flex-grow border rounded p-1.5 outline-none focus:ring-1 focus:ring-indigo-400 h-16 resize-y text-xs text-gray-800 ${field.enabled ? '' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}" 
+                                                   ${field.enabled ? '' : 'disabled'} placeholder="${field.label}を入力...">${field.value}</textarea>` :
+                                        `<input type="text" value="${field.value}" 
+                                                onchange="updateNpcFieldValue('${npc.id}', '${field.key}', this.value)" 
+                                                class="flex-grow border rounded p-1.5 outline-none focus:ring-1 focus:ring-indigo-400 text-xs text-gray-800 ${field.enabled ? '' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}" 
+                                                ${field.enabled ? '' : 'disabled'} placeholder="${field.label}を入力...">`
+                                    }
+                                </div>
+                            `;
+                        }).join('')}
+                        
+                        <div class="flex justify-between items-center pt-2 border-t mt-2">
+                            <button onclick="insertNpcNameToText('${nameVal}')" 
+                                    class="bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-200 px-3 py-1 rounded text-[11px] font-bold shadow-sm transition-colors">
+                                ✍ 本文に挿入
+                            </button>
+                            <button onclick="removeNpc('${npc.id}')" 
+                                    class="text-red-500 hover:text-red-700 hover:bg-red-50 border border-transparent hover:border-red-200 px-2 py-1 rounded text-[11px] font-bold transition-colors">
+                                🗑 削除
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="border rounded-lg shadow-sm overflow-hidden bg-white hover:shadow-md transition-shadow">
+                    <!-- Header (Summary Line) -->
+                    <div onclick="toggleNpcOpen('${npc.id}')" 
+                         class="flex justify-between items-center p-2.5 bg-gray-50 hover:bg-gray-100/70 cursor-pointer select-none text-xs border-b">
+                        <div class="flex items-center gap-2 overflow-hidden flex-grow mr-2">
+                            <span class="font-bold text-gray-800 shrink-0 text-[13px]">${nameVal}</span>
+                            <span class="text-[10px] text-gray-400 truncate" title="${summaryText}">${summaryText}</span>
+                        </div>
+                        <span class="text-[10px] text-gray-400 shrink-0 w-4 text-center">
+                            ${npc.isOpen ? '▲' : '▼'}
+                        </span>
+                    </div>
+                    ${cardContent}
+                </div>
+            `;
+        }).join('');
+    }
+
+    if (currentUuid) selectEntry(currentUuid);
 </script>
 
 <!-- Batch Create Modal -->
@@ -1375,6 +3576,22 @@ function updatePreview(entry) {
                         <input type="number" id="batch-cols" class="w-full border rounded p-1.5 text-sm outline-none focus:ring-2 focus:ring-orange-300" value="6" min="1" max="9">
                     </div>
                 </div>
+            <div class="mt-2">
+                <label class="flex items-center text-xs font-bold text-gray-600 cursor-pointer">
+                    <input type="checkbox" id="batch-as-placeholder" class="mr-1 accent-indigo-600">
+                    <span>空枠 (Placeholder) として作成</span>
+                </label>
+            </div>
+                <div class="mt-2 border-t pt-2">
+                    <label class="flex items-center text-xs font-bold text-gray-600 mb-2 cursor-pointer">
+                        <input type="checkbox" id="batch-story-include" class="mr-1 accent-indigo-600" checked>
+                        <span>＋固定イベントを作成</span>
+                    </label>
+                    <div class="flex items-center gap-2 pl-4">
+                        <label class="text-xs text-gray-500">周回数:</label>
+                        <input type="number" id="batch-story-turns" class="w-12 border rounded p-1 text-sm text-center outline-none focus:ring-2 focus:ring-indigo-300" value="1" min="1" max="3">
+                    </div>
+                </div>
             </div>
 
             <!-- Sequence Inputs -->
@@ -1393,7 +3610,7 @@ function updatePreview(entry) {
 <!-- Tag Modal -->
 <div id="tag-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
     <div class="bg-white p-4 rounded shadow-lg w-80 max-h-[80vh] overflow-y-auto custom-scroll flex flex-col">
-        <h3 class="font-bold text-gray-700 mb-3 flex justify-between">🏷️ タグ追加 <button onclick="closeTagModal()" class="text-gray-400 hover:text-gray-600">×</button></h3>
+        <h3 class="font-bold text-gray-700 mb-3 flex justify-between">🏷️ タグを選択・追加 <button onclick="closeTagModal()" class="text-gray-400 hover:text-gray-600">×</button></h3>
         
         <div class="mb-3">
             <label class="block text-xs font-bold text-gray-500 mb-1">プリセット</label>
@@ -1491,11 +3708,83 @@ function updatePreview(entry) {
                         <span class="font-bold">やり方:</span> 本文に「どの表を参照しますか？」と書き、選択肢ボタンに「鉱石表」「ランダム表」などのラベルを付けて、それぞれの遷移先へ飛ばします。
                     </div>
                 </div>
+                <div class="mb-4">
+                    <h4 class="font-bold text-gray-800 mb-1">クリーチャー定型文の挿入</h4>
+                    <p class="text-xs mb-1">「CR▼」ボタンでクリーチャーの定型文を挿入することができます</p>
+                    <div class="bg-gray-50 p-2 rounded text-xs border border-gray-200">
+                        本文入力欄にフォーカスがある状態で Tabキー を押すと、♪が選択状態になり、そのまま入力すると♪が消えます。再度 Tabキーを押すと次の♪にジャンプします。戻りたいときは Shift + Tab で逆順にジャンプします。
+                    </div>
+                </div>
             </section>
         </div>
         
         <div class="mt-4 pt-2 text-right border-t shrink-0">
             <button onclick="closeHelpModal()" class="bg-gray-800 text-white px-4 py-2 rounded text-sm font-bold hover:bg-gray-700 transition-colors">閉じる</button>
+        </div>
+    </div>
+</div>
+
+<!-- Global Search & Replace Modal -->
+<div id="replace-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white p-6 rounded shadow-lg w-96 flex flex-col gap-4 max-h-[90vh]">
+        <h3 class="font-bold text-gray-700 border-b pb-2 flex justify-between items-center">
+            <span>全体置換</span>
+            <button onclick="closeReplaceModal()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        </h3>
+        
+        <div class="space-y-3 shrink-0">
+            <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase">検索する文字列</label>
+                <input type="text" id="replace-find" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none bg-gray-50" oninput="updateReplacePreview()">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-gray-400 uppercase">置換後の文字列</label>
+                <input type="text" id="replace-with" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none bg-gray-50" oninput="updateReplacePreview()">
+            </div>
+            
+            <div class="space-y-1 pt-2">
+                <label class="block text-[10px] font-bold text-gray-400 uppercase mb-1">置換対象</label>
+                <div class="grid grid-cols-2 gap-x-4">
+                    <label class="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" id="rep-check-text" checked class="accent-indigo-600" onchange="updateReplacePreview()"> 本文 (Text)</label>
+                    <label class="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" id="rep-check-title" checked class="accent-indigo-600" onchange="updateReplacePreview()"> タイトル</label>
+                    <label class="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" id="rep-check-id" class="accent-indigo-600" onchange="updateReplacePreview()"> ID (出目)</label>
+                    <label class="flex items-center gap-2 text-xs cursor-pointer"><input type="checkbox" id="rep-check-choices" class="accent-indigo-600" onchange="updateReplacePreview()"> 選択肢</label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Area -->
+        <div id="replace-preview-area" class="hidden flex-1 flex flex-col min-h-0 border-t pt-2">
+            <label class="block text-[10px] font-bold text-indigo-400 uppercase mb-1">影響を受ける項目 (<span id="replace-preview-count">0</span>箇所)</label>
+            <div id="replace-preview-list" class="flex-1 overflow-y-auto custom-scroll p-2 bg-slate-50 rounded border border-inner space-y-1">
+            </div>
+        </div>
+
+        <div class="flex gap-2 mt-2 shrink-0">
+            <button onclick="closeReplaceModal()" class="flex-1 bg-gray-100 text-gray-600 py-2 rounded text-xs font-bold hover:bg-gray-200 transition-colors">キャンセル</button>
+            <button onclick="runGlobalReplace()" class="flex-1 bg-indigo-600 text-white py-2 rounded text-xs font-bold hover:bg-indigo-700 shadow-md transition-colors">一括置換実行</button>
+        </div>
+    </div>
+</div>
+<!-- Template Editor Modal -->
+<div id="template-editor-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[100]">
+    <div class="bg-white p-6 rounded shadow-lg w-[450px] flex flex-col gap-4 max-h-[90vh]">
+        <h3 class="font-bold text-gray-700 border-b pb-2 flex justify-between items-center">
+            <span id="template-editor-title">定型文の編集</span>
+            <button onclick="closeTemplateEditor()" class="text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+        </h3>
+        
+        <div id="template-editor-list" class="flex-1 overflow-y-auto custom-scroll space-y-3 p-1">
+            <!-- Items injected here -->
+        </div>
+
+        <button onclick="addTemplateItem()" class="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 hover:border-indigo-400 hover:text-indigo-500 text-xs font-bold transition-colors">
+            ＋ 項目を追加
+        </button>
+
+        <div class="flex gap-2 pt-2 border-t">
+            <button onclick="closeTemplateEditor()" class="flex-1 bg-gray-100 text-gray-600 py-2 rounded text-xs font-bold hover:bg-gray-200 transition-colors">キャンセル</button>
+            <button onclick="saveTemplateChanges()" class="flex-1 bg-indigo-600 text-white py-2 rounded text-xs font-bold hover:bg-indigo-700 shadow-md transition-colors">設定を保存</button>
         </div>
     </div>
 </div>
