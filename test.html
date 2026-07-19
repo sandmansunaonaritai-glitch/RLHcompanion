@@ -171,7 +171,7 @@
 #log-section.active {
     display: flex !important;        /* 縦並びのFlexレイアウトを開始 */
     flex-direction: column !important; /* 子要素を上から下に並べる */
-    height: 100dvh !important;       /* 画面全体の高さ（ツールバー考慮）に固定 */
+   height: calc(100dvh - 200px) !important;       /* 画面全体の高さ（ツールバー考慮）に固定 */
     overflow: hidden !important;     /* ログタブ自体はスクロールさせず、中身で制御 */
     padding: 0 !important;           /* モバイルではパディングを削除して画面を広く使う */
 }
