@@ -139,7 +139,7 @@
         .choice-btn:hover {background: #eef2ff;transform: translateY(-1px);}
         .choice-btn:active {transform: translateY(1px);}
 
-        /* Mobile Tab View */
+/* Mobile Tab View */
         @media (max-width: 1023px) {
         /* 1. 画面全体の固定（二重スクロール防止） */
         body {
@@ -149,9 +149,13 @@
         overflow: hidden; /* 外側はスクロールさせない */
         }
 
-        /* mainエリアを縦並びにする（モバイル） */
+        /* 【修正】mainエリア自体も画面の高さ制限（100%）に閉じ込め、縦並びにする */
         main {
+            display: flex !important;
             flex-direction: column !important;
+            flex: 1 !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
         }
 
         /* 2. タブエリアの基本設定 */
@@ -159,11 +163,11 @@
         .view-tab.active { 
         display: flex !important; 
         flex-direction: column; 
-        width: 100% !important; /* ヘッダーとタブボタンの高さを引いた残りを設定 */
+        width: 100% !important; 
         flex: 1 !important;     /* 親要素(main)に合わせて伸縮 */
-        height: auto !important; /* 固定高さを解除 */
+        height: 100% !important; /* 【修正】autoから100%に変更して親にフィットさせる */
         min-height: 0 !important; /* Flexboxでの縮小を許可 */
-        overflow-y: auto !important; /* 基本はここでスクロールを許可 */
+        overflow: hidden !important; /* 【修正】タブ自体はスクロールさせず、内部のログリスト側で制御する */
         -webkit-overflow-scrolling: touch;
         }
 
@@ -171,11 +175,9 @@
 #log-section.active {
     display: flex !important;
     flex-direction: column !important;
-    
-    /* 【変更】固定の高さ指定を消し、余った縦スペースを自動で埋める設定にする */
     flex: 1 !important; 
-    min-height: 0 !important; /* Flex子要素が親を突き破るのを防ぐ魔法の呪文 */
-    
+    min-height: 0 !important; /* Flex子要素が親を突き破るのを防ぐ */
+    height: 100% !important;  /* 【追加】高さを100%に固定 */
     overflow: hidden !important;
     padding: 0 !important;
 }
@@ -196,7 +198,7 @@
     padding: 8px;
     border-top: 1px solid #e5e7eb;
     
-    /* 【変更】安全のために下側の余白を少しだけ広めに確保する */
+    /* 下側の余白を少しだけ広めに確保して送信ボタンのめり込みを防ぐ */
     padding-bottom: max(16px, env(safe-area-inset-bottom)) !important; 
     z-index: 10;
     background-color: white; 
@@ -204,10 +206,11 @@
 
             /* D66エリアの高さ制限（モバイルのみ） */
             #log-section details {
-            max-height: 40vh; /* 画面の40%までに制限 */
+            max-height: 35vh; /* 【微調整】40%から35%に少しだけ縮めて安全圏を確保 */
             overflow-y: auto; /* それ以上はスクロール */
             margin-bottom: 0 !important;
             border-radius: 0 !important;
+            flex-shrink: 0 !important; /* 【追加】D66自体が潰れるのを防ぐ */
             }
 
             /* 選択肢エリアのスタイル */
@@ -233,6 +236,7 @@
 
             /* セッション名入力欄の幅を確保 */
             #logTitle {min-width: 60px !important;}
+        }
 
             /* モバイル：アクティブなタブのボタン色 */
             .tab-btn.active {
