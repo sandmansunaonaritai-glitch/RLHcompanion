@@ -233,7 +233,25 @@
         font-size: 10px !important;
         white-space: nowrap;
         }
-
+/* 5. モーダル表示の救済設定 */
+        /* ※もしモーダルの共通クラス名が別にあれば「.modal」の部分を差し替えてください */
+        .modal, #help-modal, #setting-modal, [role="dialog"] {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100dvh !important;
+            z-index: 9999 !important;     /* 何よりも前面に表示 */
+            overflow-y: auto !important;   /* モーダルの中身自体はスクロールを許可 */
+            display: none;                 /* 基本は非表示（active等でflexやblockにする想定） */
+        }
+        
+        /* モーダルがアクティブになった時の表示を担保 */
+        .modal.active, .modal.show, 
+        #help-modal.active, #setting-modal.active {
+            display: flex !important;      /* または block !important; 既存の仕様に合わせてください */
+            flex-direction: column !important;
+        }
             /* セッション名入力欄の幅を確保 */
             #logTitle {min-width: 60px !important;}
         }
