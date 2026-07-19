@@ -169,11 +169,15 @@
 
 /* 3. ログタブ専用の設定（入力欄を下に固定、ログだけスクロール） */
 #log-section.active {
-    display: flex !important;        /* 縦並びのFlexレイアウトを開始 */
-    flex-direction: column !important; /* 子要素を上から下に並べる */
-   height: calc(100dvh - 200px) !important;       /* 画面全体の高さ（ツールバー考慮）に固定 */
-    overflow: hidden !important;     /* ログタブ自体はスクロールさせず、中身で制御 */
-    padding: 0 !important;           /* モバイルではパディングを削除して画面を広く使う */
+    display: flex !important;
+    flex-direction: column !important;
+    
+    /* 【変更】固定の高さ指定を消し、余った縦スペースを自動で埋める設定にする */
+    flex: 1 !important; 
+    min-height: 0 !important; /* Flex子要素が親を突き破るのを防ぐ魔法の呪文 */
+    
+    overflow: hidden !important;
+    padding: 0 !important;
 }
 
 /* ログリスト：可変エリア */
@@ -182,8 +186,8 @@
     overflow-y: auto !important; 
     min-height: 0; 
     padding-bottom: 10px;
-    border-radius: 0 !important; /* 角丸解除 */
-    border-left: none !important; border-right: none !important; /* 左右ボーダー解除 */
+    border-radius: 0 !important;
+    border-left: none !important; border-right: none !important;
 }
 
 /* ログ入力エリア：IDで直接指定 */
@@ -191,9 +195,11 @@
     flex-shrink: 0 !important;
     padding: 8px;
     border-top: 1px solid #e5e7eb;
-    padding-bottom: max(8px, env(safe-area-inset-bottom)); /* iPhone等のホームバー対応 */
+    
+    /* 【変更】安全のために下側の余白を少しだけ広めに確保する */
+    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important; 
     z-index: 10;
-    background-color: white; /* 下に隠れたログが透けないように背景色を指定（必要に応じて色を変更してください） */
+    background-color: white; 
 }
 
             /* D66エリアの高さ制限（モバイルのみ） */
