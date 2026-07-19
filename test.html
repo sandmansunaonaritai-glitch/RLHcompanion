@@ -139,109 +139,103 @@
         .choice-btn:hover {background: #eef2ff;transform: translateY(-1px);}
         .choice-btn:active {transform: translateY(1px);}
 
-/* Mobile Tab View */
+    /* Mobile Tab View */
         @media (max-width: 1023px) {
         /* 1. 画面全体の固定（二重スクロール防止） */
         body {
-            height: 100dvh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+        height: 100dvh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* 外側はスクロールさせない */
         }
 
+        /* mainエリアを縦並びにする（モバイル） */
         main {
-            display: flex !important;
             flex-direction: column !important;
-            flex: 1 !important;
-            min-height: 0 !important;
-            overflow: hidden !important;
         }
 
         /* 2. タブエリアの基本設定 */
         .view-tab { display: none !important; }
         .view-tab.active { 
-            display: flex !important; 
-            flex-direction: column; 
-            width: 100% !important; 
-            flex: 1 !important;
-            height: 100% !important;
-            min-height: 0 !important;
-            overflow: hidden !important;
+        display: flex !important; 
+        flex-direction: column; 
+        width: 100% !important; /* ヘッダーとタブボタンの高さを引いた残りを設定 */
+        flex: 1 !important;     /* 親要素(main)に合わせて伸縮 */
+        height: auto !important; /* 固定高さを解除 */
+        min-height: 0 !important; /* Flexboxでの縮小を許可 */
+        overflow-y: auto !important; /* 基本はここでスクロールを許可 */
+        -webkit-overflow-scrolling: touch;
         }
 
-        /* 3. ログタブ専用の設定 */
-        #log-section.active {
-            display: flex !important;
-            flex-direction: column !important;
-            flex: 1 !important; 
-            min-height: 0 !important;
-            height: 100% !important;
-            overflow: hidden !important;
-            padding: 0 !important;
-        }
+/* 3. ログタブ専用の設定（入力欄を下に固定、ログだけスクロール） */
+#log-section.active {
+    display: flex !important;
+    flex-direction: column !important;
+    
 
-        /* 【究極の解決策】モバイルではD66/敵管理エリアの最大高さを極限まで絞る */
-        #log-section details {
-            max-height: 25vh !important; /* 画面の4分の1以上に絶対に広がらせない */
-            overflow-y: auto !important; /* はみ出た敵データはここだけでスクロール */
-            flex-shrink: 0 !important;   /* これ自体がつぶれるのも防ぐ */
-            margin-bottom: 4px !important;
-        }
+    /* 【変更】固定の高さ指定を消し、余った縦スペースを自動で埋める設定にする */
+    flex: 1 !important; 
+    min-height: 0 !important; /* Flex子要素が親を突き破るのを防ぐ魔法の呪文 */
+    overflow: hidden !important;
+    padding: 0 !important;
+}
 
-        /* ログリスト：可変エリア */
-        #log-list { 
-            flex: 1 !important; 
-            overflow-y: auto !important; 
-            min-height: 0 !important; 
-            padding-bottom: 10px;
-        }
+/* ログリスト：可変エリア */
+#log-list { 
+    flex: 1 !important; 
+    overflow-y: auto !important; 
+    min-height: 0; 
+    padding-bottom: 10px;
+    border-radius: 0 !important;
+    border-left: none !important; border-right: none !important;
+}
 
-        /* ログ入力エリア：絶対に画面最下部に固定する（位置の強制指定） */
-        #input-control-panel { 
-            flex-shrink: 0 !important;
-            padding: 8px !important;
-            border-top: 1px solid #e5e7eb !important;
-            
-            /* セーフエリアを含め、下部に確実にマージンを確保 */
-            padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important; 
-            z-index: 10;
-            background-color: #ffffff !important; 
-        }
 
-        /* 選択肢エリアもコンパクトに */
-        #choice-container {
+/* ログ入力エリア：IDで直接指定 */
+#input-control-panel { 
+    flex-shrink: 0 !important;
+    padding: 8px;
+    border-top: 1px solid #e5e7eb;
+
+
+
+    /* 【変更】安全のために下側の余白を少しだけ広めに確保する */
+    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important; 
+    z-index: 10;
+    background-color: white; 
+
+}
+
+            /* D66エリアの高さ制限（モバイルのみ） */
+            #log-section details {
+            max-height: 40vh; /* 画面の40%までに制限 */
+            overflow-y: auto; /* それ以上はスクロール */
+            margin-bottom: 0 !important;
+            border-radius: 0 !important;
+            }
+
+
+            /* 選択肢エリアのスタイル */
+            #choice-container {
             flex-shrink: 0 !important;
             display: flex;
             flex-wrap: wrap;
-            gap: 4px !important;
-            padding: 4px 8px !important;
-        }
+            gap: 8px;
+            padding: 8px 12px;
+            background-color: transparent; /* 背景を透明に */
+            border: none; /* 線を完全に消す */
+            }
+
+            #choice-container.hidden {display: none !important;}
 
         /* 4. ヘッダーボタンの縮小化（Pixel 8a対応） */
-        header .flex-nowrap { gap: 2px !important; }
+        header .flex-nowrap {gap: 2px !important;}
         header button {
-            padding: 4px 6px !important;
-            font-size: 10px !important;
-            white-space: nowrap;
+        padding: 4px 6px !important;
+        font-size: 10px !important;
+        white-space: nowrap;
         }
-        #logTitle { min-width: 60px !important; }
 
-        /* 5. モーダルの救済（fixed化して檻から脱出） */
-        .modal, #help-modal, #setting-modal, [role="dialog"] {
-            position: fixed !important;
-            top: 0 !important;
-            left: 0 !important;
-            width: 100vw !important;
-            height: 100dvh !important;
-            z-index: 9999 !important;
-            overflow-y: auto !important;
-        }
-        .modal.active, .modal.show, 
-        #help-modal.active, #setting-modal.active {
-            display: flex !important;
-            flex-direction: column !important;
-        }
-    }
             /* セッション名入力欄の幅を確保 */
             #logTitle {min-width: 60px !important;}
         }
