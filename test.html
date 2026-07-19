@@ -143,13 +143,12 @@
         @media (max-width: 1023px) {
         /* 1. 画面全体の固定（二重スクロール防止） */
         body {
-        height: 100dvh;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden; /* 外側はスクロールさせない */
+            height: 100dvh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        /* 【修正】mainエリア自体も画面の高さ制限（100%）に閉じ込め、縦並びにする */
         main {
             display: flex !important;
             flex-direction: column !important;
@@ -161,97 +160,88 @@
         /* 2. タブエリアの基本設定 */
         .view-tab { display: none !important; }
         .view-tab.active { 
-        display: flex !important; 
-        flex-direction: column; 
-        width: 100% !important; 
-        flex: 1 !important;     /* 親要素(main)に合わせて伸縮 */
-        height: 100% !important; /* 【修正】autoから100%に変更して親にフィットさせる */
-        min-height: 0 !important; /* Flexboxでの縮小を許可 */
-        overflow: hidden !important; /* 【修正】タブ自体はスクロールさせず、内部のログリスト側で制御する */
-        -webkit-overflow-scrolling: touch;
+            display: flex !important; 
+            flex-direction: column; 
+            width: 100% !important; 
+            flex: 1 !important;
+            height: 100% !important;
+            min-height: 0 !important;
+            overflow: hidden !important;
         }
 
-/* 3. ログタブ専用の設定（入力欄を下に固定、ログだけスクロール） */
-#log-section.active {
-    display: flex !important;
-    flex-direction: column !important;
-    flex: 1 !important; 
-    min-height: 0 !important; /* Flex子要素が親を突き破るのを防ぐ */
-    height: 100% !important;  /* 【追加】高さを100%に固定 */
-    overflow: hidden !important;
-    padding: 0 !important;
-}
+        /* 3. ログタブ専用の設定 */
+        #log-section.active {
+            display: flex !important;
+            flex-direction: column !important;
+            flex: 1 !important; 
+            min-height: 0 !important;
+            height: 100% !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+        }
 
-/* ログリスト：可変エリア */
-#log-list { 
-    flex: 1 !important; 
-    overflow-y: auto !important; 
-    min-height: 0; 
-    padding-bottom: 10px;
-    border-radius: 0 !important;
-    border-left: none !important; border-right: none !important;
-}
+        /* 【究極の解決策】モバイルではD66/敵管理エリアの最大高さを極限まで絞る */
+        #log-section details {
+            max-height: 25vh !important; /* 画面の4分の1以上に絶対に広がらせない */
+            overflow-y: auto !important; /* はみ出た敵データはここだけでスクロール */
+            flex-shrink: 0 !important;   /* これ自体がつぶれるのも防ぐ */
+            margin-bottom: 4px !important;
+        }
 
-/* ログ入力エリア：IDで直接指定 */
-#input-control-panel { 
-    flex-shrink: 0 !important;
-    padding: 8px;
-    border-top: 1px solid #e5e7eb;
-    
-    /* 下側の余白を少しだけ広めに確保して送信ボタンのめり込みを防ぐ */
-    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important; 
-    z-index: 10;
-    background-color: white; 
-}
+        /* ログリスト：可変エリア */
+        #log-list { 
+            flex: 1 !important; 
+            overflow-y: auto !important; 
+            min-height: 0 !important; 
+            padding-bottom: 10px;
+        }
 
-            /* D66エリアの高さ制限（モバイルのみ） */
-            #log-section details {
-            max-height: 35vh; /* 【微調整】40%から35%に少しだけ縮めて安全圏を確保 */
-            overflow-y: auto; /* それ以上はスクロール */
-            margin-bottom: 0 !important;
-            border-radius: 0 !important;
-            flex-shrink: 0 !important; /* 【追加】D66自体が潰れるのを防ぐ */
-            }
+        /* ログ入力エリア：絶対に画面最下部に固定する（位置の強制指定） */
+        #input-control-panel { 
+            flex-shrink: 0 !important;
+            padding: 8px !important;
+            border-top: 1px solid #e5e7eb !important;
+            
+            /* セーフエリアを含め、下部に確実にマージンを確保 */
+            padding-bottom: calc(16px + env(safe-area-inset-bottom)) !important; 
+            z-index: 10;
+            background-color: #ffffff !important; 
+        }
 
-            /* 選択肢エリアのスタイル */
-            #choice-container {
+        /* 選択肢エリアもコンパクトに */
+        #choice-container {
             flex-shrink: 0 !important;
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
-            padding: 8px 12px;
-            background-color: transparent; /* 背景を透明に */
-            border: none; /* 線を完全に消す */
-            }
-
-            #choice-container.hidden {display: none !important;}
+            gap: 4px !important;
+            padding: 4px 8px !important;
+        }
 
         /* 4. ヘッダーボタンの縮小化（Pixel 8a対応） */
-        header .flex-nowrap {gap: 2px !important;}
+        header .flex-nowrap { gap: 2px !important; }
         header button {
-        padding: 4px 6px !important;
-        font-size: 10px !important;
-        white-space: nowrap;
+            padding: 4px 6px !important;
+            font-size: 10px !important;
+            white-space: nowrap;
         }
-/* 5. モーダル表示の救済設定 */
-        /* ※もしモーダルの共通クラス名が別にあれば「.modal」の部分を差し替えてください */
+        #logTitle { min-width: 60px !important; }
+
+        /* 5. モーダルの救済（fixed化して檻から脱出） */
         .modal, #help-modal, #setting-modal, [role="dialog"] {
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
             width: 100vw !important;
             height: 100dvh !important;
-            z-index: 9999 !important;     /* 何よりも前面に表示 */
-            overflow-y: auto !important;   /* モーダルの中身自体はスクロールを許可 */
-            display: none;                 /* 基本は非表示（active等でflexやblockにする想定） */
+            z-index: 9999 !important;
+            overflow-y: auto !important;
         }
-        
-        /* モーダルがアクティブになった時の表示を担保 */
         .modal.active, .modal.show, 
         #help-modal.active, #setting-modal.active {
-            display: flex !important;      /* または block !important; 既存の仕様に合わせてください */
+            display: flex !important;
             flex-direction: column !important;
         }
+    }
             /* セッション名入力欄の幅を確保 */
             #logTitle {min-width: 60px !important;}
         }
