@@ -1,4 +1,4 @@
-<!--RLHcompanion_Ver2.4.2-->
+<!--RLHcompanion_Ver2.4.3-->
 <!DOCTYPE html>                   
 <html lang="ja">
 <head>
@@ -89,6 +89,18 @@
         .record-table tr.active-row { background: #fffbeb; outline: 2px solid #f59e0b; outline-offset: -2px; }
         .resource-input { padding: 0.1rem; font-size: 0.85rem; text-align: center; border-radius: 0.25rem; width: 2.8rem; border: 1px solid #d1d5db; }
 
+        /* Font switching overrides */
+        body.font-mincho .markdown-body,
+        body.font-mincho #log-list,
+        body.font-mincho .record-table {
+            font-family: 'Noto Serif JP', 'Georgia', serif;
+        }
+        body.font-gothic .markdown-body,
+        body.font-gothic #log-list,
+        body.font-gothic .record-table {
+            font-family: 'Inter', sans-serif;
+        }
+
         /* Markdown in Log Styles */
         .markdown-body strong { font-weight: 700; }
         .markdown-body em { font-style: italic; background-color: #fef3c7; }
@@ -96,6 +108,13 @@
         .markdown-body ul { list-style: disc; padding-left: 1.2em; }
         .markdown-body ol { list-style: decimal; padding-left: 1.2em; }
         .markdown-body p { margin-bottom: 0.5em; }
+
+        /* Shared BOX Styles */
+        .rlh-box { padding: 0.8rem; border-radius: 0.25rem; margin-bottom: 0.5rem; }
+        .rlh-box-grey { background-color: #e5e7eb; color: #000000; }
+        .rlh-box-black { background-color: #000000; color: #ffffff; }
+        .rlh-box-border { background-color: #ffffff; border: 2px solid #274cb1; color: #000000; }
+
         /* Table Styles */
         .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 1em; font-size: 0.9em; }
         .markdown-body th, .markdown-body td { border: 1px solid #d1d5db; padding: 4px 8px; text-align: left; }
@@ -148,30 +167,34 @@
         -webkit-overflow-scrolling: touch;
         }
 
-        /* 3. ログタブ専用の設定（入力欄を下に固定、ログだけスクロール） */
-        #log-section.active {
-        overflow: hidden !important; /* ログタブ自体はスクロールさせず、中身で制御 */
-        padding: 0 !important; /* モバイルではパディングを削除して画面を広く使う */
-        }
+/* 3. ログタブ専用の設定（入力欄を下に固定、ログだけスクロール） */
+#log-section.active {
+    display: flex !important;        /* 縦並びのFlexレイアウトを開始 */
+    flex-direction: column !important; /* 子要素を上から下に並べる */
+    height: 100dvh !important;       /* 画面全体の高さ（ツールバー考慮）に固定 */
+    overflow: hidden !important;     /* ログタブ自体はスクロールさせず、中身で制御 */
+    padding: 0 !important;           /* モバイルではパディングを削除して画面を広く使う */
+}
 
-            /* ログリスト：可変エリア */
-             #log-list { 
-            flex: 1 !important; 
-            overflow-y: auto !important; 
-            min-height: 0; 
-            padding-bottom: 10px;
-            border-radius: 0 !important; /* 角丸解除 */
-            border-left: none !important; border-right: none !important; /* 左右ボーダー解除 */
-            }
+/* ログリスト：可変エリア */
+#log-list { 
+    flex: 1 !important; 
+    overflow-y: auto !important; 
+    min-height: 0; 
+    padding-bottom: 10px;
+    border-radius: 0 !important; /* 角丸解除 */
+    border-left: none !important; border-right: none !important; /* 左右ボーダー解除 */
+}
 
-            /* ログ入力エリア：IDで直接指定 */
-            #input-control-panel { /* 入力エリアを包むdivにこのIDを付ける */
-            flex-shrink: 0 !important;
-            padding: 8px;
-            border-top: 1px solid #e5e7eb;
-            padding-bottom: max(8px, env(safe-area-inset-bottom)); /* iPhone等のホームバー対応 */
-            z-index: 10;
-            }
+/* ログ入力エリア：IDで直接指定 */
+#input-control-panel { 
+    flex-shrink: 0 !important;
+    padding: 8px;
+    border-top: 1px solid #e5e7eb;
+    padding-bottom: max(8px, env(safe-area-inset-bottom)); /* iPhone等のホームバー対応 */
+    z-index: 10;
+    background-color: white; /* 下に隠れたログが透けないように背景色を指定（必要に応じて色を変更してください） */
+}
 
             /* D66エリアの高さ制限（モバイルのみ） */
             #log-section details {
@@ -797,8 +820,8 @@
 <script>
         const STORAGE_KEY = 'rlh_final_integrated_v1';
         let ttsVoices = []; // TTSの声を格納するグローバル変数
-    // --- appState: このアプリの**全データ（心臓部） ---
-        let appState = { theme: 'colorful', showToastNotifications: true, settings: { soundEnabled: true, volume: 50, showNavBall: true, showHeaderDice: true }, 
+        // --- appState: このアプリの**全データ（心臓部） ---
+        let appState = { theme: 'colorful', showToastNotifications: true, fontPreference: 'gothic', settings: { soundEnabled: true, volume: 50, showNavBall: true, showHeaderDice: true }, 
             d66GridSettings: { rows: 6, cols: 6 }, enemies: [], activeEnemyId: null, currentRound: 0,
             logTitle: "セッション", logEntries: [], characters: {}, currentCharacterId: null, 
             d66State: [
@@ -864,6 +887,9 @@
                         appState.d66GridSettings = { rows: 6, cols: 6 };
                     }
                     if (!appState.settings.logFontSize) appState.settings.logFontSize = 'small';
+                    if (!appState.fontPreference) {
+                        appState.fontPreference = 'gothic';
+                    }
                     // グリッドサイズとデータ配列の整合性チェック
                     const expectedSize = appState.d66GridSettings.rows * appState.d66GridSettings.cols;
                     if (appState.d66State && appState.d66State[0].grid.length !== expectedSize) {
@@ -915,6 +941,16 @@
             applyTheme(appState.theme || 'colorful');
             renderAll();
             applyDisplaySettings(); // 表示設定の適用
+            applyFontPreference(); // フォント設定の適用
+            // ヘッダーの静的な数字入力フィールドに自動全選択機能を適用
+            autoSelectOnFocus(document.getElementById('rollCount'));
+            autoSelectOnFocus(document.getElementById('skillValue'));
+            autoSelectOnFocus(document.getElementById('targetValue'));
+            autoSelectOnFocus(document.getElementById('quickModValue'));
+        }
+    // 入力フィールドにフォーカスが当たった際に全選択する関数
+    function autoSelectOnFocus(inputElement) {
+        if (inputElement) { inputElement.addEventListener('focus', function() { this.select(); }); inputElement.addEventListener('click', function() { this.select(); }); }
         }
     // --- Roll Settings Reset ---
     function resetRollSettings() {
@@ -957,6 +993,7 @@
                             statusEl.className = "text-[9px] text-teal-600 self-center ml-2 font-bold";
                         }
                         alert("シナリオデータを読み込みました (" + scenarioMaster.length + "件)");
+                        updateScenarioButtonStates();
                     } else {
                         alert("有効なシナリオデータが見つかりませんでした。");
                     }
@@ -971,25 +1008,6 @@
         // シナリオデータを保持する変数
         let scenarioData = {};
 
-    function processCSV(csvText) {
-        const lines = csvText.split('\n');
-        const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-        scenarioData = {}; // クリア
-
-        for (let i = 1; i < lines.length; i++) {
-        if (!lines[i].trim()) continue;
-        const cols = lines[i].split(',').map(c => c.trim());
-        // idをキーにして、行全体を保存
-        const row = {};
-        headers.forEach((header, index) => {
-            row[header] = cols[index] || "";
-        });
-        const id = row['id'];
-        if (id) {scenarioData[id] = row;}
-        }
-        console.log("Scenario Loaded:", scenarioData);
-        document.getElementById('csvStatus').textContent = "CSV読込完了";
-    }
     // --- 2. 複雑なCSVを解析する補助関数 ---
     function parseCSV(text) {
         const result = [];
@@ -1028,6 +1046,36 @@
             result.push(currentRow);
         }
         return result;
+    }
+
+    // --- シナリオ設定適用関数 ---
+    function applyScenarioConfig(data) {
+        const config = data.find(item => item.type === 'config');
+        if (!config) return;
+
+        let r = parseInt(config.rows);
+        let c = parseInt(config.cols);
+
+        // textプロパティからの解析 (CSVや、JSONのtext利用時)
+        if ((!r || !c) && config.text) {
+            const txt = config.text.toLowerCase();
+            // "rows=3" 形式
+            const matchR = txt.match(/rows\s*[=:]\s*(\d+)/);
+            if (matchR) r = parseInt(matchR[1]);
+            const matchC = txt.match(/cols\s*[=:]\s*(\d+)/);
+            if (matchC) c = parseInt(matchC[1]);
+            
+            // "3x3" 形式
+            if (!r && !c) {
+                const matchX = txt.match(/(\d+)\s*x\s*(\d+)/);
+                if (matchX) {
+                    r = parseInt(matchX[1]);
+                    c = parseInt(matchX[2]);
+                }
+            }
+        }
+
+        if (r > 0 && c > 0) changeGridSize(r, c, false);
     }
 
     // --- 3. 解析したデータを scenarioMaster に格納する処理 ---
@@ -1072,36 +1120,26 @@
             statusEl.textContent = "読込済 (" + scenarioMaster.length + "件)";
             statusEl.className = "text-[9px] text-teal-600 self-center ml-2 font-bold";
         }
+        updateScenarioButtonStates();
     }
 
-    // --- シナリオ設定適用関数 ---
-    function applyScenarioConfig(data) {
-        const config = data.find(item => item.type === 'config');
-        if (!config) return;
-
-        let r = parseInt(config.rows);
-        let c = parseInt(config.cols);
-
-        // textプロパティからの解析 (CSVや、JSONのtext利用時)
-        if ((!r || !c) && config.text) {
-            const txt = config.text.toLowerCase();
-            // "rows=3" 形式
-            const matchR = txt.match(/rows\s*[=:]\s*(\d+)/);
-            if (matchR) r = parseInt(matchR[1]);
-            const matchC = txt.match(/cols\s*[=:]\s*(\d+)/);
-            if (matchC) c = parseInt(matchC[1]);
-            
-            // "3x3" 形式
-            if (!r && !c) {
-                const matchX = txt.match(/(\d+)\s*x\s*(\d+)/);
-                if (matchX) {
-                    r = parseInt(matchX[1]);
-                    c = parseInt(matchX[2]);
-                }
-            }
+    // シナリオのタイプによってボタンの有効/無効を切り替える
+    function updateScenarioButtonStates() {
+        const scenarioContainer = document.querySelector('#log-section details .flex-wrap');
+        if (!scenarioContainer) return;
+        const buttons = scenarioContainer.querySelectorAll('button[onclick^="playScenario"]');
+        if (!scenarioMaster || scenarioMaster.length === 0) {
+            buttons.forEach(btn => { btn.style.opacity = ""; btn.style.filter = ""; btn.disabled = false; btn.style.cursor = ""; });
+            return;
         }
-
-        if (r > 0 && c > 0) changeGridSize(r, c, false);
+        const existingTypes = new Set(scenarioMaster.map(item => item.type ? item.type.toLowerCase() : ""));
+        buttons.forEach(btn => {
+            const match = btn.getAttribute('onclick').match(/playScenario\('([^']+)'\)/);
+            if (match) { const type = match[1].toLowerCase();
+                if (existingTypes.has(type)) { btn.style.opacity = ""; btn.style.filter = ""; btn.disabled = false; }
+                else { btn.style.opacity = "0.4"; btn.style.filter = "grayscale(1)"; btn.disabled = true; }
+            }
+        });
     }
 
     // 直前のIDを保存する変数（関数の外に定義）
@@ -1119,6 +1157,8 @@
         const r = appState.activeRow;
         const turn = r + 1;
         const targetType = type.toLowerCase();
+        const systemTypes = ['d66', 'treasure', 'magictreasure', 'title', 'overview', 'rule', 'linear', 'pro', 'start', 'mid', 'finish', 'clear', 'ending', 'reference'];
+        const isSystemType = systemTypes.includes(targetType);
 
         // --- 1. 特殊イベント（中間・最終）のタイル記録処理 ---
         if (targetType === 'mid' || targetType === 'finish') {
@@ -1136,11 +1176,20 @@
 
         if (id) {
             // ID指定がある場合：そのID 且つ (現在のターン または 共通ターン1) を探す
-            entries = scenarioMaster.filter(s => s.type === targetType && String(s.id) === String(id) && parseInt(s.turn) === turn);
+            entries = scenarioMaster.filter(s => 
+                String(s.id) === String(id) && 
+                parseInt(s.turn) === turn && 
+                (isSystemType ? s.type === targetType : (s.type !== 'treasure' && s.type !== 'magictreasure'))
+            );
+
             if (entries.length === 0 && turn !== 1) {
-                entries = scenarioMaster.filter(s => s.type === targetType && String(s.id) === String(id) && parseInt(s.turn) === 1);
+               entries = scenarioMaster.filter(s => 
+                    String(s.id) === String(id) && 
+                    parseInt(s.turn) === 1 && 
+                    (isSystemType ? s.type === targetType : (s.type !== 'treasure' && s.type !== 'magictreasure'))
+                );
             }
-            // ★重要：IDとTypeで検索した結果、1件もなければ entries は空のままにする。
+            // ★重要：IDで検索した結果、1件もなければ entries は空のままにする。
             // （ここでヘタに type 検索に流さないことで、無関係なデータ表示を防ぐ）
         } 
         if (!id) {
@@ -1321,7 +1370,7 @@ else {
             // Animate
             roll3DDice([roll], () => {
                 const modText = mod !== 0 ? `(${roll}${mod >= 0 ? '+' : ''}${mod})` : "";
-                addLogEntry('dice', '魔法の宝物', `[実行者: ${name}] 1D${diceRange}${modText} = ${total}`);
+                addLogEntry('dice', '魔法の宝物', `[${name}] 1D${diceRange}${modText} = ${total}`);
                 // CSVデータがある場合のみ playScenario を呼び出す
                 if (entries.length > 0) {
                     playScenario('magictreasure', total.toString());
@@ -1494,6 +1543,7 @@ else {
                 }
                 document.getElementById('csvUpload').value = ""; // input fileのリセット
 
+                updateScenarioButtonStates();
                 renderAll(); saveData();
             }
         }
@@ -1834,6 +1884,9 @@ function renderCurrentCharacterSheet() {
     container.innerHTML = h;
     // 追加したキャラクターシートの全数値入力欄にフリック機能を付与
     container.querySelectorAll('input[type="number"]').forEach(input => {
+        autoSelectOnFocus(input);
+    });
+    container.querySelectorAll('input[type="number"]').forEach(input => {
         enableFlickNumericInput(input);
     });
 }
@@ -2077,6 +2130,7 @@ function renderTabContent(id, tab) {
             
             <div class="grid grid-cols-4 gap-2 w-full pb-2">
                 <button onclick="event.stopPropagation(); downloadCharacterById('${id}')" class="bg-blue-100 text-blue-700 hover:bg-blue-200 text-[10px] py-2 rounded font-bold">💾 保存</button>
+                <button onclick="event.stopPropagation(); outputCharacterStatusToLog('${id}')" class="bg-teal-100 text-teal-700 hover:bg-teal-200 text-[10px] py-2 rounded font-bold">📋 出力</button>
                 <button onclick="event.stopPropagation(); if(confirm('削除したリソース項目をリセットしますか？')) { appState.characters['${id}'].deletedResources=[]; renderCurrentCharacterSheet(); saveData(); }" class="text-[10px] text-gray-400 bg-gray-50 py-2 rounded border border-gray-100">リセット</button>
                 <button onclick="event.stopPropagation(); if(confirm('${c.name} を削除してもよろしいですか？')) { deleteCharacter('${id}'); }" class="text-[10px] text-red-400 bg-red-50 py-2 rounded border border-red-100">削除</button>
             </div>
@@ -2309,64 +2363,97 @@ function renderTabContent(id, tab) {
         executeRoll(id, label, base, equip, globalMod);
     }
     //② handleRlhRoll（RLH専用の判定計算）
-    // 新・統合ロール実行関数（以前のログ形式を完全再現）
     function executeRoll(id, label, base, equip, globalMod) {
-        const c = appState.characters[id];
-        const n = parseInt(document.getElementById('rollCount').value) || 1;
-        const tg = parseInt(document.getElementById('targetValue').value) || 0; // 目標値
-        const sk = base + equip + globalMod; // 合計修正値
-    
-        // 1. Calculate results first
-        let rawResults = [];
-        for(let i=0; i<n; i++){
-            rawResults.push(Math.floor(Math.random()*6)+1);
-        }
-        
-        // 2. Animate Dice
-        roll3DDice(rawResults, () => {
-            // 3. Process Logic inside callback
-            let s=0, f=0, cr=0, fum=0, details=[];
-            let hasCritical = false;
-            let hasFumble = false;
-            rawResults.forEach((r, i) => {
-                const tot = r + sk;
-                let resText = "";
-                if(r === 6) {
-                    resText = "クリティカル";
-                    hasCritical = true;
-                    s++; cr++;
-                } 
-                else if(r === 1) {
-                    resText = "ファンブル";
-                    hasFumble = true;
-                    f++; fum++;
-                }
-                else if(tot >= tg) {
-                    resText = "成功";
-                    s++;
-                }
-                else {
-                    resText = "失敗";
-                    f++;
-                }
-                details.push(`#${i+1}: 1D6(${r})+${sk}=${tot} -> ${resText}`);
-            });
-    
-            // Delayed sound for result
-            setTimeout(() => {
-                if (hasCritical) playCriticalSound();
-                else if (hasFumble) playFanFanSound();
-            }, 100);
+    const c = appState.characters[id];
+    const n = parseInt(document.getElementById('rollCount').value) || 1;
+    const tg = parseInt(document.getElementById('targetValue').value) || 0; // 目標値
+    const sk = base + equip + globalMod; // 合計修正値
 
-            // ログ出力
-            addLogEntry('dice', `${label}判定`, 
-            `[${c.name}] 使用数値: ${label}(${base}) + 装備/スキル(${equip}) + 修正(${globalMod}) = 計+${sk}\n` +
-            `${n}RLH >= ${tg}\n` +
+    // 1. Calculate results first
+    let rawResults = [];
+    for(let i=0; i<n; i++){
+        rawResults.push(Math.floor(Math.random()*6)+1);
+    }
+    
+    // 2. Animate Dice
+    roll3DDice(rawResults, () => {
+        // 3. Process Logic inside callback
+        let s=0, f=0, cr=0, fum=0, details=[];
+        let hasCritical = false;
+        let hasFumble = false;
+        rawResults.forEach((r, i) => {
+            const tot = r + sk;
+            let resText = "";
+            if(r === 6) {
+                resText = "クリティカル";
+                hasCritical = true;
+                s++; cr++;
+            } 
+            else if(r === 1) {
+                resText = "ファンブル";
+                hasFumble = true;
+                f++; fum++;
+            }
+            else if(tot >= tg) {
+                resText = "成功";
+                s++;
+            }
+            else {
+                resText = "失敗";
+                f++;
+            }
+
+            // 単発ロール (n === 1) の場合は "#1:" を付けない
+            const prefix = n === 1 ? "" : `#${i+1}: `;
+            
+            // 修正値の表示をスッキリさせる (skが0の場合は "+ 0" ではなく "+0" または符号をきれいに見せるため、符号を動的に判定)
+            const skSign = sk >= 0 ? `+ ${sk}` : `- ${Math.abs(sk)}`;
+            
+            details.push(`${prefix}1D6(${r}) ${skSign} = ${tot} >= ${tg} -> ${resText}`);
+        });
+
+        // Delayed sound for result
+        setTimeout(() => {
+            if (hasCritical) playCriticalSound();
+            else if (hasFumble) playFanFanSound();
+        }, 100);
+
+        // --- 動的に「使用数値」のテキストを組み立てる ---
+        let baseText = `${label}(${base})`;
+        if (equip !== 0) {
+            baseText += ` + 装備/スキル(${equip})`;
+        }
+        if (globalMod !== 0) {
+            baseText += ` + 修正(${globalMod})`;
+        }
+        const skSignTotal = sk >= 0 ? `+${sk}` : `${sk}`;
+        const usageDetail = `[${c.name}] 使用数値: ${baseText} = 計${skSignTotal}`;
+       // --- ログのタイトル（【〇〇ロール】）をきれいに整える ---
+        // 1. 「判定」という文字を消去します（「接近攻撃(技量)判定」➔「接近攻撃(技量)」、「防御判定(技量)」➔「防御(技量)」になります）
+        let cleanLabel = label.replace('判定', '');
+        
+        // 2. 「(技量)」などのカッコが最後にある場合、その手前に「ロール」を差し込みます。
+        // カッコがないシンプルなラベル（例：「回避判定」➔「回避」）の場合は、お尻に「ロール」を付けます。
+        let displayTitle = "";
+        const match = cleanLabel.match(/(.*?)\((.*?)\)/); // 「名前(能力値)」のパターンを分解
+        
+        if (match) {
+            // 例：「接近攻撃(技量)」を「接近攻撃」と「(技量)」に分け、「接近攻撃ロール(技量)」に組み立て直します
+            displayTitle = `${match[1]}ロール(${match[2]})`;
+        } else {
+            // カッコがない場合（例：「回避」➔「回避ロール」）
+            displayTitle = `${cleanLabel}ロール`;
+        }
+        // --------------------------------------------------------
+
+        // ログ出力
+        addLogEntry('dice', displayTitle, 
+            `${usageDetail}\n` +
             `${details.join('\n')}\n` +
             `成功:${s} 失敗:${f} (C:${cr}/F:${fum})`
-            );
-        });
-    }
+        );
+    });
+}
     // --- 3D Dice Animation Function ---
     function roll3DDice(values, callback) {
         // 設定でオフの場合はスキップ
@@ -2558,7 +2645,7 @@ function renderTabContent(id, tab) {
         // Animate and then Log
         roll3DDice(allVisualDice, () => {
              const content = logLines.join('\n');
-             addLogEntry('dice', label, `[実行者: ${name}]\n${content}`);
+             addLogEntry('dice', label, `[${name}]\n${content}`);
         });
     }
 
@@ -2601,6 +2688,11 @@ function renderTabContent(id, tab) {
                 // ルビ記法変換 (|文字《ルビ》 -> <ruby>文字<rt>ルビ</rt></ruby>)
                 processedContent = processedContent.replace(/[\|｜]([^\|｜《》\n]+?)《([^《》\n]+?)》/g, '<ruby>$1<rt>$2</rt></ruby>');
                 
+                // BOX内Markdown対応: div内のテキストを個別にパースする (classとstyleの両方に対応)
+                processedContent = processedContent.replace(/<div[^>]*(class|style)=(['"])(.*?)\2[^>]*>([\s\S]*?)<\/div>/g, function(match, attr, quote, value, content) {
+                    return `<div ${attr}="${value}">${marked.parse(content, { breaks: true })}</div>`;
+                });
+
                 // Markdown変換 (breaks: true で改行を反映)
                 const htmlContent = marked.parse(processedContent, { breaks: true });
                 
@@ -2618,7 +2710,53 @@ function renderTabContent(id, tab) {
             logListEl.scrollTop = logListEl.scrollHeight; // 正しいスクロールコンテナを一番下までスクロール
         }
     }
+    // キャラクターの現在のステータスをログに出力する
+    function outputCharacterStatusToLog(id) {
+        const c = appState.characters[id];
+        if (!c) return;
+        const d = c.data;
 
+        let text = `**【キャラクター現況報告】**\n`;
+        text += `■ **基本情報**\n`;
+        text += `・名前: ${c.name} (Lv.${d.level})\n`;
+        if (d.occupation) text += `・職業/種族: ${d.occupation}\n`;
+        if (d.hometown) text += `・故郷: ${d.hometown}\n`;
+        
+        text += `\n■ **ステータス**\n`;
+        text += `・技量点: ${d.skill}\n`;
+        text += `・${d.life.label}: ${d.life.current} / ${d.life.max}\n`;
+        if (!c.deletedResources.includes('subAbility')) {
+            text += `・${d.subAbility.label}: ${d.subAbility.current} / ${d.subAbility.max}\n`;
+        }
+        if (!c.deletedResources.includes('follower')) {
+            text += `・従者: ${d.follower.current} / ${d.follower.max}\n`;
+        }
+        if (!c.deletedResources.includes('gold')) text += `・金貨: ${d.gold}枚\n`;
+        if (!c.deletedResources.includes('food')) text += `・食料: ${d.food}\n`;
+        if (!c.deletedResources.includes('clue')) text += `・手がかり: ${d.clue}\n`;
+
+        // 装備
+        if (d.slots && d.slots.equipped) {
+            const equipped = d.slots.equipped.filter(s => s.item).map(s => `・${s.label}: ${s.item.name}${s.item.mod ? ' (' + s.item.mod + ')' : ''}`);
+            if (equipped.length > 0) text += `\n■ **装備**\n${equipped.join('\n')}\n`;
+        }
+
+        // スキル
+        if (d.slots && d.slots.skills && d.slots.skills.length > 0) {
+            text += `\n■ **習得スキル**\n${d.slots.skills.map(s => `・${s.name}`).join('\n')}\n`;
+        }
+
+        // 所持品 (Inventory) - プレースホルダー(続)は除外
+        if (d.slots && d.slots.inventory) {
+            const items = d.slots.inventory.filter(i => i && !i.isPlaceholder).map(i => `・${i.name}${i.mod ? ' (' + i.mod + ')' : ''}${i.uses ? ' [残り' + i.uses + '回]' : ''}`);
+            if (items.length > 0) text += `\n■ **所持品**\n${items.join('\n')}\n`;
+        }
+
+        if (d.memo) text += `\n■ **メモ**\n${d.memo}`;
+
+        addLogEntry('system', 'キャラ現況', text);
+        showToast(`${c.name} のステータスをログに出力しました`);
+    }
     function deleteLog(i){ appState.logEntries.splice(i,1); renderLogArea(); saveData(); }
     function editLog(i){ const n=prompt("編集",appState.logEntries[i].content); if(n!==null){appState.logEntries[i].content=n; renderLogArea(); saveData();}}
     function deleteChar() { if(Object.keys(appState.characters).length > 1 && confirm("削除？")){ delete appState.characters[appState.currentCharacterId]; appState.currentCharacterId = Object.keys(appState.characters)[0]; renderAll(); saveData(); }}        function switchCharacter(id) { appState.currentCharacterId = id; renderCurrentCharacterSheet(); }
@@ -2692,7 +2830,7 @@ function renderTabContent(id, tab) {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${title}.json`;
+        a.download = `RLH_Session_${title}.json`;
         a.click();
         URL.revokeObjectURL(url);
     }
@@ -2739,7 +2877,7 @@ function renderTabContent(id, tab) {
         const b = new Blob([JSON.stringify(exportData, null, 2)], {type:'application/json'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(b);
-        a.download = `Character_${c.name || 'no_name'}.json`;
+        a.download = `RLH_Character_${c.name || 'no_name'}.json`;
         a.click();
     }
 
@@ -2796,6 +2934,23 @@ function renderTabContent(id, tab) {
         }
     });
     window.speechSynthesis.onvoiceschanged = populateVoiceList;
+// --- 入力欄の自動全選択ロジック ---
+document.addEventListener('focusin', function(e) {
+    if (e.target && e.target.type === 'number') {
+        // タップ時に中身を全選択する（number型でも安全な方法）
+        e.target.select();
+        
+        // モバイル（iOS Safari等）で選択が解除されるのを防ぐおまじない
+        setTimeout(function() {
+            if (typeof e.target.select === 'function') {
+                e.target.select();
+            }
+        }, 50);
+    }
+}, true);
+
+window.onload = loadData; // ←ここにつながるようにする
+
     window.onload = loadData;
         
     // ------------------------
@@ -2836,8 +2991,13 @@ function renderTabContent(id, tab) {
             const currentVal = isStrong ? enemy.hp : enemy.count;
             const maxVal = isStrong ? enemy.hpMax : enemy.countMax;
             const valKey = isStrong ? 'hp' : 'count';
-            const maxKey = isStrong ? 'hpMax' : 'countMax';
+            const radio = document.querySelector(`input[name="logFontSize"][value="${size}"]`);
+            if(radio) radio.checked = true;
 
+            // フォント設定のUI同期
+            const font = appState.fontPreference || 'gothic';
+            const fontRadio = document.querySelector(`input[name="fontPreference"][value="${font}"]`);
+            if(fontRadio) fontRadio.checked = true;
             const percent = maxVal > 0 ? (currentVal / maxVal) * 100 : 0;
             const isDamaged = currentVal <= maxVal / 2;
             const barColor = isDamaged ? 'bg-rose-600' : 'bg-emerald-500';
@@ -2899,14 +3059,14 @@ function renderTabContent(id, tab) {
         const newId = 'enemy_' + Date.now();
         const newEnemy = {
             id: newId,
-            name: mode === 'strong' ? '強いクリーチャー' : '弱いクリーチャー',
+            name: mode === 'strong' ? 'クリーチャー' : 'クリーチャー',
             mode: mode,
             level: 4,
             tv: 4,
             isLinked: true,
             hp: 10, hpMax: 10, 
-            count: 5, countMax: 5, 
-            attacks: mode === 'strong' ? 1 : 5,
+            count: 10, countMax: 10, 
+            attacks: mode === 'strong' ? 1 : 10,
         };
         appState.enemies.push(newEnemy);
         setActiveEnemy(newId);
@@ -2973,12 +3133,15 @@ function renderTabContent(id, tab) {
 
         enemy[key] = val
 
-        // hpMaxやcountMaxを更新した際に、現在値がそれを超えていたら調整
-        if (key === 'hpMax' && enemy.hp > val) {
+        // hpMaxやcountMaxを更新した際に、現在値も同値になるようにする
+        if (key === 'hpMax') {
             enemy.hp = val;
         }
-        if (key === 'countMax' && enemy.count > val) {
+        if (key === 'countMax') {
             enemy.count = val;
+            // countMaxが更新された際に、弱いクリーチャーであれば攻撃回数も更新する
+            // (countMax変更時にenemy.countが更新されるが、keyは'countMax'のままなので、別途チェックが必要)
+            if (enemy.mode === 'weak') enemy.attacks = val;
         }
 
         if (key === 'level' && enemy.isLinked) {
@@ -3125,6 +3288,36 @@ function renderTabContent(id, tab) {
         saveData();
         renderLogArea();
     }
+
+    // フォント設定の切り替え
+    function changeFontPreference(font) {
+        appState.fontPreference = font;
+        saveData();
+        applyFontPreference();
+    }
+
+    // フォント設定の画面適用
+    function applyFontPreference() {
+        const font = appState.fontPreference || 'gothic';
+        const body = document.body;
+        if (font === 'mincho') {
+            body.classList.add('font-mincho');
+            body.classList.remove('font-gothic');
+        } else {
+            body.classList.add('font-gothic');
+            body.classList.remove('font-mincho');
+        }
+        // UIラジオボタンの同期
+        const radios = document.getElementsByName('fontPreference');
+        radios.forEach(radio => {
+            if (radio.value === font) {
+                radio.checked = true;
+            }
+        });
+    }
+    function deleteLog(i){ appState.logEntries.splice(i,1); renderLogArea(); saveData(); }
+    function editLog(i){ const n=prompt("編集",appState.logEntries[i].content); if(n!==null){appState.logEntries[i].content=n; renderLogArea(); saveData();}}
+    function deleteChar() { if(Object.keys(appState.characters).length > 1 && confirm("削除？")){ delete appState.characters[appState.currentCharacterId]; appState.currentCharacterId = Object.keys(appState.characters)[0]; renderAll(); saveData(); }}        function switchCharacter(id) { appState.currentCharacterId = id; renderCurrentCharacterSheet(); }
 
     function applyTheme(themeName) {
         document.body.classList.remove('theme-night', 'theme-sepia');
@@ -4433,6 +4626,19 @@ ${treasureText}
             </div>
         </div>
         <div class="mb-6">
+            <h3 class="font-bold mb-2 text-sm text-gray-700">フォント設定</h3>
+            <div class="flex gap-2 bg-gray-50 p-1 rounded border border-gray-200">
+                <label class="flex-1 text-center cursor-pointer">
+                    <input type="radio" name="fontPreference" value="gothic" onchange="changeFontPreference('gothic')" class="hidden peer">
+                    <span class="block py-2 rounded text-xs font-bold text-gray-600 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all hover:bg-gray-100">ゴシック体</span>
+                </label>
+                <label class="flex-1 text-center cursor-pointer">
+                    <input type="radio" name="fontPreference" value="mincho" onchange="changeFontPreference('mincho')" class="hidden peer">
+                    <span class="block py-2 rounded text-xs font-bold text-gray-600 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all hover:bg-gray-100">明朝体</span>
+                </label>
+            </div>
+        </div>
+        <div class="mb-6">
             <h3 class="font-bold mb-2 text-sm text-gray-700">ログの文字サイズ</h3>
             <div class="flex gap-2 bg-gray-50 p-1 rounded border border-gray-200">
                 <label class="flex-1 text-center cursor-pointer">
@@ -4657,6 +4863,9 @@ ${treasureText}
         document.getElementById('nav-rollCount').value = document.getElementById('rollCount').value || 1;
         document.getElementById('nav-targetValue').value = document.getElementById('targetValue').value || 4;
         // 修正値は skillValue (キャラクター判定用) を優先して同期
+        autoSelectOnFocus(document.getElementById('nav-rollCount'));
+        autoSelectOnFocus(document.getElementById('nav-targetValue'));
+        autoSelectOnFocus(document.getElementById('nav-quickModValue'));
         document.getElementById('nav-quickModValue').value = document.getElementById('skillValue').value || 0;
         // ナビボール内の入力欄にもフリック機能を付与
         enableFlickNumericInput(document.getElementById('nav-quickModValue'));
