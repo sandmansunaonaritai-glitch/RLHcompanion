@@ -2344,63 +2344,98 @@ function renderTabContent(id, tab) {
     }
     //② handleRlhRoll（RLH専用の判定計算）
     // 新・統合ロール実行関数（以前のログ形式を完全再現）
-    function executeRoll(id, label, base, equip, globalMod) {
-        const c = appState.characters[id];
-        const n = parseInt(document.getElementById('rollCount').value) || 1;
-        const tg = parseInt(document.getElementById('targetValue').value) || 0; // 目標値
-        const sk = base + equip + globalMod; // 合計修正値
-    
-        // 1. Calculate results first
-        let rawResults = [];
-        for(let i=0; i<n; i++){
-            rawResults.push(Math.floor(Math.random()*6)+1);
-        }
-        
-        // 2. Animate Dice
-        roll3DDice(rawResults, () => {
-            // 3. Process Logic inside callback
-            let s=0, f=0, cr=0, fum=0, details=[];
-            let hasCritical = false;
-            let hasFumble = false;
-            rawResults.forEach((r, i) => {
-                const tot = r + sk;
-                let resText = "";
-                if(r === 6) {
-                    resText = "クリティカル";
-                    hasCritical = true;
-                    s++; cr++;
-                } 
-                else if(r === 1) {
-                    resText = "ファンブル";
-                    hasFumble = true;
-                    f++; fum++;
-                }
-                else if(tot >= tg) {
-                    resText = "成功";
-                    s++;
-                }
-                else {
-                    resText = "失敗";
-                    f++;
-                }
-                details.push(`#${i+1}: 1D6(${r})+${sk}=${tot} -> ${resText}`);
-            });
-    
-            // Delayed sound for result
-            setTimeout(() => {
-                if (hasCritical) playCriticalSound();
-                else if (hasFumble) playFanFanSound();
-            }, 100);
+function executeRoll(id, label, base, equip, globalMod) {
+    const c = appState.characters[id];
+    const n = parseInt(document.getElementById('rollCount').value) || 1;
+    const tg = parseInt(document.getElementById('targetValue').value) || 0; // 目標値
+    const sk = base + equip + globalMod; // 合計修正値
 
-            // ログ出力
-            addLogEntry('dice', `${label}判定`, 
-            `[${c.name}] 使用数値: ${label}(${base}) + 装備/スキル(${equip}) + 修正(${globalMod}) = 計+${sk}\n` +
-            `${n}RLH >= ${tg}\n` +
+    // 1. Calculate results first
+    let rawResults = [];
+    for(let i=0; i<n; i++){
+        rawResults.push(Math.floor(Math.random()*6)+1);
+    }
+    
+    // 2. Animate Dice
+    roll3DDice(rawResults, () => {
+        // 3. Process Logic inside callback
+        let s=0, f=0, cr=0, fum=0, details=[];
+        let hasCritical = false;
+        let hasFumble = false;
+        rawResults.forEach((r, i) => {
+            const tot = r + sk;
+            let resText = "";
+            if(r === 6) {
+                resText = "クリティカル";
+                hasCritical = true;
+                s++; cr++;
+            } 
+            else if(r === 1) {
+                resText = "ファンブル";
+                hasFumble = true;
+                f++; fum++;
+            }
+            else if(tot >= tg) {
+                resText = "成功";
+                s++;
+            }
+            else {
+                resText = "失敗";
+                f++;
+            }
+
+            // 単発ロール (n === 1) の場合は "#1:" を付けない
+            const prefix = n === 1 ? "" : `#${i+1}: `;
+            
+            // 修正値の表示をスッキリさせる (skが0の場合は "+ 0" ではなく "+0" または符号をきれいに見せるため、符号を動的に判定)
+            const skSign = sk >= 0 ? `+ ${sk}` : `- ${Math.abs(sk)}`;
+            
+            details.push(`${prefix}1D6(${r}) ${skSign} = ${tot} >= ${tg} -> ${resText}`);
+        });
+
+        // Delayed sound for result
+        setTimeout(() => {
+            if (hasCritical) playCriticalSound();
+            else if (hasFumble) playFanFanSound();
+        }, 100);
+
+        // --- 動的に「使用数値」のテキストを組み立てる ---
+        let baseText = `${label}(${base})`;
+        if (equip !== 0) {
+            baseText += ` + 装備/スキル(${equip})`;
+        }
+        if (globalMod !== 0) {
+            baseText += ` + 修正(${globalMod})`;
+        }
+        const skSignTotal = sk >= 0 ? `+${sk}` : `${sk}`;
+        const usageDetail = `[${c.name}] 使用数値: ${baseText} = 計${skSignTotal}`;
+        // ---------------------------------------------
+        // --- ログのタイトル（【〇〇ロール】）をきれいに整える ---
+        // 1. 「判定」という文字を消去します（「接近攻撃(技量)判定」➔「接近攻撃(技量)」、「防御判定(技量)」➔「防御(技量)」になります）
+        let cleanLabel = label.replace('判定', '');
+        
+        // 2. 「(技量)」などのカッコが最後にある場合、その手前に「ロール」を差し込みます。
+        // カッコがないシンプルなラベル（例：「回避判定」➔「回避」）の場合は、お尻に「ロール」を付けます。
+        let displayTitle = "";
+        const match = cleanLabel.match(/(.*?)\((.*?)\)/); // 「名前(能力値)」のパターンを分解
+        
+        if (match) {
+            // 例：「接近攻撃(技量)」を「接近攻撃」と「(技量)」に分け、「接近攻撃ロール(技量)」に組み立て直します
+            displayTitle = `${match[1]}ロール(${match[2]})`;
+        } else {
+            // カッコがない場合（例：「回避」➔「回避ロール」）
+            displayTitle = `${cleanLabel}ロール`;
+        }
+        // --------------------------------------------------------
+
+        // ログ出力
+        addLogEntry('dice', displayTitle, 
+            `${usageDetail}\n` +
             `${details.join('\n')}\n` +
             `成功:${s} 失敗:${f} (C:${cr}/F:${fum})`
-            );
-        });
-    }
+        );
+    });
+}
     // --- 3D Dice Animation Function ---
     function roll3DDice(values, callback) {
         // 設定でオフの場合はスキップ
