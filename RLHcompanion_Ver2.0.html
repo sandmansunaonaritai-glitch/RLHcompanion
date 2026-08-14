@@ -1,4 +1,4 @@
-<!--RLHcompanion_Ver2.4.2-->
+<!--RLHcompanion_Ver2.4.3-->
 <!DOCTYPE html>                   
 <html lang="ja">
 <head>
@@ -14,6 +14,17 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; overflow: hidden; }
         .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #9ca3af; border-radius: 4px; }
+
+        /* Sub bonus container (level 25+) animation */
+        .sub-bonus-container {
+            animation: slideDown 0.3s ease-out forwards;
+            overflow: hidden;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; transform: translateY(-5px); }
+            to { opacity: 1; max-height: 100px; transform: translateY(0); }
+        }
         .custom-scroll::-webkit-scrollbar-thumb { background-color: #9ca3af; border-radius: 4px; }
         
         /* D66 Grid Styles */
@@ -1809,7 +1820,7 @@ function renderCurrentCharacterSheet() {
                     <input type="number" value="${d.level || 10}" 
                         class="w-8 text-center text-[11px] font-bold bg-transparent focus:outline-none border-b border-transparent hover:border-blue-300"
                         onclick="event.stopPropagation();"
-                        onchange="const val = parseInt(this.value) || 1; appState.characters['${id}'].data.level=val; saveData(); addLogEntry('system', '', \`[\${appState.characters['${id}'].name}] レベルが \${val} に変更されました\`);">
+                        onchange="const val = parseInt(this.value) || 1; appState.characters['${id}'].data.level=val; saveData(); addLogEntry('system', '', \`[\${appState.characters['${id}'].name}] レベルが \${val} に変更されました\`); renderCurrentCharacterSheet();">
                     
                     <div class="flex items-center text-red-600 font-bold bg-red-50 px-1 rounded border border-red-100">
                         <span class="mr-1 text-[9px]">❤️</span>
@@ -1929,6 +1940,36 @@ function renderTabContent(id, tab) {
                 <button onclick="adjustResource('${id}', '${res.id}', 1)" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded text-gray-600 font-bold text-xs border border-gray-300">+</button>
                 <input type="number" value="${max}" class="w-8 text-center text-[10px] bg-transparent border-b border-gray-300 focus:outline-none text-gray-400" onchange="onResChange('${res.id}', '${logLabel}', this.value, true, '${id}'); renderCurrentCharacterSheet();">
             </div>`;
+
+            // レベル25以上の副能力値追加
+            if (res.id === 'subAbility' && d.level >= 25) {
+                try {
+                    if (!d.subAbilitySecondary) {
+                        d.subAbilitySecondary = { current: 0, max: 0, type: 'str', label: '筋力' };
+                    }
+                    const sub2 = d.subAbilitySecondary;
+                    const percent2 = sub2.max > 0 ? Math.min(100, Math.max(0, (sub2.current / sub2.max) * 100)) : 0;
+                    
+                    h += `<div class="sub-bonus-container mt-1">
+                        <div class="flex items-center gap-1 h-7">
+                            <div class="w-16 shrink-0 flex items-center gap-1">
+                                <select class="w-full bg-transparent font-bold text-indigo-700 focus:outline-none appearance-none pr-3 text-[10px]" onchange="event.stopPropagation(); const ch=appState.characters['${id}']; ch.data.subAbilitySecondary.type=this.value; ch.data.subAbilitySecondary.label=this.options[this.selectedIndex].text; renderCurrentCharacterSheet(); saveData();">
+                                    ${[{v:'luck',t:'幸運'},{v:'str',t:'筋力'},{v:'mag',t:'魔術'},{v:'dex',t:'器用'}].map(opt => `<option value="${opt.v}" ${sub2.type===opt.v?'selected':''}>${opt.t}</option>`).join('')}
+                                </select>
+                            </div>
+                            <button onclick="adjustSecondaryResource('${id}', -1)" class="w-6 h-6 flex items-center justify-center bg-indigo-50 hover:bg-indigo-100 rounded text-indigo-600 font-bold text-xs border border-indigo-200">-</button>
+                            <div class="flex-grow relative h-5 bg-indigo-50 progress-bar-track rounded-full overflow-hidden cursor-pointer border border-indigo-200" onclick="const v=prompt('${sub2.label}(副能力)の現在値を入力', ${sub2.current}); if(v!==null) { const val=parseInt(v)||0; appState.characters['${id}'].data.subAbilitySecondary.current=val; renderCurrentCharacterSheet(); saveData(); }">
+                                <div class="h-full bg-indigo-400 progress-bar-fill transition-all duration-300" style="width: ${percent2}%"></div>
+                                <div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md" style="text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${sub2.current} / ${sub2.max}</div>
+                            </div>
+                            <button onclick="adjustSecondaryResource('${id}', 1)" class="w-6 h-6 flex items-center justify-center bg-indigo-50 hover:bg-indigo-100 rounded text-indigo-600 font-bold text-xs border border-indigo-200">+</button>
+                            <input type="number" value="${sub2.max}" class="w-8 text-center text-[10px] bg-transparent border-b border-indigo-200 focus:outline-none text-gray-400" onchange="const val=parseInt(this.value)||0; appState.characters['${id}'].data.subAbilitySecondary.max=val; renderCurrentCharacterSheet(); saveData();">
+                        </div>
+                    </div>`;
+                } catch(err) {
+                    console.error("Secondary resource render failed", err);
+                }
+            }
         });
         h += `</div>`;
 
@@ -2095,10 +2136,39 @@ function renderTabContent(id, tab) {
 
     } else if (tab === 'memo') {
         // --- Memo Tab Content ---
+        const isOccCustom = d.occupation && !isDefaultOccupation(d.occupation);
         h += `<div class="flex gap-3 mb-4">
             <div class="flex-1">
                     <label class="block text-xs font-bold text-gray-500 mb-1">職業/種族</label>
-                    <input type="text" class="w-full text-[12px] border border-gray-200 p-2 rounded-md focus:ring-1 focus:ring-blue-400 focus:outline-none" placeholder="職業や種族を記入" onclick="event.stopPropagation();" onchange="appState.characters['${id}'].data.occupation=this.value; saveData();" value="${d.occupation || ''}">
+                    <select id="select-occ-${id}" class="w-full text-[12px] border border-gray-200 p-2 rounded-md focus:ring-1 focus:ring-blue-400 focus:outline-none" onclick="event.stopPropagation();" onchange="onOccupationSelectChange('${id}', this.value, 'select-occ-custom-div-${id}', 'select-occ-custom-input-${id}', 'occupation')">
+                        ${renderOccupationOptions(d.occupation || '')}
+                    </select>
+                    
+                    <div id="select-occ-custom-div-${id}" class="${isOccCustom ? 'mt-2' : 'hidden mt-2'}">
+                        <input type="text" id="select-occ-custom-input-${id}" class="w-full text-[12px] border border-indigo-200 p-2 rounded-md focus:ring-1 focus:ring-indigo-400 focus:outline-none bg-indigo-50/5" placeholder="職業/種族名を入力..." value="${isOccCustom ? d.occupation : ''}" onchange="onOccupationCustomInputChange('${id}', this.value, 'occupation')" onclick="event.stopPropagation();">
+                    </div>
+                    
+                    ${(d.level >= 25) ? (() => {
+                        try {
+                            if (!d.subClass) d.subClass = '';
+                            const isSubCustom = d.subClass && !isDefaultOccupation(d.subClass);
+                            return `<div class="sub-bonus-container mt-2 border border-dashed border-indigo-200 p-1.5 rounded-lg bg-indigo-50/10">
+                                <label class="block text-[10px] font-bold text-indigo-700 mb-1 flex items-center gap-1">
+                                    <span class="text-[8px] bg-indigo-100 text-indigo-700 font-bold px-1 rounded shrink-0">副職業</span>
+                                </label>
+                                <select id="select-sub-${id}" class="w-full text-[11px] border border-indigo-200 p-1 rounded focus:outline-none bg-white" onclick="event.stopPropagation();" onchange="onOccupationSelectChange('${id}', this.value, 'select-sub-custom-div-${id}', 'select-sub-custom-input-${id}', 'subClass')">
+                                    ${renderOccupationOptions(d.subClass || '')}
+                                </select>
+                                
+                                <div id="select-sub-custom-div-${id}" class="${isSubCustom ? 'mt-1.5' : 'hidden mt-1.5'}">
+                                    <input type="text" id="select-sub-custom-input-${id}" class="w-full text-[11px] border border-indigo-200 p-1.5 rounded focus:outline-none bg-indigo-50/5" placeholder="副職業名を入力..." value="${isSubCustom ? d.subClass : ''}" onchange="onOccupationCustomInputChange('${id}', this.value, 'subClass')" onclick="event.stopPropagation();">
+                                </div>
+                            </div>`;
+                        } catch(err) {
+                            console.error("Subclass render failed", err);
+                            return '';
+                        }
+                    })() : ''}
                 </div>
             <div class="flex-1">
                     <label class="block text-xs font-bold text-gray-500 mb-1">故郷</label>
@@ -2148,6 +2218,113 @@ function renderTabContent(id, tab) {
         showToast(`🎲 ランダム選出\n当選: ${winner.name}`);
     }
     
+    // 職業/種族がデフォルトのものであるかを判定
+    function isDefaultOccupation(val) {
+        const defaultClasses = [
+            "魔術師", "僧侶", "戦士", "盗賊", "怪物狩猟者", "錬金術師", "吟遊詩人", "聖騎士", "獣使い", "異国魔法使い",
+            "暗殺者", "剣闘士", "戦鍛冶", "からくり術師", "悪魔召喚師", "影法師", "秘術師", "吸血鬼殺し", "呪術師", "道化師"
+        ];
+        const hodClasses = [
+            "半巨人", "魔猫", "おどる剣", "緋色の魔術師", "オーク", "バルサムデビル", "翼人", "ケンタウロス", "ゴブリン",
+            "ケモノコビット", "ジグリ・ザグリ", "妖狐", "吸血鬼", "肉食キューブ", "アラネア", "末裔", "ガーゴイル",
+            "リンドヴルム", "死せる砂漠の道化師", "ゴーレム"
+        ];
+        return defaultClasses.includes(val) || hodClasses.includes(val);
+    }
+
+    // 職業/種族の選択肢生成
+    function renderOccupationOptions(selectedValue) {
+        const defaultClasses = [
+            "魔術師", "僧侶", "戦士", "盗賊", "怪物狩猟者", "錬金術師", "吟遊詩人", "聖騎士", "獣使い", "異国魔法使い",
+            "暗殺者", "剣闘士", "戦鍛冶", "からくり術師", "悪魔召喚師", "影法師", "秘術師", "吸血鬼殺し", "呪術師", "道化師"
+        ];
+        const hodClasses = [
+            "半巨人", "魔猫", "おどる剣", "緋色の魔術師", "オーク", "バルサムデビル", "翼人", "ケンタウロス", "ゴブリン",
+            "ケモノコビット", "ジグリ・ザグリ", "妖狐", "吸血鬼", "肉食キューブ", "アラネア", "末裔", "ガーゴイル",
+            "リンドヴルム", "死せる砂漠の道化師", "ゴーレム"
+        ];
+
+        let h = `<option value="">選択してください...</option>`;
+        
+        h += `<optgroup label="通常職業">`;
+        defaultClasses.forEach(c => {
+            h += `<option value="${c}" ${selectedValue === c ? 'selected' : ''}>${c}</option>`;
+        });
+        h += `</optgroup>`;
+
+        h += `<optgroup label="HoD">`;
+        hodClasses.forEach(c => {
+            h += `<option value="${c}" ${selectedValue === c ? 'selected' : ''}>${c}</option>`;
+        });
+        h += `</optgroup>`;
+
+        // custom 判定: 値があり、かつデフォルト職業に含まれない場合
+        const isCustom = selectedValue && !defaultClasses.includes(selectedValue) && !hodClasses.includes(selectedValue);
+        h += `<option value="custom" ${isCustom ? 'selected' : ''}>その他（自由入力）</option>`;
+
+        return h;
+    }
+
+    // 職業セレクトボックス変更ハンドラ
+    function onOccupationSelectChange(charId, selectedVal, customDivId, customInputId, dataKey) {
+        try {
+            const char = appState.characters[charId];
+            if (!char) return;
+            
+            const div = document.getElementById(customDivId);
+            const input = document.getElementById(customInputId);
+            
+            if (selectedVal === 'custom') {
+                if (div) div.classList.remove('hidden');
+                const customVal = input ? input.value : '';
+                char.data[dataKey] = customVal;
+            } else {
+                if (div) div.classList.add('hidden');
+                char.data[dataKey] = selectedVal;
+            }
+            saveData();
+        } catch(err) {
+            console.error("Occupation select change error", err);
+        }
+    }
+
+    // 自由入力テキストフィールド変更ハンドラ
+    function onOccupationCustomInputChange(charId, value, dataKey) {
+        try {
+            const char = appState.characters[charId];
+            if (!char) return;
+            char.data[dataKey] = value.trim();
+            saveData();
+        } catch(err) {
+            console.error("Occupation custom input change error", err);
+        }
+    }
+
+    // 副能力値の調整
+    function adjustSecondaryResource(id, delta) {
+        try {
+            const c = appState.characters[id];
+            if (!c) return;
+            const d = c.data;
+            if (!d.subAbilitySecondary) {
+                d.subAbilitySecondary = { current: 0, max: 0, type: 'str', label: '筋力' };
+            }
+            const target = d.subAbilitySecondary;
+            let val = parseInt(target.current) || 0;
+            const max = parseInt(target.max) || 0;
+            val += delta;
+            if (val < 0) val = 0;
+            if (val > max) val = max;
+            target.current = val;
+            
+            saveData();
+            renderCurrentCharacterSheet();
+            addLogEntry('system', '', `[${c.name}] ${target.label}(副能力)の現在値が ${val} に変更されました`);
+        } catch(err) {
+            console.error("Secondary resource adjust failed", err);
+        }
+    }
+
     function adjustResource(id, key, delta) {
         const c = appState.characters[id];
         if (!c) return;
@@ -2344,98 +2521,63 @@ function renderTabContent(id, tab) {
     }
     //② handleRlhRoll（RLH専用の判定計算）
     // 新・統合ロール実行関数（以前のログ形式を完全再現）
-function executeRoll(id, label, base, equip, globalMod) {
-    const c = appState.characters[id];
-    const n = parseInt(document.getElementById('rollCount').value) || 1;
-    const tg = parseInt(document.getElementById('targetValue').value) || 0; // 目標値
-    const sk = base + equip + globalMod; // 合計修正値
-
-    // 1. Calculate results first
-    let rawResults = [];
-    for(let i=0; i<n; i++){
-        rawResults.push(Math.floor(Math.random()*6)+1);
-    }
+    function executeRoll(id, label, base, equip, globalMod) {
+        const c = appState.characters[id];
+        const n = parseInt(document.getElementById('rollCount').value) || 1;
+        const tg = parseInt(document.getElementById('targetValue').value) || 0; // 目標値
+        const sk = base + equip + globalMod; // 合計修正値
     
-    // 2. Animate Dice
-    roll3DDice(rawResults, () => {
-        // 3. Process Logic inside callback
-        let s=0, f=0, cr=0, fum=0, details=[];
-        let hasCritical = false;
-        let hasFumble = false;
-        rawResults.forEach((r, i) => {
-            const tot = r + sk;
-            let resText = "";
-            if(r === 6) {
-                resText = "クリティカル";
-                hasCritical = true;
-                s++; cr++;
-            } 
-            else if(r === 1) {
-                resText = "ファンブル";
-                hasFumble = true;
-                f++; fum++;
-            }
-            else if(tot >= tg) {
-                resText = "成功";
-                s++;
-            }
-            else {
-                resText = "失敗";
-                f++;
-            }
-
-            // 単発ロール (n === 1) の場合は "#1:" を付けない
-            const prefix = n === 1 ? "" : `#${i+1}: `;
-            
-            // 修正値の表示をスッキリさせる (skが0の場合は "+ 0" ではなく "+0" または符号をきれいに見せるため、符号を動的に判定)
-            const skSign = sk >= 0 ? `+ ${sk}` : `- ${Math.abs(sk)}`;
-            
-            details.push(`${prefix}1D6(${r}) ${skSign} = ${tot} >= ${tg} -> ${resText}`);
-        });
-
-        // Delayed sound for result
-        setTimeout(() => {
-            if (hasCritical) playCriticalSound();
-            else if (hasFumble) playFanFanSound();
-        }, 100);
-
-        // --- 動的に「使用数値」のテキストを組み立てる ---
-        let baseText = `${label}(${base})`;
-        if (equip !== 0) {
-            baseText += ` + 装備/スキル(${equip})`;
+        // 1. Calculate results first
+        let rawResults = [];
+        for(let i=0; i<n; i++){
+            rawResults.push(Math.floor(Math.random()*6)+1);
         }
-        if (globalMod !== 0) {
-            baseText += ` + 修正(${globalMod})`;
-        }
-        const skSignTotal = sk >= 0 ? `+${sk}` : `${sk}`;
-        const usageDetail = `[${c.name}] 使用数値: ${baseText} = 計${skSignTotal}`;
-        // ---------------------------------------------
-        // --- ログのタイトル（【〇〇ロール】）をきれいに整える ---
-        // 1. 「判定」という文字を消去します（「接近攻撃(技量)判定」➔「接近攻撃(技量)」、「防御判定(技量)」➔「防御(技量)」になります）
-        let cleanLabel = label.replace('判定', '');
         
-        // 2. 「(技量)」などのカッコが最後にある場合、その手前に「ロール」を差し込みます。
-        // カッコがないシンプルなラベル（例：「回避判定」➔「回避」）の場合は、お尻に「ロール」を付けます。
-        let displayTitle = "";
-        const match = cleanLabel.match(/(.*?)\((.*?)\)/); // 「名前(能力値)」のパターンを分解
-        
-        if (match) {
-            // 例：「接近攻撃(技量)」を「接近攻撃」と「(技量)」に分け、「接近攻撃ロール(技量)」に組み立て直します
-            displayTitle = `${match[1]}ロール(${match[2]})`;
-        } else {
-            // カッコがない場合（例：「回避」➔「回避ロール」）
-            displayTitle = `${cleanLabel}ロール`;
-        }
-        // --------------------------------------------------------
+        // 2. Animate Dice
+        roll3DDice(rawResults, () => {
+            // 3. Process Logic inside callback
+            let s=0, f=0, cr=0, fum=0, details=[];
+            let hasCritical = false;
+            let hasFumble = false;
+            rawResults.forEach((r, i) => {
+                const tot = r + sk;
+                let resText = "";
+                if(r === 6) {
+                    resText = "クリティカル";
+                    hasCritical = true;
+                    s++; cr++;
+                } 
+                else if(r === 1) {
+                    resText = "ファンブル";
+                    hasFumble = true;
+                    f++; fum++;
+                }
+                else if(tot >= tg) {
+                    resText = "成功";
+                    s++;
+                }
+                else {
+                    resText = "失敗";
+                    f++;
+                }
+                details.push(`#${i+1}: 1D6(${r})+${sk}=${tot} -> ${resText}`);
+            });
+    
+            // Delayed sound for result
+            setTimeout(() => {
+                if (hasCritical) playCriticalSound();
+                else if (hasFumble) playFanFanSound();
+            }, 100);
 
-        // ログ出力
-        addLogEntry('dice', displayTitle, 
-            `${usageDetail}\n` +
+            // ログ出力
+            addLogEntry('dice', `${label}判定`, 
+            `[${c.name}] 使用数値: ${label}(${base}) + 装備/スキル(${equip}) + 修正(${globalMod}) = 計+${sk}\n` +
+            `${n}RLH >= ${tg}\n` +
             `${details.join('\n')}\n` +
             `成功:${s} 失敗:${f} (C:${cr}/F:${fum})`
-        );
-    });
-}
+            );
+        });
+    }
     // --- 3D Dice Animation Function ---
     function roll3DDice(values, callback) {
         // 設定でオフの場合はスキップ
