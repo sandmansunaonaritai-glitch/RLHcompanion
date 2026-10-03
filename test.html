@@ -1,4 +1,4 @@
-<!--RLHcompanion_Ver2.4.3-->
+<!--RLHcompanion_Ver2.5.0-->
 <!DOCTYPE html>                   
 <html lang="ja">
 <head>
@@ -14,6 +14,35 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; overflow: hidden; }
         .custom-scroll::-webkit-scrollbar { width: 5px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background-color: #9ca3af; border-radius: 4px; }
+
+        /* Sub bonus container (level 25+) animation */
+        .sub-bonus-container {
+            animation: slideDown 0.3s ease-out forwards;
+            overflow: hidden;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; max-height: 0; transform: translateY(-5px); }
+            to { opacity: 1; max-height: 100px; transform: translateY(0); }
+        }
+
+        /* レベル帯アクセントカラー（選択中のみ控えめなグロー） */
+        .character-card.tier-1 { --tier-color: #2e7d32; }
+        .character-card.tier-2 { --tier-color: #1565c0; }
+        .character-card.tier-3 { --tier-color: #6a1b9a; }
+        .character-card.tier-4 { --tier-color: #c67c00; }
+        .character-card .level-label {
+            color: var(--tier-color);
+        }
+        .character-card .char-tab.char-tab-active {
+            border-bottom: 1.8px solid var(--tier-color);
+            color: var(--tier-color);
+        }
+        .character-card.selected {
+            border: 1.8px solid var(--tier-color) !important;
+            box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier-color) 35%, transparent),
+                        0 0 7px color-mix(in srgb, var(--tier-color) 40%, transparent);
+        }
         .custom-scroll::-webkit-scrollbar-thumb { background-color: #9ca3af; border-radius: 4px; }
         
         /* D66 Grid Styles */
@@ -89,18 +118,6 @@
         .record-table tr.active-row { background: #fffbeb; outline: 2px solid #f59e0b; outline-offset: -2px; }
         .resource-input { padding: 0.1rem; font-size: 0.85rem; text-align: center; border-radius: 0.25rem; width: 2.8rem; border: 1px solid #d1d5db; }
 
-        /* Font switching overrides */
-        body.font-mincho .markdown-body,
-        body.font-mincho #log-list,
-        body.font-mincho .record-table {
-            font-family: 'Noto Serif JP', 'Georgia', serif;
-        }
-        body.font-gothic .markdown-body,
-        body.font-gothic #log-list,
-        body.font-gothic .record-table {
-            font-family: 'Inter', sans-serif;
-        }
-
         /* Markdown in Log Styles */
         .markdown-body strong { font-weight: 700; }
         .markdown-body em { font-style: italic; background-color: #fef3c7; }
@@ -139,7 +156,7 @@
         .choice-btn:hover {background: #eef2ff;transform: translateY(-1px);}
         .choice-btn:active {transform: translateY(1px);}
 
-    /* Mobile Tab View */
+        /* Mobile Tab View */
         @media (max-width: 1023px) {
         /* 1. 画面全体の固定（二重スクロール防止） */
         body {
@@ -167,44 +184,30 @@
         -webkit-overflow-scrolling: touch;
         }
 
-/* 3. ログタブ専用の設定（入力欄を下に固定、ログだけスクロール） */
-#log-section.active {
-    display: flex !important;
-    flex-direction: column !important;
-    
+        /* 3. ログタブ専用の設定（入力欄を下に固定、ログだけスクロール） */
+        #log-section.active {
+        overflow: hidden !important; /* ログタブ自体はスクロールさせず、中身で制御 */
+        padding: 0 !important; /* モバイルではパディングを削除して画面を広く使う */
+        }
 
-    /* 【変更】固定の高さ指定を消し、余った縦スペースを自動で埋める設定にする */
-    flex: 1 !important; 
-    min-height: 0 !important; /* Flex子要素が親を突き破るのを防ぐ魔法の呪文 */
-    overflow: hidden !important;
-    padding: 0 !important;
-}
+            /* ログリスト：可変エリア */
+             #log-list { 
+            flex: 1 !important; 
+            overflow-y: auto !important; 
+            min-height: 0; 
+            padding-bottom: 10px;
+            border-radius: 0 !important; /* 角丸解除 */
+            border-left: none !important; border-right: none !important; /* 左右ボーダー解除 */
+            }
 
-/* ログリスト：可変エリア */
-#log-list { 
-    flex: 1 !important; 
-    overflow-y: auto !important; 
-    min-height: 0; 
-    padding-bottom: 10px;
-    border-radius: 0 !important;
-    border-left: none !important; border-right: none !important;
-}
-
-
-/* ログ入力エリア：IDで直接指定 */
-#input-control-panel { 
-    flex-shrink: 0 !important;
-    padding: 8px;
-    border-top: 1px solid #e5e7eb;
-
-
-
-    /* 【変更】安全のために下側の余白を少しだけ広めに確保する */
-    padding-bottom: max(16px, env(safe-area-inset-bottom)) !important; 
-    z-index: 10;
-    background-color: white; 
-
-}
+            /* ログ入力エリア：IDで直接指定 */
+            #input-control-panel { /* 入力エリアを包むdivにこのIDを付ける */
+            flex-shrink: 0 !important;
+            padding: 8px;
+            border-top: 1px solid #e5e7eb;
+            padding-bottom: max(8px, env(safe-area-inset-bottom)); /* iPhone等のホームバー対応 */
+            z-index: 10;
+            }
 
             /* D66エリアの高さ制限（モバイルのみ） */
             #log-section details {
@@ -213,7 +216,6 @@
             margin-bottom: 0 !important;
             border-radius: 0 !important;
             }
-
 
             /* 選択肢エリアのスタイル */
             #choice-container {
@@ -238,7 +240,6 @@
 
             /* セッション名入力欄の幅を確保 */
             #logTitle {min-width: 60px !important;}
-        }
 
             /* モバイル：アクティブなタブのボタン色 */
             .tab-btn.active {
@@ -432,7 +433,31 @@
        body.theme-sepia .record-table tr.active-row { background-color: #d7ccc8 !important; }
        body.theme-sepia .choice-btn { background-color: #bcaaa4 !important; color: #3e2723 !important; border-color: #a1887f !important; }
        body.theme-sepia #view-char div.border-blue-300.bg-blue-50 { background-color: #d7ccc8 !important; border-color: #bcaaa4 !important; }
-       body.theme-sepia #view-char div.border-blue-300.bg-blue-50 span { color: #5d4037 !important; } 
+       body.theme-sepia #view-char div.border-blue-300.bg-blue-50 span { color: #5d4037 !important; }
+
+       /* レベル帯カラーはテーマ切替後も維持（枠・Lv・アクティブタブのみ） */
+       body.theme-night .character-card.selected,
+       body.theme-sepia .character-card.selected {
+           border-color: var(--tier-color) !important;
+       }
+       body.theme-night .character-card.selected {
+           box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier-color) 50%, transparent),
+                       0 0 10px color-mix(in srgb, var(--tier-color) 55%, transparent);
+       }
+       body.theme-sepia .character-card.selected {
+           box-shadow: 0 0 0 1px color-mix(in srgb, var(--tier-color) 30%, transparent),
+                       0 0 6px color-mix(in srgb, var(--tier-color) 35%, transparent);
+       }
+       body.theme-night .character-card .level-label,
+       body.theme-sepia .character-card .level-label,
+       body.theme-night .character-card .char-tab.char-tab-active,
+       body.theme-sepia .character-card .char-tab.char-tab-active {
+           color: var(--tier-color) !important;
+       }
+       body.theme-night .character-card .char-tab.char-tab-active,
+       body.theme-sepia .character-card .char-tab.char-tab-active {
+           border-bottom-color: var(--tier-color) !important;
+       } 
 
        /* Enemy Panel Themes */
        body.theme-night #enemy-panel { background-color: #1e293b !important; border-color: #334155 !important; }
@@ -767,10 +792,10 @@
         <section id="log-section" class="view-tab active w-full lg:w-2/3 flex flex-col p-4 bg-white overflow-hidden">
             <details class="mb-4 border border-teal-600 rounded-lg bg-teal-50" open>
                 <summary class="p-1 font-bold text-teal-800 cursor-pointer text-[10px] bg-teal-100 rounded-t-lg flex justify-between items-center px-3">
-                    <span>D66 GRID & SCENARIO</span>
+                    <span>▼ D66 GRID & SCENARIO</span>
                     <div class="flex items-center space-x-2">
                         <button onclick="event.preventDefault(); document.getElementById('csvUpload').click()" class="bg-slate-600 text-white px-2 rounded" title="シナリオ読み込み">シナリオ読込</button>
-                        <a href="RLH_ScenarioEditor.html" target="_blank" class="bg-indigo-600 text-white px-1.5 rounded hover:bg-indigo-500 flex items-center justify-center" title="シナリオデータエディタを開く">作成</a>
+                        <a href="RLH_ScenarioEditor?v=2.0.html" target="_blank" class="bg-indigo-600 text-white px-1.5 rounded hover:bg-indigo-500 flex items-center justify-center" title="シナリオデータエディタを開く">作成</a>
                         <button onclick="event.preventDefault(); resetD66Area()" class="bg-red-600 text-white px-1.5 rounded" title="シナリオ削除">CLR</button>
                     </div>
                 </summary>
@@ -832,8 +857,8 @@
 <script>
         const STORAGE_KEY = 'rlh_final_integrated_v1';
         let ttsVoices = []; // TTSの声を格納するグローバル変数
-        // --- appState: このアプリの**全データ（心臓部） ---
-        let appState = { theme: 'colorful', showToastNotifications: true, fontPreference: 'gothic', settings: { soundEnabled: true, volume: 50, showNavBall: true, showHeaderDice: true }, 
+    // --- appState: このアプリの**全データ（心臓部） ---
+        let appState = { theme: 'colorful', showToastNotifications: true, settings: { soundEnabled: true, volume: 50, showNavBall: true, showHeaderDice: true }, 
             d66GridSettings: { rows: 6, cols: 6 }, enemies: [], activeEnemyId: null, currentRound: 0,
             logTitle: "セッション", logEntries: [], characters: {}, currentCharacterId: null, 
             d66State: [
@@ -899,9 +924,6 @@
                         appState.d66GridSettings = { rows: 6, cols: 6 };
                     }
                     if (!appState.settings.logFontSize) appState.settings.logFontSize = 'small';
-                    if (!appState.fontPreference) {
-                        appState.fontPreference = 'gothic';
-                    }
                     // グリッドサイズとデータ配列の整合性チェック
                     const expectedSize = appState.d66GridSettings.rows * appState.d66GridSettings.cols;
                     if (appState.d66State && appState.d66State[0].grid.length !== expectedSize) {
@@ -950,10 +972,15 @@
             if (!appState.currentCharacterId || !appState.characters[appState.currentCharacterId]) {
                 appState.currentCharacterId = Object.keys(appState.characters)[0];
             }
+            // ロード時に全キャラクターにキャップを適用
+            if (appState.characters) {
+                Object.keys(appState.characters).forEach(id => {
+                    checkAndLimitAbilityCaps(id);
+                });
+            }
             applyTheme(appState.theme || 'colorful');
             renderAll();
             applyDisplaySettings(); // 表示設定の適用
-            applyFontPreference(); // フォント設定の適用
             // ヘッダーの静的な数字入力フィールドに自動全選択機能を適用
             autoSelectOnFocus(document.getElementById('rollCount'));
             autoSelectOnFocus(document.getElementById('skillValue'));
@@ -1382,7 +1409,7 @@ else {
             // Animate
             roll3DDice([roll], () => {
                 const modText = mod !== 0 ? `(${roll}${mod >= 0 ? '+' : ''}${mod})` : "";
-                addLogEntry('dice', '魔法の宝物', `[${name}] 1D${diceRange}${modText} = ${total}`);
+                addLogEntry('dice', '魔法の宝物', `[実行者: ${name}] 1D${diceRange}${modText} = ${total}`);
                 // CSVデータがある場合のみ playScenario を呼び出す
                 if (entries.length > 0) {
                     playScenario('magictreasure', total.toString());
@@ -1564,7 +1591,7 @@ else {
     // --- Resource & Character Logic ---
     // ------------------------
     const PRESETS = {
-        pc: { name: '主人公', icon: '👤', level: 10, skill: 0, life: 4, lifeMax: 4, lifeType: 'hp', lifeLabel: '生命', subType: 'luck', subLabel: '幸運', subVal: 2, subMax: 2, follower: 7, food: 2, gold: 10, clue: 0, memo: '', hometown: '', occupation: '', inventoryMultiplier: 1 },
+        pc: { name: '主人公', icon: '👤', level: 10, skill: 0, life: 4, lifeMax: 4, lifeType: 'hp', lifeLabel: '生命', subType: 'luck', subLabel: '幸運', subVal: 2, subMax: 2, follower: 7, food: 2, gold: 10, heldExp: 0, clue: 0, memo: '', hometown: '', occupation: '', inventoryMultiplier: 1 },
         soldier: { name: '兵士', icon: '⚔️', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦う従者' , inventoryMultiplier: 0},
         swordsman: { name: '剣士', icon: '⚔️', level: 4, skill: 1, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'str', subLabel: '筋力', subVal: 0, subMax: 0, memo: '戦う従者' , inventoryMultiplier: 0},
         archer: { name: '弓兵', icon: '🏹', level: 4, skill: 0, life: 1, lifeMax: 1, lifeType: 'num', lifeLabel: '人数', subType: 'dex', subLabel: '器用', subVal: 0, subMax: 0, rangedMod: 1, meleeMod: -1, memo: '戦う従者：遠隔攻撃+1、近接攻撃-1' , inventoryMultiplier: 0},
@@ -1584,7 +1611,7 @@ else {
         
         let deleted = [];
         if (key !== 'pc') {
-            deleted = ['follower', 'food', 'clue', 'gold'];
+            deleted = ['follower', 'food', 'clue', 'gold', 'heldExp'];
         }
         // 魔術師と主人公・強い従者以外の従者プリセットから副能力値を削除
         if (key !== 'pc' && key !== 'mage'&& key !== 'buddy') {
@@ -1604,6 +1631,7 @@ else {
                 food: p.food || 0,
                 clue: p.clue || 0,
                 gold: p.gold || 0,
+                heldExp: p.heldExp || 0,
                 memo: p.memo,
                 occupation: p.occupation || '',
                 hometown: p.hometown || '',
@@ -1625,6 +1653,7 @@ else {
         if (!appState.characterOrder.includes(newId)) appState.characterOrder.push(newId);
 
         appState.currentCharacterId = newId;
+        checkAndLimitAbilityCaps(newId);
         renderCurrentCharacterSheet();
         saveData();
     }
@@ -1641,10 +1670,32 @@ else {
             }
 
             // データの更新（ここは即座に行う）
-            if(isMax) c.data[key].max = parseInt(val); 
-            else if(typeof c.data[key] === 'object') c.data[key].current = parseInt(val);
-            else c.data[key] = parseInt(val);
+            let intVal = parseInt(val) || 0;
+
+            if (isMax || typeof c.data[key] !== 'object') {
+                // baseMax の入力：素の成長上限（装備補正なし）でストップ
+                const baseCap = getBaseLevelCap(id, key);
+                if (baseCap !== null && intVal > baseCap) intVal = baseCap;
+            } else {
+                // current の入力：displayMax（baseMax + 装備補正）を上限にする
+                const baseMax = c.data[key].max || 0;
+                const equipBonus = getEquippedLimitBonusTotal(c, key);
+                const displayMax = baseMax + equipBonus;
+                if (intVal > displayMax) intVal = displayMax;
+                if (intVal < 0) intVal = 0;
+            }
+
+            if(isMax) c.data[key].max = intVal; 
+            else if(typeof c.data[key] === 'object') c.data[key].current = intVal;
+            else c.data[key] = intVal;
             saveData();
+
+            // 差分更新：プログレスバーの更新（displayMax で表示）
+            if (typeof c.data[key] === 'object') {
+                const equipBonus = getEquippedLimitBonusTotal(c, key);
+                const displayMax = c.data[key].max + equipBonus;
+                updateProgressDOM(id, key, c.data[key].current, displayMax);
+            }
             // ログ出力の予約（500ms以内に次の操作があればキャンセルして再予約）
             clearTimeout(logTimeout);
             logTimeout = setTimeout(() => {
@@ -1687,10 +1738,12 @@ else {
         const c = appState.characters[id];
         if (!c) return;
         const target = c.data.life;
+        const equipBonus = getEquippedLimitBonusTotal(c, 'life');
+        const displayMax = (parseInt(target.max) || 0) + equipBonus; // baseMax + equipBonus
         const oldV = parseInt(target.current) || 0;
         let newV = oldV + delta;
         if (newV < 0) newV = 0;
-        if (newV > target.max) newV = target.max;
+        if (newV > displayMax) newV = displayMax;
         if (oldV !== newV) {
              onResChange('life', target.label, newV, false, id);
              renderCurrentCharacterSheet();
@@ -1761,6 +1814,42 @@ else {
         }
     }
 
+    function getLevelTierClass(level) {
+        const lvl = parseInt(level, 10);
+        const n = Number.isFinite(lvl) ? lvl : 1;
+        if (n <= 9) return 'tier-1';
+        if (n <= 15) return 'tier-2';
+        if (n <= 24) return 'tier-3';
+        return 'tier-4';
+    }
+
+    function applyCharacterTierClass(id, level) {
+        const card = document.getElementById('char-card-' + id);
+        if (!card) return;
+        card.classList.remove('tier-1', 'tier-2', 'tier-3', 'tier-4');
+        card.classList.add(getLevelTierClass(level));
+    }
+
+    function onCharacterLevelInput(id, rawVal) {
+        const val = parseInt(rawVal, 10);
+        const level = Number.isFinite(val) ? val : 1;
+        const c = appState.characters[id];
+        if (c && c.data) c.data.level = level;
+        applyCharacterTierClass(id, level);
+    }
+
+    function onCharacterLevelChange(id, rawVal) {
+        const val = parseInt(rawVal, 10) || 1;
+        const c = appState.characters[id];
+        if (!c) return;
+        c.data.level = val;
+        applyCharacterTierClass(id, val);
+        checkAndLimitAbilityCaps(id);
+        saveData();
+        addLogEntry('system', '', `[${c.name}] レベルが ${val} に変更されました`);
+        renderCurrentCharacterSheet();
+    }
+
     //① renderCurrentCharacterSheet（キャラシートの自動生成）
 function renderCurrentCharacterSheet() {
     const container = document.getElementById('current-character-sheet');
@@ -1803,33 +1892,35 @@ function renderCurrentCharacterSheet() {
         if (c.isExpanded === undefined) c.isExpanded = false;
         if (d.iconPosition === undefined) d.iconPosition = '50% 50%';
         if (d.iconScale === undefined) d.iconScale = 1;
+        if (d.heldExp === undefined || d.heldExp === null) d.heldExp = 0;
         
         // Tab initialization
         if (!c.activeSubTab) c.activeSubTab = 'adventure';
 
         // --- 状態判定 ---
         const isActive = (id === appState.currentCharacterId);
-        const activeClass = isActive ? "bg-indigo-50 border-indigo-500 ring-1 ring-indigo-300" : "bg-white border-gray-300 hover:border-indigo-300";
+        const tierClass = getLevelTierClass(d.level || 1);
+        const activeClass = isActive ? "selected bg-indigo-50" : "bg-white border-gray-300 hover:border-gray-400";
 
         // --- カード全体の開始 (details要素) ---
         // ontoggleでのアクティブ切り替えを廃止し、開閉状態の保存のみを行う
-        h += `<details id="char-card-${id}" class="group mb-3 rounded-lg shadow-sm overflow-hidden border transition-all ${activeClass}" ${c.isExpanded ? "open" : ""} 
+        h += `<details id="char-card-${id}" class="character-card group mb-3 rounded-lg overflow-hidden border ${tierClass} ${activeClass}" ${c.isExpanded ? "open" : ""} 
             ontoggle="appState.characters['${id}'].isExpanded = this.open; saveData();"
             ondragover="handleDragOver(event)" 
             ondrop="handleDrop(event, '${id}')"
             ondragleave="handleDragLeave(event)">
-            <summary class="relative flex items-center justify-between p-0 pr-8 cursor-pointer list-none hover:bg-opacity-80 transition-colors select-none h-10"
+            <summary class="relative flex items-center justify-between p-0 pr-8 cursor-pointer list-none hover:bg-opacity-80 select-none h-10"
                 onclick="event.preventDefault(); setActiveCharacter('${id}')">
 
                 <div class="flex items-center flex-grow min-w-0 gap-2 h-full">
                     <!-- Portrait Icon -->
-                    <div class="relative w-10 h-full shrink-0 bg-gray-200 overflow-hidden cursor-pointer border-r border-gray-300 group-hover:border-indigo-300" onclick="event.stopPropagation(); showPortraitModal('${id}')">
+                    <div class="relative w-10 h-full shrink-0 bg-gray-200 overflow-hidden cursor-pointer border-r border-gray-300" onclick="event.stopPropagation(); showPortraitModal('${id}')">
                         ${d.portrait ? `<img src="${d.portrait}" class="w-full h-full object-cover" style="object-position: ${d.iconPosition || '50% 50%'}; transform-origin: ${d.iconPosition || '50% 50%'}; transform: scale(${d.iconScale || 1});">` : `<div class="w-full h-full flex items-center justify-center text-gray-400 text-[8px]">No Img</div>`}
                     </div>
                     
                     <!-- 名前入力 -->
                     <input type="text" value="${c.name || ''}" 
-                        class="font-bold text-gray-800 bg-transparent border-b border-transparent hover:border-blue-300 focus:border-blue-500 focus:outline-none w-full transition-all text-sm" 
+                        class="font-bold text-gray-800 bg-transparent border-b border-transparent hover:border-blue-300 focus:border-blue-500 focus:outline-none w-full text-sm" 
                         onclick="event.stopPropagation();" 
                         onchange="appState.characters['${id}'].name=this.value; saveData();" 
                         placeholder="名前...">
@@ -1839,9 +1930,10 @@ function renderCurrentCharacterSheet() {
                 <div class="flex items-center ml-2 pl-2 border-l border-gray-200 shrink-0 gap-2" onclick="event.preventDefault(); event.stopPropagation();">
                     <span class="text-[9px] text-gray-400 mr-1">Lv.</span>
                     <input type="number" value="${d.level || 10}" 
-                        class="w-8 text-center text-[11px] font-bold bg-transparent focus:outline-none border-b border-transparent hover:border-blue-300"
+                        class="level-label w-8 text-center text-[11px] font-bold bg-transparent focus:outline-none border-b border-transparent hover:border-blue-300"
                         onclick="event.stopPropagation();"
-                        onchange="const val = parseInt(this.value) || 1; appState.characters['${id}'].data.level=val; saveData(); addLogEntry('system', '', \`[\${appState.characters['${id}'].name}] レベルが \${val} に変更されました\`);">
+                        oninput="onCharacterLevelInput('${id}', this.value)"
+                        onchange="onCharacterLevelChange('${id}', this.value)">
                     
                     <div class="flex items-center text-red-600 font-bold bg-red-50 px-1 rounded border border-red-100">
                         <span class="mr-1 text-[9px]">❤️</span>
@@ -1862,9 +1954,9 @@ function renderCurrentCharacterSheet() {
             <!-- Tab Navigation -->
             <div class="border-t border-gray-100 bg-gray-50/50">
                 <div class="flex border-b border-gray-200">
-                    <button onclick="event.stopPropagation(); switchCharSubTab('${id}', 'adventure')" class="flex-1 py-2 text-[10px] font-bold transition-colors ${c.activeSubTab === 'adventure' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white' : 'text-gray-500 hover:bg-gray-100'}">冒険</button>
-                    <button onclick="event.stopPropagation(); switchCharSubTab('${id}', 'equipment')" class="flex-1 py-2 text-[10px] font-bold transition-colors ${c.activeSubTab === 'equipment' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white' : 'text-gray-500 hover:bg-gray-100'}">装備・能力</button>
-                    <button onclick="event.stopPropagation(); switchCharSubTab('${id}', 'memo')" class="flex-1 py-2 text-[10px] font-bold transition-colors ${c.activeSubTab === 'memo' ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white' : 'text-gray-500 hover:bg-gray-100'}">メモ</button>
+                    <button onclick="event.stopPropagation(); switchCharSubTab('${id}', 'adventure')" class="char-tab flex-1 py-2 text-[10px] font-bold ${c.activeSubTab === 'adventure' ? 'char-tab-active bg-white' : 'text-gray-500 hover:bg-gray-100'}">冒険</button>
+                    <button onclick="event.stopPropagation(); switchCharSubTab('${id}', 'equipment')" class="char-tab flex-1 py-2 text-[10px] font-bold ${c.activeSubTab === 'equipment' ? 'char-tab-active bg-white' : 'text-gray-500 hover:bg-gray-100'}">装備・能力</button>
+                    <button onclick="event.stopPropagation(); switchCharSubTab('${id}', 'memo')" class="char-tab flex-1 py-2 text-[10px] font-bold ${c.activeSubTab === 'memo' ? 'char-tab-active bg-white' : 'text-gray-500 hover:bg-gray-100'}">メモ</button>
                 </div>
 
                 <!-- Tab Content -->
@@ -1910,18 +2002,24 @@ function renderTabContent(id, tab) {
 
     if (tab === 'adventure') {
         // --- Adventure Tab Content ---
-        h += `<div class="flex justify-end items-center mb-1">
+        h += `<div class="flex justify-end items-center mb-1 gap-2 flex-wrap">
             <label class="flex items-center text-[10px] cursor-pointer select-none px-2 hover:text-indigo-700">
                 <input type="checkbox" class="mr-1 h-3 w-3 accent-indigo-600" 
                     ${c.isSelected ? 'checked' : ''} 
                     onchange="toggleCharSelection('${id}')">
                 <span>ランダム選出対象</span>
             </label>
+            <label class="flex items-center text-[10px] cursor-pointer select-none px-2 text-rose-600 hover:text-rose-800">
+                <input type="checkbox" class="mr-1 h-3 w-3 accent-rose-600" 
+                    ${c.ignoreLimit ? 'checked' : ''} 
+                    onchange="toggleCharLimitIgnore('${id}')">
+                <span>成長限界を無視</span>
+            </label>
         </div>
         <div class="space-y-2 mb-3">`;
 
         const resourceConfigs = [
-            {id:'skill', l:'技量点', type:'single'}, {id:'life', l:'生命点', type:'sub-life'}, {id:'subAbility', l:'能力', type:'sub'}, {id:'follower', l:'従者', type:'dual'}, {id:'food', l:'食料', type:'single'}, {id:'clue', l:'手がかり', type:'single'}, {id:'gold', l:'金貨', type:'single'}
+            {id:'skill', l:'技量点', type:'single'}, {id:'life', l:'生命点', type:'sub-life'}, {id:'subAbility', l:'能力', type:'sub'}, {id:'follower', l:'従者', type:'dual'}, {id:'food', l:'食料', type:'single'}, {id:'clue', l:'手がかり', type:'single'}, {id:'gold', l:'金貨', type:'single'}, {id:'heldExp', l:'保留経験点', type:'single'}
         ];
         
         // バー表示するリソースとそれ以外を分離
@@ -1935,43 +2033,97 @@ function renderTabContent(id, tab) {
             const target = isSpecial ? (res.type === 'sub-life' ? d.life : d.subAbility) : null;
             const val = d[res.id];
             const current = isSpecial ? target.current : val.current;
-            const max = isSpecial ? target.max : val.max;
+            const baseMax = isSpecial ? target.max : val.max; // 保存値（素の最大値）
             let logLabel = res.l;
             if (isSpecial && target) { logLabel = target.label; }
-            
+
+            // displayMax = baseMax + 装備補正（描画・バー表示用）
+            const equipBonus = getEquippedLimitBonusTotal(c, res.id);
+            const displayMax = baseMax + equipBonus;
+
+            // baseLevelCap = 素の成長上限（手入力ストッパー用）
+            const baseLevelCap = getBaseLevelCap(id, res.id);
+
+            // 上限バッジ：baseMax が baseLevelCap に到達していたら表示
+            const isAtCap = baseLevelCap !== null && baseMax >= baseLevelCap;
+            const capSlot = `<div class="w-8 shrink-0 flex items-center justify-start">${isAtCap ? '<span class="text-[8px] leading-none bg-red-100 text-red-600 px-1 py-0.5 rounded font-bold">上限</span>' : ''}</div>`;
+
             // バーの色決定
             const barColor = 'bg-blue-600';
             const trackColor = 'bg-blue-100';
             
-            const percent = max > 0 ? Math.min(100, Math.max(0, (current / max) * 100)) : 0;
+            const percent = displayMax > 0 ? Math.min(100, Math.max(0, (current / displayMax) * 100)) : 0;
 
-            h += `<div class="flex items-center gap-1 h-7">
-                <div class="w-16 shrink-0">
-                    ${isSpecial ? `<div class="relative">
-                            <select class="w-full bg-transparent font-bold text-gray-700 focus:outline-none appearance-none pr-3 text-[10px]" onchange="event.stopPropagation(); const ch=appState.characters['${id}']; const t=ch.data.${res.type==='sub-life'?'life':'subAbility'}; t.type=this.value; t.label=this.options[this.selectedIndex].text; renderCurrentCharacterSheet(); saveData();">
+            h += `<div class="flex items-center gap-0.5 h-7">
+                <div class="w-12 shrink-0 flex items-center">
+                    ${isSpecial ? `<div class="relative w-full">
+                            <select class="w-full bg-transparent font-bold text-gray-700 focus:outline-none appearance-none text-[10px]" onchange="event.stopPropagation(); const ch=appState.characters['${id}']; const t=ch.data.${res.type==='sub-life'?'life':'subAbility'}; t.type=this.value; t.label=this.options[this.selectedIndex].text; renderCurrentCharacterSheet(); saveData();">
                                 ${(res.type==='sub-life' ? [{v:'hp',t:'生命'},{v:'num',t:'人数'},{v:'app',t:'出現数'}] : [{v:'luck',t:'幸運'},{v:'str',t:'筋力'},{v:'mag',t:'魔術'},{v:'dex',t:'器用'}]).map(opt => `<option value="${opt.v}" ${target.type===opt.v?'selected':''}>${opt.t}</option>`).join('')}
                             </select>
                         </div>` : `<span class="font-bold text-gray-600 text-[10px]">${res.l}</span>`}
                 </div>
                 <button onclick="adjustResource('${id}', '${res.id}', -1)" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded text-gray-600 font-bold text-xs border border-gray-300">-</button>
-                <div class="flex-grow relative h-5 ${trackColor} progress-bar-track rounded-full overflow-hidden cursor-pointer border border-gray-300" onclick="const v=prompt('${logLabel}の現在値を入力', ${current}); if(v!==null) { onResChange('${res.id}', '${logLabel}', v, false, '${id}'); renderCurrentCharacterSheet(); }">
-                    <div class="h-full ${barColor} progress-bar-fill transition-all duration-300" style="width: ${percent}%"></div>
-                    <div class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md" style="text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${current} / ${max}</div>
+                <div class="flex-grow relative h-5 ${trackColor} progress-bar-track rounded-full overflow-hidden cursor-pointer border border-gray-300" onclick="const v=prompt('${logLabel}の現在値を入力', ${current}); if(v!==null) { onResChange('${res.id}', '${logLabel}', v, false, '${id}'); }">
+                    <div id="progress-fill-${id}-${res.id}" class="h-full ${barColor} progress-bar-fill transition-all duration-300" style="width: ${percent}%"></div>
+                    <div id="progress-text-${id}-${res.id}" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md" style="text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${current} / ${displayMax}</div>
                 </div>
                 <button onclick="adjustResource('${id}', '${res.id}', 1)" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded text-gray-600 font-bold text-xs border border-gray-300">+</button>
-                <input type="number" value="${max}" class="w-8 text-center text-[10px] bg-transparent border-b border-gray-300 focus:outline-none text-gray-400" onchange="onResChange('${res.id}', '${logLabel}', this.value, true, '${id}'); renderCurrentCharacterSheet();">
+                <input type="number" value="${baseMax}" max="${baseLevelCap !== null ? baseLevelCap : ''}" class="w-8 text-center text-[10px] bg-transparent border-b border-gray-300 focus:outline-none text-gray-400" title="${equipBonus > 0 ? `素の値: ${baseMax} / 装備補正: +${equipBonus} / 表示: ${displayMax}` : ''}" onchange="let v=parseInt(this.value)||0; const blc=getBaseLevelCap('${id}', '${res.id}'); if(blc!==null && v>blc) v=blc; onResChange('${res.id}', '${logLabel}', v, true, '${id}');">
+                ${capSlot}
             </div>`;
+
+            // レベル25以上の副能力値追加
+            if (res.id === 'subAbility' && d.level >= 25) {
+                try {
+                    if (!d.subAbilitySecondary) {
+                        d.subAbilitySecondary = { current: 0, max: 0, type: 'str', label: '筋力' };
+                    }
+                    const sub2 = d.subAbilitySecondary;
+                    const sub2EquipBonus = getEquippedLimitBonusTotal(c, 'subAbilitySecondary');
+                    const sub2DisplayMax = sub2.max + sub2EquipBonus;
+                    const sub2BaseLevelCap = getBaseLevelCap(id, 'subAbilitySecondary');
+                    const isAtCap2 = sub2BaseLevelCap !== null && sub2.max >= sub2BaseLevelCap;
+                    const percent2 = sub2DisplayMax > 0 ? Math.min(100, Math.max(0, (sub2.current / sub2DisplayMax) * 100)) : 0;
+                    const capSlot2 = `<div class="w-8 shrink-0 flex items-center justify-start">${isAtCap2 ? '<span class="text-[8px] leading-none bg-red-100 text-red-600 px-1 py-0.5 rounded font-bold">上限</span>' : ''}</div>`;
+
+                    h += `<div class="sub-bonus-container mt-1">
+                        <div class="flex items-center gap-0.5 h-7">
+                            <div class="w-12 shrink-0 flex items-center">
+                                <div class="relative w-full">
+                                    <select class="w-full bg-transparent font-bold text-gray-700 focus:outline-none appearance-none text-[10px]" onchange="event.stopPropagation(); const ch=appState.characters['${id}']; ch.data.subAbilitySecondary.type=this.value; ch.data.subAbilitySecondary.label=this.options[this.selectedIndex].text; renderCurrentCharacterSheet(); saveData();">
+                                        ${[{v:'luck',t:'幸運'},{v:'str',t:'筋力'},{v:'mag',t:'魔術'},{v:'dex',t:'器用'}].map(opt => `<option value="${opt.v}" ${sub2.type===opt.v?'selected':''}>${opt.t}</option>`).join('')}
+                                    </select>
+                                </div>
+                            </div>
+                            <button onclick="adjustSecondaryResource('${id}', -1)" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded text-gray-600 font-bold text-xs border border-gray-300">-</button>
+                            <div class="flex-grow relative h-5 bg-blue-100 progress-bar-track rounded-full overflow-hidden cursor-pointer border border-gray-300" onclick="const v=prompt('${sub2.label}の現在値を入力', ${sub2.current}); if(v!==null) { onResChange('subAbilitySecondary', '${sub2.label}値', v, false, '${id}'); }">
+                                <div id="progress-fill-${id}-subAbilitySecondary" class="h-full bg-blue-600 progress-bar-fill transition-all duration-300" style="width: ${percent2}%"></div>
+                                <div id="progress-text-${id}-subAbilitySecondary" class="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-white drop-shadow-md" style="text-shadow: 0 1px 2px rgba(0,0,0,0.8);">${sub2.current} / ${sub2DisplayMax}</div>
+                            </div>
+                            <button onclick="adjustSecondaryResource('${id}', 1)" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded text-gray-600 font-bold text-xs border border-gray-300">+</button>
+                            <input type="number" value="${sub2.max}" max="${sub2BaseLevelCap !== null ? sub2BaseLevelCap : ''}" class="w-8 text-center text-[10px] bg-transparent border-b border-gray-300 focus:outline-none text-gray-400" title="${sub2EquipBonus > 0 ? `素の値: ${sub2.max} / 装備補正: +${sub2EquipBonus} / 表示: ${sub2DisplayMax}` : ''}" onchange="let val=parseInt(this.value)||0; const blc=getBaseLevelCap('${id}', 'subAbilitySecondary'); if(blc!==null && val>blc) val=blc; onResChange('subAbilitySecondary', '${sub2.label}値', val, true, '${id}');">
+                            ${capSlot2}
+                        </div>
+                    </div>`;
+                } catch(err) {
+                    console.error("Secondary resource render failed", err);
+                }
+            }
         });
         h += `</div>`;
 
         // 2. その他のリソース (タイル表示)
-        h += `<div class="grid grid-cols-4 gap-2 mb-2">`;
+        h += `<div class="grid grid-cols-5 gap-2 mb-2">`;
         otherRes.forEach(res => {
             if(c.deletedResources.includes(res.id)) return;
             const val = d[res.id];
-            h += `<div class="bg-white border border-gray-200 rounded p-1 flex flex-col items-center justify-center shadow-sm relative group">
-                <span class="text-[9px] text-gray-500 font-bold mb-0.5">${res.l}</span>
-                <input type="number" value="${val||0}" class="w-full text-center font-bold text-sm bg-transparent outline-none text-gray-700" onchange="onResChange('${res.id}', '${res.l}', this.value, false, '${id}')">
+            const baseLevelCap = getBaseLevelCap(id, res.id); // 素の成長上限のみ（ストッパー用）
+            const isAtCap = baseLevelCap !== null && val >= baseLevelCap;
+            const capStyle = isAtCap ? 'border-red-300 bg-red-50/20' : 'bg-white border-gray-200';
+            
+            h += `<div class="${capStyle} border rounded p-1 flex flex-col items-center justify-center shadow-sm relative group">
+                <span class="text-[8px] leading-tight text-center text-gray-500 font-bold mb-0.5">${res.l}${isAtCap ? ' (上限)' : ''}</span>
+                <input type="number" value="${val||0}" max="${baseLevelCap !== null ? baseLevelCap : ''}" class="w-full text-center font-bold text-sm bg-transparent outline-none text-gray-700" onchange="let v=parseInt(this.value)||0; const blc=getBaseLevelCap('${id}', '${res.id}'); if(blc!==null && v>blc) v=blc; onResChange('${res.id}', '${res.l}', v, false, '${id}');">
                 ${res.id !== 'skill' ? `<button onclick="event.stopPropagation(); appState.characters['${id}'].deletedResources.push('${res.id}'); renderCurrentCharacterSheet(); saveData();" class="absolute top-0 right-0 text-gray-300 hover:text-red-500 hidden group-hover:block p-0.5"><svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg></button>` : ''}
             </div>`;
         });
@@ -2008,11 +2160,21 @@ function renderTabContent(id, tab) {
         ];
 
         actions.forEach(item => {
+            const actionRollTargets = { '接近': '接近ロール', '遠距離': '遠隔ロール', '防御': '防御ロール', '対魔法': '対魔ロール' };
+            let rollBonus = 0;
+            if (actionRollTargets[item.t]) {
+                rollBonus = getEquippedRollBonusTotal(c, actionRollTargets[item.t]);
+            }
+            const rollBadge = rollBonus !== 0 ? `<span class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[14px] h-[14px] text-[8px] font-bold rounded-full ${rollBonus > 0 ? 'bg-indigo-500' : 'bg-red-500'} text-white shadow-sm z-10" title="装備ロール補正">${rollBonus > 0 ? '+' : ''}${rollBonus}</span>` : '';
+
             h += `<div class="bg-${item.c}-50 border border-${item.c}-200 p-0.5 rounded flex items-center justify-between h-9 shadow-sm w-full">
                     <span class="text-[11px] font-bold text-${item.c}-700 pl-1">${item.l}</span>
                     <div class="flex items-center space-x-1">
                         <span class="text-[9px] text-${item.c}-400">修:</span>
-                        <input type="number" value="${d[item.k] || 0}" class="w-8 text-center text-[11px] font-bold bg-white border border-gray-200 rounded outline-none shadow-sm" onchange="onResChange('${item.k}', '${item.l}修正', this.value, false, '${id}')">
+                        <div class="relative">
+                            <input type="number" value="${d[item.k] || 0}" class="w-8 text-center text-[11px] font-bold bg-white border border-gray-200 rounded outline-none shadow-sm" onchange="onResChange('${item.k}', '${item.l}修正', this.value, false, '${id}')">
+                            ${rollBadge}
+                        </div>
                         <div class="flex gap-1 ml-1">
                             ${item.hasAbility ? `<button onclick="event.stopPropagation(); handleActionRoll('${id}', '${item.t}', 'ability')" 
                                 class="w-7 h-7 text-[10px] rounded font-bold shadow-sm transition-colors ${ (item.t === '対魔法' && !canMagicAbility) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : `bg-${item.c}-600 text-white hover:bg-${item.c}-700` }"
@@ -2030,13 +2192,20 @@ function renderTabContent(id, tab) {
                 <div class="grid grid-cols-2 gap-1 w-full">
                     ${['luck', 'str', 'mag', 'dex'].map(key => {
                         const names = {luck:'幸運', str:'筋力', mag:'魔術', dex:'器用'};
+                        const rollTargetNames = {luck:'幸運ロール', str:'筋力ロール', mag:'魔法ロール', dex:'器用ロール'};
+                        const rollBonus = getEquippedRollBonusTotal(c, rollTargetNames[key]) || 0;
                         const mod = d.abilityMods[key] || 0;
                         const isSelected = (d.subAbility && d.subAbility.type === key);
+                        const rollBadge = rollBonus !== 0 ? `<span class="absolute -top-1.5 -right-1.5 flex items-center justify-center min-w-[14px] h-[14px] text-[8px] font-bold rounded-full ${rollBonus > 0 ? 'bg-indigo-500' : 'bg-red-500'} text-white shadow-sm z-10" title="装備ロール補正">${rollBonus > 0 ? '+' : ''}${rollBonus}</span>` : '';
+                        
                         return `<div class="flex items-center justify-between border ${isSelected ? 'border-blue-300 bg-blue-50' : 'border-gray-100 bg-white'} p-0.5 rounded h-9 shadow-sm w-full">
-                                <span class="text-[11px] font-bold w-5 text-center ${isSelected ? 'text-blue-700' : 'text-gray-300'}">${names[key].charAt(0)}</span>
+                                <span class="text-[11px] font-bold w-5 text-center ${isSelected ? 'text-blue-700' : 'text-blue-700'}">${names[key].charAt(0)}</span>
                                 <div class="flex items-center space-x-1">
                                     <span class="text-[9px] text-blue-400">修:</span>
-                                    <input type="number" value="${mod}" class="w-8 text-center text-[11px] font-bold bg-white border border-gray-200 rounded outline-none shadow-sm" onchange="updateAbilityMod('${id}', '${key}', this.value)">
+                                    <div class="relative">
+                                        <input type="number" value="${mod}" class="w-8 text-center text-[11px] font-bold bg-white border border-gray-200 rounded outline-none shadow-sm" onchange="updateAbilityMod('${id}', '${key}', this.value)">
+                                        ${rollBadge}
+                                    </div>
                                     <div class="flex gap-1 ml-1">
                                         <button onclick="event.stopPropagation(); handleActionRoll('${id}', '${names[key]}', 'ability')" class="w-7 h-7 ${isSelected ? 'bg-blue-600' : 'bg-gray-200 text-gray-400'} text-white text-[10px] rounded font-bold" ${!isSelected ? 'disabled' : ''}>能</button>
                                         <button onclick="event.stopPropagation(); handleActionRoll('${id}', '${names[key]}', 'skill')" class="w-7 h-7 bg-gray-500 text-white text-[10px] rounded font-bold">技</button>
@@ -2095,7 +2264,9 @@ function renderTabContent(id, tab) {
                         if (isLocked) {
                             return `<div class="equip-row"><span class="equip-label">${slot.label}</span><span class="slot-badge flex-grow justify-center empty opacity-50 cursor-not-allowed">--- (両手武器) ---</span></div>`;
                         }
-                        return `<div class="equip-row"><span class="equip-label">${slot.label}</span><span class="slot-badge flex-grow justify-center ${!slot.item ? 'empty' : ''}" onclick="openItemModal('${id}', 'equip', ${i})">${slot.item ? slot.item.name : '装備なし'}</span></div>`;
+                        const itemTooltip = slot.item ? (slot.item.name + formatEffectsSummary(slot.item)) : '';
+                        const itemTitleAttr = itemTooltip ? `title="${itemTooltip}"` : '';
+                        return `<div class="equip-row"><span class="equip-label">${slot.label}</span><span class="slot-badge flex-grow justify-center ${!slot.item ? 'empty' : ''}" ${itemTitleAttr} onclick="openItemModal('${id}', 'equip', ${i})">${slot.item ? slot.item.name : '装備なし'}</span></div>`;
                     }).join('');
                 })()}
               </div>`;
@@ -2120,17 +2291,48 @@ function renderTabContent(id, tab) {
                              return `<div class="inv-slot placeholder" style="background-color:#f3f4f6; color:#d1d5db; border-style:dashed; cursor:default;">(続)</div>`;
                         }
                         const slotsText = (item && item.slots > 1) ? `<span class="text-[8px] bg-gray-200 rounded px-1 ml-1">x${item.slots}</span>` : '';
-                        return `<div class="inv-slot ${item ? 'filled' : ''}" onclick="openItemModal('${id}', 'inv', ${i})">${item ? item.name + slotsText : (i < maxInv ? (i+1) : '+')}</div>`;
+                        const itemTooltip = item ? (item.name + formatEffectsSummary(item)) : '';
+                        const itemTitleAttr = itemTooltip ? `title="${itemTooltip}"` : '';
+                        return `<div class="inv-slot ${item ? 'filled' : ''}" ${itemTitleAttr} onclick="openItemModal('${id}', 'inv', ${i})">${item ? item.name + slotsText : (i < maxInv ? (i+1) : '+')}</div>`;
                     }).join('')}
                 </div>
               </div>`;
 
     } else if (tab === 'memo') {
         // --- Memo Tab Content ---
+        const isOccCustom = d.occupation && !isDefaultOccupation(d.occupation);
         h += `<div class="flex gap-3 mb-4">
             <div class="flex-1">
                     <label class="block text-xs font-bold text-gray-500 mb-1">職業/種族</label>
-                    <input type="text" class="w-full text-[12px] border border-gray-200 p-2 rounded-md focus:ring-1 focus:ring-blue-400 focus:outline-none" placeholder="職業や種族を記入" onclick="event.stopPropagation();" onchange="appState.characters['${id}'].data.occupation=this.value; saveData();" value="${d.occupation || ''}">
+                    <select id="select-occ-${id}" class="w-full text-[12px] border border-gray-200 p-2 rounded-md focus:ring-1 focus:ring-blue-400 focus:outline-none" onclick="event.stopPropagation();" onchange="onOccupationSelectChange('${id}', this.value, 'select-occ-custom-div-${id}', 'select-occ-custom-input-${id}', 'occupation')">
+                        ${renderOccupationOptions(d.occupation || '')}
+                    </select>
+                    
+                    <div id="select-occ-custom-div-${id}" class="${isOccCustom ? 'mt-2' : 'hidden mt-2'}">
+                        <input type="text" id="select-occ-custom-input-${id}" class="w-full text-[12px] border border-indigo-200 p-2 rounded-md focus:ring-1 focus:ring-indigo-400 focus:outline-none bg-indigo-50/5" placeholder="職業/種族名を入力..." value="${isOccCustom ? d.occupation : ''}" onchange="onOccupationCustomInputChange('${id}', this.value, 'occupation')" onclick="event.stopPropagation();">
+                    </div>
+                    
+                    ${(d.level >= 25) ? (() => {
+                        try {
+                            if (!d.subClass) d.subClass = '';
+                            const isSubCustom = d.subClass && !isDefaultOccupation(d.subClass);
+                            return `<div class="sub-bonus-container mt-2 border border-dashed border-indigo-200 p-1.5 rounded-lg bg-indigo-50/10">
+                                <label class="block text-[10px] font-bold text-indigo-700 mb-1 flex items-center gap-1">
+                                    <span class="text-[8px] bg-indigo-100 text-indigo-700 font-bold px-1 rounded shrink-0">副職業</span>
+                                </label>
+                                <select id="select-sub-${id}" class="w-full text-[11px] border border-indigo-200 p-1 rounded focus:outline-none bg-white" onclick="event.stopPropagation();" onchange="onOccupationSelectChange('${id}', this.value, 'select-sub-custom-div-${id}', 'select-sub-custom-input-${id}', 'subClass')">
+                                    ${renderOccupationOptions(d.subClass || '')}
+                                </select>
+                                
+                                <div id="select-sub-custom-div-${id}" class="${isSubCustom ? 'mt-1.5' : 'hidden mt-1.5'}">
+                                    <input type="text" id="select-sub-custom-input-${id}" class="w-full text-[11px] border border-indigo-200 p-1.5 rounded focus:outline-none bg-indigo-50/5" placeholder="副職業名を入力..." value="${isSubCustom ? d.subClass : ''}" onchange="onOccupationCustomInputChange('${id}', this.value, 'subClass')" onclick="event.stopPropagation();">
+                                </div>
+                            </div>`;
+                        } catch(err) {
+                            console.error("Subclass render failed", err);
+                            return '';
+                        }
+                    })() : ''}
                 </div>
             <div class="flex-1">
                     <label class="block text-xs font-bold text-gray-500 mb-1">故郷</label>
@@ -2180,6 +2382,681 @@ function renderTabContent(id, tab) {
         showToast(`🎲 ランダム選出\n当選: ${winner.name}`);
     }
     
+    const HOD_RACE_DATA = {
+        "アラネア": {
+            base: { skill: 0, hp: 4, sub1: 2, sub2: 0, retainer: 7 },
+            caps: {
+                lv15: { skill: 1, hp: 6, sub1: 4, sub2: 0, retainer: 2 },
+                lv24: { skill: 2, hp: 6, sub1: 6, sub2: 0, retainer: 4 },
+                lv33: { skill: 2, hp: 6, sub1: 8, sub2: 10, retainer: 7 }
+            }
+        },
+        "ウーティス": {
+            base: { skill: 1, hp: 4, sub1: 0, sub2: 0, retainer: 6 },
+            caps: {
+                lv15: { skill: 0, hp: 4, sub1: 6, sub2: 0, retainer: 2 },
+                lv24: { skill: 0, hp: 4, sub1: 8, sub2: 0, retainer: 3 },
+                lv33: { skill: 0, hp: 4, sub1: 10, sub2: 0, retainer: 4 }
+            }
+        },
+        "オーク": {
+            base: { skill: 0, hp: 4, sub1: 2, sub2: 0, retainer: 7 },
+            caps: {
+                lv15: { skill: 1, hp: 6, sub1: 4, sub2: 0, retainer: 3 },
+                lv24: { skill: 1, hp: 6, sub1: 6, sub2: 0, retainer: 6 },
+                lv33: { skill: 1, hp: 6, sub1: 8, sub2: 10, retainer: 9 }
+            }
+        },
+        "ガーゴイル": {
+            base: { skill: 0, hp: 4, sub1: 2, sub2: 0, retainer: 7 },
+            caps: {
+                lv15: { skill: 2, hp: 4, sub1: 4, sub2: 0, retainer: 2 },
+                lv24: { skill: 2, hp: 8, sub1: 4, sub2: 0, retainer: 4 },
+                lv33: { skill: 2, hp: 12, sub1: 6, sub2: 8, retainer: 6 }
+            }
+        },
+        "ケモノコビット": {
+            base: { skill: 0, hp: 4, sub1: 2, sub2: 0, retainer: 7 },
+            caps: {
+                lv15: { skill: 2, hp: 2, sub1: 4, sub2: 0, retainer: 2 },
+                lv24: { skill: 2, hp: 4, sub1: 6, sub2: 0, retainer: 5 },
+                lv33: { skill: 2, hp: 4, sub1: 8, sub2: 10, retainer: 8 }
+            }
+        },
+        "ゴーレム": {
+            base: { skill: 1, hp: 6, sub1: 0, sub2: 0, retainer: 5 },
+            caps: {
+                lv15: { skill: 0, hp: 6, sub1: 6, sub2: 0, retainer: 4 },
+                lv24: { skill: 0, hp: 7, sub1: 8, sub2: 0, retainer: 5 },
+                lv33: { skill: 0, hp: 8, sub1: 10, sub2: 10, retainer: 6 }
+            }
+        },
+        "ナーガ": {
+            base: { skill: 0, hp: 4, sub1: 4, sub2: 0, retainer: 0 },
+            caps: {
+                lv15: { skill: 2, hp: 4, sub1: 4, sub2: 0, retainer: 2 },
+                lv24: { skill: 2, hp: 5, sub1: 6, sub2: 0, retainer: 3 },
+                lv33: { skill: 2, hp: 6, sub1: 8, sub2: 12, retainer: 4 }
+            }
+        },
+        "バルサムデビル": {
+            base: { skill: 0, hp: 4, sub1: 2, sub2: 0, retainer: 7 },
+            caps: {
+                lv15: { skill: 1, hp: 4, sub1: 4, sub2: 0, retainer: 3 },
+                lv24: { skill: 1, hp: 6, sub1: 6, sub2: 0, retainer: 6 },
+                lv33: { skill: 1, hp: 6, sub1: 8, sub2: 10, retainer: 9 }
+            }
+        },
+        "半巨人": {
+            base: { skill: 0, hp: 5, sub1: 3, sub2: 0, retainer: 6 },
+            caps: {
+                lv15: { skill: 1, hp: 5, sub1: 5, sub2: 0, retainer: 3 },
+                lv24: { skill: 1, hp: 7, sub1: 7, sub2: 0, retainer: 5 },
+                lv33: { skill: 2, hp: 6, sub1: 7, sub2: 10, retainer: 6 }
+            }
+        },
+        "吸血鬼": {
+            base: { skill: 0, hp: 5, sub1: 3, sub2: 0, retainer: 6 },
+            caps: {
+                lv15: { skill: 0, hp: 7, sub1: 7, sub2: 0, retainer: 3 },
+                lv24: { skill: 0, hp: 9, sub1: 9, sub2: 0, retainer: 5 },
+                lv33: { skill: 0, hp: 11, sub1: 9, sub2: 12, retainer: 6 }
+            }
+        },
+        "地龍（リンドヴルム）": {
+            base: { skill: 0, hp: 6, sub1: 2, sub2: 0, retainer: 6 },
+            caps: {
+                lv15: { skill: 1, hp: 6, sub1: 6, sub2: 0, retainer: 2 },
+                lv24: { skill: 1, hp: 8, sub1: 8, sub2: 0, retainer: 4 },
+                lv33: { skill: 1, hp: 10, sub1: 8, sub2: 10, retainer: 6 }
+            }
+        },
+        "妖狐": {
+            base: { skill: 0, hp: 3, sub1: 3, sub2: 0, retainer: 7 },
+            caps: {
+                lv15: { skill: 2, hp: 3, sub1: 5, sub2: 0, retainer: 2 },
+                lv24: { skill: 2, hp: 3, sub1: 7, sub2: 0, retainer: 5 },
+                lv33: { skill: 2, hp: 3, sub1: 8, sub2: 11, retainer: 8 }
+            }
+        },
+        "末裔": {
+            base: { skill: 0, hp: 2, sub1: 0, sub2: 0, retainer: 9 },
+            caps: {
+                lv15: { skill: 1, hp: 2, sub1: 6, sub2: 0, retainer: 3 },
+                lv24: { skill: 1, hp: 4, sub1: 8, sub2: 0, retainer: 5 },
+                lv33: { skill: 1, hp: 6, sub1: 8, sub2: 8, retainer: 9 }
+            }
+        },
+        "死せる砂漠の道化師": {
+            base: { skill: 0, hp: 4, sub1: 2, sub2: 0, retainer: 7 },
+            caps: {
+                lv15: { skill: 2, hp: 4, sub1: 4, sub2: 0, retainer: 2 },
+                lv24: { skill: 2, hp: 4, sub1: 6, sub2: 0, retainer: 5 },
+                lv33: { skill: 2, hp: 4, sub1: 8, sub2: 10, retainer: 8 }
+            }
+        },
+        "翼人": {
+            base: { skill: 0, hp: 2, sub1: 2, sub2: 0, retainer: 7 },
+            caps: {
+                lv15: { skill: 2, hp: 2, sub1: 4, sub2: 0, retainer: 3 },
+                lv24: { skill: 2, hp: 4, sub1: 6, sub2: 0, retainer: 5 },
+                lv33: { skill: 2, hp: 4, sub1: 8, sub2: 10, retainer: 8 }
+            }
+        },
+        "緋色の魔術師": {
+            base: { skill: 0, hp: 4, sub1: 2, sub2: 0, retainer: 7 },
+            caps: {
+                lv15: { skill: 2, hp: 4, sub1: 4, sub2: 0, retainer: 2 },
+                lv24: { skill: 2, hp: 4, sub1: 6, sub2: 0, retainer: 5 },
+                lv33: { skill: 2, hp: 4, sub1: 8, sub2: 10, retainer: 8 }
+            }
+        },
+        "肉食キューブ": {
+            base: { skill: 0, hp: 6, sub1: 0, sub2: 0, retainer: 6 },
+            caps: {
+                lv15: { skill: 0, hp: 8, sub1: 0, sub2: 0, retainer: 2 },
+                lv24: { skill: 0, hp: 9, sub1: 0, sub2: 0, retainer: 3 },
+                lv33: { skill: 0, hp: 10, sub1: 10, sub2: 0, retainer: 4 }
+            }
+        },
+        "ケンタウロス": {
+            base: { skill: 0, hp: 4, sub1: 2, sub2: 0, retainer: 7 },
+            caps: {
+                lv15: { skill: 2, hp: 2, sub1: 4, sub2: 0, retainer: 2 },
+                lv24: { skill: 2, hp: 4, sub1: 6, sub2: 0, retainer: 5 },
+                lv33: { skill: 2, hp: 4, sub1: 8, sub2: 10, retainer: 8 }
+            }
+        },
+        "おどる剣": {
+            base: { skill: 0, hp: 4, sub1: 2, sub2: 0, retainer: 7 },
+            caps: {
+                lv15: { skill: 1, hp: 4, sub1: 6, sub2: 0, retainer: 2 },
+                lv24: { skill: 1, hp: 5, sub1: 9, sub2: 0, retainer: 4 },
+                lv33: { skill: 2, hp: 6, sub1: 9, sub2: 11, retainer: 6 }
+            }
+        },
+        "ジグリ・ザグリ": {
+            base: { skill: 0, hp: 4, sub1: 2, sub2: 0, retainer: 7 },
+            caps: {
+                lv15: { skill: 1, hp: 6, sub1: 4, sub2: 0, retainer: 3 },
+                lv24: { skill: 1, hp: 6, sub1: 6, sub2: 0, retainer: 6 },
+                lv33: { skill: 1, hp: 6, sub1: 8, sub2: 10, retainer: 8 }
+            }
+        },
+        "ゴブリン": {
+            base: { skill: 0, hp: 1, sub1: 0, sub2: 0, retainer: 8 },
+            caps: {
+                lv15: { skill: 1, hp: 0, sub1: 6, sub2: 0, retainer: 5 },
+                lv24: { skill: 1, hp: 0, sub1: 8, sub2: 0, retainer: 9 },
+                lv33: { skill: 1, hp: 0, sub1: 10, sub2: 10, retainer: 11 }
+            }
+        },
+        "魔猫": {
+            base: { skill: 0, hp: 6, sub1: 4, sub2: 0, retainer: 5 },
+            caps: {
+                lv15: { skill: 2, hp: 4, sub1: 4, sub2: 0, retainer: 2 },
+                lv24: { skill: 2, hp: 6, sub1: 6, sub2: 0, retainer: 4 },
+                lv33: { skill: 2, hp: 8, sub1: 8, sub2: 12, retainer: 5 }
+            }
+        }
+    };
+
+    const HOD_RACE_ALIASES = {
+        "リンドヴルム": "地龍（リンドヴルム）"
+    };
+
+    const HOD_STAT_KEY_MAP = {
+        skill: 'skill',
+        life: 'hp',
+        subAbility: 'sub1',
+        subAbilitySecondary: 'sub2',
+        follower: 'retainer'
+    };
+
+    const NORMAL_CLASSES = [
+        "魔術師", "僧侶", "戦士", "盗賊", "怪物狩猟者", "錬金術師", "吟遊詩人", "聖騎士", "獣使い", "異国魔法使い",
+        "暗殺者", "剣闘士", "戦鍛冶", "からくり術師", "悪魔召喚師", "影法師", "秘術師", "吸血鬼殺し", "呪術師", "道化師"
+    ];
+
+    function getHodRaceNames() {
+        return Object.keys(HOD_RACE_DATA);
+    }
+
+    function resolveHodRaceName(val) {
+        if (!val) return null;
+        if (HOD_RACE_DATA[val]) return val;
+        const aliased = HOD_RACE_ALIASES[val];
+        return (aliased && HOD_RACE_DATA[aliased]) ? aliased : null;
+    }
+
+    function getHodCapBand(level) {
+        const lvl = level || 1;
+        if (lvl <= 15) return 'lv15';
+        if (lvl <= 24) return 'lv24';
+        return 'lv33';
+    }
+
+    // 職業/種族がデフォルトのものであるかを判定
+    function isDefaultOccupation(val) {
+        return NORMAL_CLASSES.includes(val) || !!resolveHodRaceName(val);
+    }
+
+    const LIMIT_BONUS_RES_MAP = {
+        skill: 'skill',
+        life: 'hp',
+        subAbility: 'subAbility',
+        subAbilitySecondary: 'subAbilitySecondary',
+        follower: 'follower'
+    };
+
+    function normalizeLimitBonus(raw) {
+        const src = (raw && typeof raw === 'object') ? raw : {};
+        const n = (v) => {
+            const parsed = parseInt(v, 10);
+            return Number.isFinite(parsed) ? parsed : 0;
+        };
+        return {
+            skill: n(src.skill),
+            hp: n(src.hp != null ? src.hp : src.life),
+            subAbility: n(src.subAbility != null ? src.subAbility : src.subAbility1),
+            subAbilitySecondary: n(src.subAbilitySecondary != null ? src.subAbilitySecondary : src.subAbility2),
+            follower: n(src.follower)
+        };
+    }
+
+    const EFFECT_TARGETS = {
+        roll: ['接近ロール', '遠隔ロール', '防御ロール', '対魔ロール', '筋力ロール', '幸運ロール', '器用ロール', '魔法ロール'],
+        max: ['生命', '副能力値１', '副能力値２', '従者', '技量']
+    };
+
+    function renderItemEffects(item) {
+        const container = document.getElementById('itemEffectsList');
+        if (!container) return;
+        container.innerHTML = '';
+        
+        let effects = [];
+        if (item) {
+            if (Array.isArray(item.effects)) {
+                effects = item.effects;
+            }
+            // Migrate old limitBonus to new effects list in UI
+            if (item.limitBonus) {
+                const b = normalizeLimitBonus(item.limitBonus);
+                if (b.hp) effects.push({ type: 'max', target: '生命', value: b.hp });
+                if (b.subAbility) effects.push({ type: 'max', target: '副能力値１', value: b.subAbility });
+                if (b.subAbilitySecondary) effects.push({ type: 'max', target: '副能力値２', value: b.subAbilitySecondary });
+                if (b.skill) effects.push({ type: 'max', target: '技量', value: b.skill });
+                if (b.follower) effects.push({ type: 'max', target: '従者', value: b.follower });
+            }
+        }
+        
+        effects.forEach(e => addItemEffectRow(e));
+    }
+
+    function addItemEffectRow(effect = { type: 'roll', target: '接近ロール', value: 0 }) {
+        const container = document.getElementById('itemEffectsList');
+        if (!container) return;
+        
+        const row = document.createElement('div');
+        row.className = 'flex items-center gap-1 item-effect-row';
+        
+        const typeSelect = document.createElement('select');
+        typeSelect.className = 'effect-type w-20 text-[10px] border border-gray-300 rounded p-1 focus:ring-1 focus:ring-indigo-400 outline-none bg-white';
+        typeSelect.innerHTML = `<option value="roll">判定補正</option><option value="max">最大値補正</option>`;
+        typeSelect.value = effect.type || 'roll';
+        
+        const targetSelect = document.createElement('select');
+        targetSelect.className = 'effect-target flex-1 text-[10px] border border-gray-300 rounded p-1 focus:ring-1 focus:ring-indigo-400 outline-none bg-white';
+        
+        const updateTargets = () => {
+            const currentType = typeSelect.value;
+            targetSelect.innerHTML = EFFECT_TARGETS[currentType].map(t => `<option value="${t}">${t}</option>`).join('');
+            if (EFFECT_TARGETS[currentType].includes(effect.target)) {
+                targetSelect.value = effect.target;
+            }
+        };
+        typeSelect.addEventListener('change', updateTargets);
+        updateTargets(); // initial populate
+        
+        const valInput = document.createElement('input');
+        valInput.type = 'number';
+        valInput.className = 'effect-value w-12 text-[10px] border border-gray-300 rounded p-1 text-center focus:ring-1 focus:ring-indigo-400 outline-none';
+        valInput.value = effect.value || 0;
+        
+        const delBtn = document.createElement('button');
+        delBtn.innerHTML = '×';
+        delBtn.className = 'w-6 h-6 flex items-center justify-center bg-red-50 text-red-600 rounded text-xs font-bold hover:bg-red-100 shrink-0';
+        delBtn.onclick = () => row.remove();
+        
+        row.appendChild(typeSelect);
+        row.appendChild(targetSelect);
+        row.appendChild(valInput);
+        row.appendChild(delBtn);
+        
+        container.appendChild(row);
+    }
+
+    function readItemEffectsFromModal() {
+        const container = document.getElementById('itemEffectsList');
+        if (!container) return [];
+        const rows = container.querySelectorAll('.item-effect-row');
+        const effects = [];
+        rows.forEach(row => {
+            const type = row.querySelector('.effect-type').value;
+            const target = row.querySelector('.effect-target').value;
+            const value = parseInt(row.querySelector('.effect-value').value) || 0;
+            if (value !== 0) {
+                effects.push({ type, target, value });
+            }
+        });
+        return effects;
+    }
+
+    function formatEffectsSummary(item) {
+        if (!item) return '';
+        const parts = [];
+        
+        // Handle new effects array
+        if (Array.isArray(item.effects)) {
+            item.effects.forEach(e => {
+                parts.push(`${e.target}${e.value > 0 ? '+' : ''}${e.value}`);
+            });
+        } 
+        // Backward compatibility for display
+        else if (item.limitBonus) {
+            const norm = normalizeLimitBonus(item.limitBonus);
+            if (norm.skill) parts.push(`技量点${norm.skill > 0 ? '+' : ''}${norm.skill}`);
+            if (norm.hp) parts.push(`生命点${norm.hp > 0 ? '+' : ''}${norm.hp}`);
+            if (norm.subAbility) parts.push(`副能力値1${norm.subAbility > 0 ? '+' : ''}${norm.subAbility}`);
+            if (norm.subAbilitySecondary) parts.push(`副能力値2${norm.subAbilitySecondary > 0 ? '+' : ''}${norm.subAbilitySecondary}`);
+            if (norm.follower) parts.push(`従者点${norm.follower > 0 ? '+' : ''}${norm.follower}`);
+        }
+        
+        return parts.length > 0 ? ` [補正: ${parts.join(', ')}]` : '';
+    }
+
+    function applyLimitBonusToItem(itm, bonus) {
+        // Keeps function signature to not break old calls elsewhere if they exist
+    }
+
+    function getEquippedLimitBonusTotal(char, resId) {
+        const key = LIMIT_BONUS_RES_MAP[resId];
+        if (!char || !char.data || !char.data.slots || !Array.isArray(char.data.slots.equipped)) return 0;
+        
+        const maxTargetMap = {
+            'life': '生命',
+            'subAbility': '副能力値１',
+            'subAbilitySecondary': '副能力値２',
+            'follower': '従者',
+            'skill': '技量'
+        };
+        const targetString = maxTargetMap[resId];
+
+        return char.data.slots.equipped.reduce((sum, slot) => {
+            if (!slot || !slot.item) return sum;
+            let currentItemBonus = 0;
+            
+            // New format
+            if (Array.isArray(slot.item.effects) && targetString) {
+                currentItemBonus += slot.item.effects
+                    .filter(e => e.type === 'max' && e.target === targetString)
+                    .reduce((s, e) => s + (parseInt(e.value) || 0), 0);
+            } 
+            // Old format fallback
+            else if (slot.item.limitBonus && key) {
+                const bonus = normalizeLimitBonus(slot.item.limitBonus);
+                currentItemBonus += (bonus[key] || 0);
+            }
+            
+            return sum + currentItemBonus;
+        }, 0);
+    }
+
+    function getEquippedRollBonusTotal(char, targetString) {
+        if (!char || !char.data || !char.data.slots || !Array.isArray(char.data.slots.equipped)) return 0;
+        return char.data.slots.equipped.reduce((sum, slot) => {
+            if (!slot || !slot.item || !Array.isArray(slot.item.effects)) return sum;
+            return sum + slot.item.effects
+                .filter(e => e.type === 'roll' && e.target === targetString)
+                .reduce((s, e) => s + (parseInt(e.value) || 0), 0);
+        }, 0);
+    }
+
+    function getAbilityCap(id, resId) {
+        try {
+            const c = appState.characters[id];
+            if (!c) return null;
+            const d = c.data;
+            
+            if (c.ignoreLimit) return null;
+
+            const hodRaceName = resolveHodRaceName(d.occupation);
+            if (hodRaceName) {
+                const statKey = HOD_STAT_KEY_MAP[resId];
+                if (!statKey) return null;
+                const race = HOD_RACE_DATA[hodRaceName];
+                const band = getHodCapBand(d.level || 1);
+                const baseVal = (race.base && race.base[statKey]) || 0;
+                const growthVal = (race.caps && race.caps[band] && race.caps[band][statKey]) || 0;
+                return baseVal + growthVal + getEquippedLimitBonusTotal(c, resId);
+            }
+
+            if (!d.occupation || !NORMAL_CLASSES.includes(d.occupation)) return null;
+            
+            const lvl = d.level || 1;
+            let baseCap = null;
+            
+            if (resId === 'skill') {
+                baseCap = 2;
+            } else if (resId === 'life') {
+                baseCap = 8;
+            } else if (resId === 'subAbility') {
+                if (lvl <= 15) baseCap = 6;
+                else if (lvl <= 24) baseCap = 8;
+                else baseCap = 10;
+            } else if (resId === 'subAbilitySecondary') {
+                baseCap = (lvl >= 25) ? 10 : 0;
+            } else if (resId === 'follower') {
+                if (lvl <= 15) baseCap = 9;
+                else if (lvl <= 24) baseCap = 12;
+                else baseCap = 15;
+            }
+
+            if (baseCap === null) return null;
+            return baseCap + getEquippedLimitBonusTotal(c, resId);
+        } catch(err) {
+            console.error("getAbilityCap failed", err);
+        }
+        return null;
+    }
+
+    // レベル帯の素の成長上限のみを返す（装備補正を含まない）。
+    // 手入力ストッパーおよび baseMax の保存チェックに使用する。
+    function getBaseLevelCap(id, resId) {
+        try {
+            const c = appState.characters[id];
+            if (!c) return null;
+            const d = c.data;
+
+            if (c.ignoreLimit) return null;
+
+            const hodRaceName = resolveHodRaceName(d.occupation);
+            if (hodRaceName) {
+                const statKey = HOD_STAT_KEY_MAP[resId];
+                if (!statKey) return null;
+                const race = HOD_RACE_DATA[hodRaceName];
+                const band = getHodCapBand(d.level || 1);
+                const baseVal = (race.base && race.base[statKey]) || 0;
+                const growthVal = (race.caps && race.caps[band] && race.caps[band][statKey]) || 0;
+                return baseVal + growthVal; // equipBonus を加算しない
+            }
+
+            if (!d.occupation || !NORMAL_CLASSES.includes(d.occupation)) return null;
+
+            const lvl = d.level || 1;
+            let baseCap = null;
+
+            if (resId === 'skill') {
+                baseCap = 2;
+            } else if (resId === 'life') {
+                baseCap = 8;
+            } else if (resId === 'subAbility') {
+                if (lvl <= 15) baseCap = 6;
+                else if (lvl <= 24) baseCap = 8;
+                else baseCap = 10;
+            } else if (resId === 'subAbilitySecondary') {
+                baseCap = (lvl >= 25) ? 10 : 0;
+            } else if (resId === 'follower') {
+                if (lvl <= 15) baseCap = 9;
+                else if (lvl <= 24) baseCap = 12;
+                else baseCap = 15;
+            }
+
+            return baseCap; // equipBonus を加算しない（null の場合も null を返す）
+        } catch(err) {
+            console.error("getBaseLevelCap failed", err);
+        }
+        return null;
+    }
+
+    function checkAndLimitAbilityCaps(id) {
+        try {
+            const c = appState.characters[id];
+            if (!c) return;
+            const d = c.data;
+
+            // skill（単値）: baseMax を baseLevelCap でクランプ
+            const skillBaseCap = getBaseLevelCap(id, 'skill');
+            if (skillBaseCap !== null && d.skill > skillBaseCap) {
+                d.skill = skillBaseCap;
+            }
+
+            // life: baseMax を baseLevelCap でクランプ、current を displayMax でクランプ
+            const lifeBaseCap = getBaseLevelCap(id, 'life');
+            if (lifeBaseCap !== null && d.life) {
+                if (d.life.max > lifeBaseCap) {
+                    d.life.max = lifeBaseCap;
+                }
+                const lifeDisplayMax = d.life.max + getEquippedLimitBonusTotal(c, 'life');
+                if (d.life.current > lifeDisplayMax) d.life.current = lifeDisplayMax;
+            }
+
+            // subAbility: baseMax を baseLevelCap でクランプ、current を displayMax でクランプ
+            const subBaseCap = getBaseLevelCap(id, 'subAbility');
+            if (subBaseCap !== null && d.subAbility) {
+                if (d.subAbility.max > subBaseCap) {
+                    d.subAbility.max = subBaseCap;
+                }
+                const subDisplayMax = d.subAbility.max + getEquippedLimitBonusTotal(c, 'subAbility');
+                if (d.subAbility.current > subDisplayMax) d.subAbility.current = subDisplayMax;
+            }
+
+            // subAbilitySecondary（レベル25以上）
+            if (d.level >= 25 && d.subAbilitySecondary) {
+                const sub2BaseCap = getBaseLevelCap(id, 'subAbilitySecondary');
+                if (sub2BaseCap !== null) {
+                    if (d.subAbilitySecondary.max > sub2BaseCap) {
+                        d.subAbilitySecondary.max = sub2BaseCap;
+                    }
+                    const sub2DisplayMax = d.subAbilitySecondary.max + getEquippedLimitBonusTotal(c, 'subAbilitySecondary');
+                    if (d.subAbilitySecondary.current > sub2DisplayMax) {
+                        d.subAbilitySecondary.current = sub2DisplayMax;
+                    }
+                }
+            }
+
+            // follower: baseMax を baseLevelCap でクランプ、current を displayMax でクランプ
+            const followerBaseCap = getBaseLevelCap(id, 'follower');
+            if (followerBaseCap !== null && d.follower) {
+                if (d.follower.max > followerBaseCap) {
+                    d.follower.max = followerBaseCap;
+                }
+                const followerDisplayMax = d.follower.max + getEquippedLimitBonusTotal(c, 'follower');
+                if (d.follower.current > followerDisplayMax) d.follower.current = followerDisplayMax;
+            }
+        } catch(err) {
+            console.error("checkAndLimitAbilityCaps failed", err);
+        }
+    }
+
+    function toggleCharLimitIgnore(id) {
+        if(appState.characters[id]) {
+            appState.characters[id].ignoreLimit = !appState.characters[id].ignoreLimit;
+            if (!appState.characters[id].ignoreLimit) {
+                checkAndLimitAbilityCaps(id);
+            }
+            saveData();
+            renderCurrentCharacterSheet();
+        }
+    }
+
+    // 職業/種族の選択肢生成
+    function renderOccupationOptions(selectedValue) {
+        const hodClasses = getHodRaceNames();
+        const resolvedHod = resolveHodRaceName(selectedValue);
+
+        let h = `<option value="">選択してください...</option>`;
+        
+        h += `<optgroup label="通常職業">`;
+        NORMAL_CLASSES.forEach(c => {
+            h += `<option value="${c}" ${selectedValue === c ? 'selected' : ''}>${c}</option>`;
+        });
+        h += `</optgroup>`;
+
+        h += `<optgroup label="HoD">`;
+        hodClasses.forEach(c => {
+            h += `<option value="${c}" ${selectedValue === c || resolvedHod === c ? 'selected' : ''}>${c}</option>`;
+        });
+        h += `</optgroup>`;
+
+        const isCustom = selectedValue && !NORMAL_CLASSES.includes(selectedValue) && !resolvedHod;
+        h += `<option value="custom" ${isCustom ? 'selected' : ''}>その他（自由入力）</option>`;
+
+        return h;
+    }
+
+    // 職業セレクトボックス変更ハンドラ
+    function onOccupationSelectChange(charId, selectedVal, customDivId, customInputId, dataKey) {
+        try {
+            const char = appState.characters[charId];
+            if (!char) return;
+            
+            const div = document.getElementById(customDivId);
+            const input = document.getElementById(customInputId);
+            
+            if (selectedVal === 'custom') {
+                if (div) div.classList.remove('hidden');
+                const customVal = input ? input.value : '';
+                char.data[dataKey] = customVal;
+            } else {
+                if (div) div.classList.add('hidden');
+                char.data[dataKey] = selectedVal;
+            }
+            checkAndLimitAbilityCaps(charId);
+            saveData();
+            renderCurrentCharacterSheet();
+        } catch(err) {
+            console.error("Occupation select change error", err);
+        }
+    }
+
+    // 自由入力テキストフィールド変更ハンドラ
+    function onOccupationCustomInputChange(charId, value, dataKey) {
+        try {
+            const char = appState.characters[charId];
+            if (!char) return;
+            char.data[dataKey] = value.trim();
+            checkAndLimitAbilityCaps(charId);
+            saveData();
+            renderCurrentCharacterSheet();
+        } catch(err) {
+            console.error("Occupation custom input change error", err);
+        }
+    }
+
+    // 進捗バーとテキストの差分DOM更新関数
+    function updateProgressDOM(charId, resId, current, max) {
+        try {
+            const fillEl = document.getElementById(`progress-fill-${charId}-${resId}`);
+            const textEl = document.getElementById(`progress-text-${charId}-${resId}`);
+            if (fillEl && textEl) {
+                const percent = max > 0 ? Math.min(100, Math.max(0, (current / max) * 100)) : 0;
+                fillEl.style.width = `${percent}%`;
+                textEl.textContent = `${current} / ${max}`;
+            }
+            if (resId === 'life') {
+                const headerLifeDisplay = document.querySelector(`#char-card-${charId} .life-display`);
+                if (headerLifeDisplay) {
+                    headerLifeDisplay.textContent = `${current}/${max}`;
+                }
+            }
+        } catch(err) {
+            console.error("updateProgressDOM failed", err);
+        }
+    }
+
+    // 副能力値の調整
+    function adjustSecondaryResource(id, delta) {
+        try {
+            const c = appState.characters[id];
+            if (!c) return;
+            const d = c.data;
+            if (!d.subAbilitySecondary) {
+                d.subAbilitySecondary = { current: 0, max: 0, type: 'str', label: '筋力' };
+            }
+            const target = d.subAbilitySecondary;
+            let val = parseInt(target.current) || 0;
+            const equipBonus = getEquippedLimitBonusTotal(c, 'subAbilitySecondary');
+            const displayMax = (parseInt(target.max) || 0) + equipBonus; // displayMax = baseMax + equipBonus
+            val += delta;
+            if (val < 0) val = 0;
+            if (val > displayMax) val = displayMax;
+            onResChange('subAbilitySecondary', `${target.label}値`, val, false, id);
+        } catch(err) {
+            console.error("Secondary resource adjust failed", err);
+        }
+    }
+
     function adjustResource(id, key, delta) {
         const c = appState.characters[id];
         if (!c) return;
@@ -2188,12 +3065,12 @@ function renderTabContent(id, tab) {
         
         if (target) {
             let val = parseInt(target.current) || 0;
-            const max = parseInt(target.max) || 0;
+            const equipBonus = getEquippedLimitBonusTotal(c, key);
+            const displayMax = (parseInt(target.max) || 0) + equipBonus; // displayMax = baseMax + equipBonus
             val += delta;
             if (val < 0) val = 0;
-            if (val > max) val = max;
+            if (val > displayMax) val = displayMax;
             onResChange(key, target.label || (key==='follower'?'従者':''), val, false, id);
-            renderCurrentCharacterSheet();
         }
     }
     // カスタム項目追加用関数
@@ -2328,6 +3205,7 @@ function renderTabContent(id, tab) {
         let label = "";
 
         const abilityKeys = { '幸運': 'luck', '筋力': 'str', '魔術': 'mag', '器用': 'dex' };
+        const abilityTargetNameMap = { luck: '幸運ロール', str: '筋力ロール', mag: '魔法ロール', dex: '器用ロール' };
 
         if (abilityKeys[type]) {
             const key = abilityKeys[type];
@@ -2338,7 +3216,8 @@ function renderTabContent(id, tab) {
                 base = d.skill;
                 label = `${type}判定(技量)`;
             }
-            equip = d.abilityMods[key] || 0;
+            const itemBonus = getEquippedRollBonusTotal(c, abilityTargetNameMap[key]);
+            equip = (d.abilityMods[key] || 0) + itemBonus;
         } else if (type === '生命') { 
             if (mode === 'skill') {
                 base = d.skill;
@@ -2352,22 +3231,24 @@ function renderTabContent(id, tab) {
             // 戦闘・特殊判定 (接近, 遠距離, 防御, 対魔法)
             let actionMod = 0;
             let actionLabel = type;
+            let itemActionBonus = 0;
 
-            if (type === '接近') { actionMod = d.meleeMod || 0; actionLabel = "接近攻撃"; }
-            else if (type === '遠距離') { actionMod = d.rangedMod || 0; actionLabel = "遠距離攻撃"; }
-            else if (type === '防御') { actionMod = d.armorMod || 0; actionLabel = "防御判定"; }
-            else if (type === '対魔法') { actionMod = d.magicResistMod || 0; actionLabel = "対魔法判定"; }
+            if (type === '接近') { actionMod = d.meleeMod || 0; actionLabel = "接近攻撃"; itemActionBonus = getEquippedRollBonusTotal(c, '接近ロール'); }
+            else if (type === '遠距離') { actionMod = d.rangedMod || 0; actionLabel = "遠距離攻撃"; itemActionBonus = getEquippedRollBonusTotal(c, '遠隔ロール'); }
+            else if (type === '防御') { actionMod = d.armorMod || 0; actionLabel = "防御判定"; itemActionBonus = getEquippedRollBonusTotal(c, '防御ロール'); }
+            else if (type === '対魔法') { actionMod = d.magicResistMod || 0; actionLabel = "対魔法判定"; itemActionBonus = getEquippedRollBonusTotal(c, '対魔ロール'); }
 
             if (mode === 'ability') {
                 base = d.subAbility.current || 0;
-                // 装備/スキル = アクション修正 + 能力修正
+                // 装備/スキル = アクション修正 + 能力修正 + 装備補正
                 const currentType = d.subAbility.type;
                 const abilityMod = d.abilityMods[currentType] || 0;
-                equip = actionMod + abilityMod;
+                const itemAbilityBonus = getEquippedRollBonusTotal(c, abilityTargetNameMap[currentType] || '');
+                equip = actionMod + itemActionBonus + abilityMod + itemAbilityBonus;
                 label = `${actionLabel}(${d.subAbility.label})`;
             } else {
                 base = d.skill;
-                equip = actionMod;
+                equip = actionMod + itemActionBonus;
                 label = `${actionLabel}(技量)`;
             }
         }
@@ -2375,97 +3256,64 @@ function renderTabContent(id, tab) {
         executeRoll(id, label, base, equip, globalMod);
     }
     //② handleRlhRoll（RLH専用の判定計算）
+    // 新・統合ロール実行関数（以前のログ形式を完全再現）
     function executeRoll(id, label, base, equip, globalMod) {
-    const c = appState.characters[id];
-    const n = parseInt(document.getElementById('rollCount').value) || 1;
-    const tg = parseInt(document.getElementById('targetValue').value) || 0; // 目標値
-    const sk = base + equip + globalMod; // 合計修正値
-
-    // 1. Calculate results first
-    let rawResults = [];
-    for(let i=0; i<n; i++){
-        rawResults.push(Math.floor(Math.random()*6)+1);
-    }
+        const c = appState.characters[id];
+        const n = parseInt(document.getElementById('rollCount').value) || 1;
+        const tg = parseInt(document.getElementById('targetValue').value) || 0; // 目標値
+        const sk = base + equip + globalMod; // 合計修正値
     
-    // 2. Animate Dice
-    roll3DDice(rawResults, () => {
-        // 3. Process Logic inside callback
-        let s=0, f=0, cr=0, fum=0, details=[];
-        let hasCritical = false;
-        let hasFumble = false;
-        rawResults.forEach((r, i) => {
-            const tot = r + sk;
-            let resText = "";
-            if(r === 6) {
-                resText = "クリティカル";
-                hasCritical = true;
-                s++; cr++;
-            } 
-            else if(r === 1) {
-                resText = "ファンブル";
-                hasFumble = true;
-                f++; fum++;
-            }
-            else if(tot >= tg) {
-                resText = "成功";
-                s++;
-            }
-            else {
-                resText = "失敗";
-                f++;
-            }
-
-            // 単発ロール (n === 1) の場合は "#1:" を付けない
-            const prefix = n === 1 ? "" : `#${i+1}: `;
-            
-            // 修正値の表示をスッキリさせる (skが0の場合は "+ 0" ではなく "+0" または符号をきれいに見せるため、符号を動的に判定)
-            const skSign = sk >= 0 ? `+ ${sk}` : `- ${Math.abs(sk)}`;
-            
-            details.push(`${prefix}1D6(${r}) ${skSign} = ${tot} >= ${tg} -> ${resText}`);
-        });
-
-        // Delayed sound for result
-        setTimeout(() => {
-            if (hasCritical) playCriticalSound();
-            else if (hasFumble) playFanFanSound();
-        }, 100);
-
-        // --- 動的に「使用数値」のテキストを組み立てる ---
-        let baseText = `${label}(${base})`;
-        if (equip !== 0) {
-            baseText += ` + 装備/スキル(${equip})`;
+        // 1. Calculate results first
+        let rawResults = [];
+        for(let i=0; i<n; i++){
+            rawResults.push(Math.floor(Math.random()*6)+1);
         }
-        if (globalMod !== 0) {
-            baseText += ` + 修正(${globalMod})`;
-        }
-        const skSignTotal = sk >= 0 ? `+${sk}` : `${sk}`;
-        const usageDetail = `[${c.name}] 使用数値: ${baseText} = 計${skSignTotal}`;
-       // --- ログのタイトル（【〇〇ロール】）をきれいに整える ---
-        // 1. 「判定」という文字を消去します（「接近攻撃(技量)判定」➔「接近攻撃(技量)」、「防御判定(技量)」➔「防御(技量)」になります）
-        let cleanLabel = label.replace('判定', '');
         
-        // 2. 「(技量)」などのカッコが最後にある場合、その手前に「ロール」を差し込みます。
-        // カッコがないシンプルなラベル（例：「回避判定」➔「回避」）の場合は、お尻に「ロール」を付けます。
-        let displayTitle = "";
-        const match = cleanLabel.match(/(.*?)\((.*?)\)/); // 「名前(能力値)」のパターンを分解
-        
-        if (match) {
-            // 例：「接近攻撃(技量)」を「接近攻撃」と「(技量)」に分け、「接近攻撃ロール(技量)」に組み立て直します
-            displayTitle = `${match[1]}ロール(${match[2]})`;
-        } else {
-            // カッコがない場合（例：「回避」➔「回避ロール」）
-            displayTitle = `${cleanLabel}ロール`;
-        }
-        // --------------------------------------------------------
+        // 2. Animate Dice
+        roll3DDice(rawResults, () => {
+            // 3. Process Logic inside callback
+            let s=0, f=0, cr=0, fum=0, details=[];
+            let hasCritical = false;
+            let hasFumble = false;
+            rawResults.forEach((r, i) => {
+                const tot = r + sk;
+                let resText = "";
+                if(r === 6) {
+                    resText = "クリティカル";
+                    hasCritical = true;
+                    s++; cr++;
+                } 
+                else if(r === 1) {
+                    resText = "ファンブル";
+                    hasFumble = true;
+                    f++; fum++;
+                }
+                else if(tot >= tg) {
+                    resText = "成功";
+                    s++;
+                }
+                else {
+                    resText = "失敗";
+                    f++;
+                }
+                details.push(`#${i+1}: 1D6(${r})+${sk}=${tot} -> ${resText}`);
+            });
+    
+            // Delayed sound for result
+            setTimeout(() => {
+                if (hasCritical) playCriticalSound();
+                else if (hasFumble) playFanFanSound();
+            }, 100);
 
-        // ログ出力
-        addLogEntry('dice', displayTitle, 
-            `${usageDetail}\n` +
+            // ログ出力
+            addLogEntry('dice', `${label}判定`, 
+            `[${c.name}] 使用数値: ${label}(${base}) + 装備/スキル(${equip}) + 修正(${globalMod}) = 計+${sk}\n` +
+            `${n}RLH >= ${tg}\n` +
             `${details.join('\n')}\n` +
             `成功:${s} 失敗:${f} (C:${cr}/F:${fum})`
-        );
-    });
-}
+            );
+        });
+    }
     // --- 3D Dice Animation Function ---
     function roll3DDice(values, callback) {
         // 設定でオフの場合はスキップ
@@ -2657,7 +3505,7 @@ function renderTabContent(id, tab) {
         // Animate and then Log
         roll3DDice(allVisualDice, () => {
              const content = logLines.join('\n');
-             addLogEntry('dice', label, `[${name}]\n${content}`);
+             addLogEntry('dice', label, `[実行者: ${name}]\n${content}`);
         });
     }
 
@@ -2744,12 +3592,13 @@ function renderTabContent(id, tab) {
             text += `・従者: ${d.follower.current} / ${d.follower.max}\n`;
         }
         if (!c.deletedResources.includes('gold')) text += `・金貨: ${d.gold}枚\n`;
+        if (!c.deletedResources.includes('heldExp')) text += `・保留経験点: ${d.heldExp || 0}\n`;
         if (!c.deletedResources.includes('food')) text += `・食料: ${d.food}\n`;
         if (!c.deletedResources.includes('clue')) text += `・手がかり: ${d.clue}\n`;
 
         // 装備
         if (d.slots && d.slots.equipped) {
-            const equipped = d.slots.equipped.filter(s => s.item).map(s => `・${s.label}: ${s.item.name}${s.item.mod ? ' (' + s.item.mod + ')' : ''}`);
+            const equipped = d.slots.equipped.filter(s => s.item).map(s => `・${s.label}: ${s.item.name}${formatEffectsSummary(s.item)}`);
             if (equipped.length > 0) text += `\n■ **装備**\n${equipped.join('\n')}\n`;
         }
 
@@ -2760,7 +3609,7 @@ function renderTabContent(id, tab) {
 
         // 所持品 (Inventory) - プレースホルダー(続)は除外
         if (d.slots && d.slots.inventory) {
-            const items = d.slots.inventory.filter(i => i && !i.isPlaceholder).map(i => `・${i.name}${i.mod ? ' (' + i.mod + ')' : ''}${i.uses ? ' [残り' + i.uses + '回]' : ''}`);
+            const items = d.slots.inventory.filter(i => i && !i.isPlaceholder).map(i => `・${i.name}${formatEffectsSummary(i)}${i.uses ? ' [残り' + i.uses + '回]' : ''}`);
             if (items.length > 0) text += `\n■ **所持品**\n${items.join('\n')}\n`;
         }
 
@@ -2906,11 +3755,17 @@ function renderTabContent(id, tab) {
                 if (data.isSingleChar || (data.id && data.data)) {
                     appState.characters[data.id] = data;
                     appState.currentCharacterId = data.id;
+                    checkAndLimitAbilityCaps(data.id);
                     alert(`キャラクター「${data.name}」を読み込み・更新しました。`);
                 } 
                 // 全体セーブデータの場合
                 else {
                     appState = { ...appState, ...data };
+                    if (appState.characters) {
+                        Object.keys(appState.characters).forEach(id => {
+                            checkAndLimitAbilityCaps(id);
+                        });
+                    }
                     alert("セッション全体データを読み込みました。");
                 }
                 renderAll(); 
@@ -3003,13 +3858,8 @@ window.onload = loadData; // ←ここにつながるようにする
             const currentVal = isStrong ? enemy.hp : enemy.count;
             const maxVal = isStrong ? enemy.hpMax : enemy.countMax;
             const valKey = isStrong ? 'hp' : 'count';
-            const radio = document.querySelector(`input[name="logFontSize"][value="${size}"]`);
-            if(radio) radio.checked = true;
+            const maxKey = isStrong ? 'hpMax' : 'countMax';
 
-            // フォント設定のUI同期
-            const font = appState.fontPreference || 'gothic';
-            const fontRadio = document.querySelector(`input[name="fontPreference"][value="${font}"]`);
-            if(fontRadio) fontRadio.checked = true;
             const percent = maxVal > 0 ? (currentVal / maxVal) * 100 : 0;
             const isDamaged = currentVal <= maxVal / 2;
             const barColor = isDamaged ? 'bg-rose-600' : 'bg-emerald-500';
@@ -3299,33 +4149,6 @@ window.onload = loadData; // ←ここにつながるようにする
         appState.settings.logFontSize = size;
         saveData();
         renderLogArea();
-    }
-
-    // フォント設定の切り替え
-    function changeFontPreference(font) {
-        appState.fontPreference = font;
-        saveData();
-        applyFontPreference();
-    }
-
-    // フォント設定の画面適用
-    function applyFontPreference() {
-        const font = appState.fontPreference || 'gothic';
-        const body = document.body;
-        if (font === 'mincho') {
-            body.classList.add('font-mincho');
-            body.classList.remove('font-gothic');
-        } else {
-            body.classList.add('font-gothic');
-            body.classList.remove('font-mincho');
-        }
-        // UIラジオボタンの同期
-        const radios = document.getElementsByName('fontPreference');
-        radios.forEach(radio => {
-            if (radio.value === font) {
-                radio.checked = true;
-            }
-        });
     }
     function deleteLog(i){ appState.logEntries.splice(i,1); renderLogArea(); saveData(); }
     function editLog(i){ const n=prompt("編集",appState.logEntries[i].content); if(n!==null){appState.logEntries[i].content=n; renderLogArea(); saveData();}}
@@ -4075,9 +4898,14 @@ ${treasureText}
         document.getElementById('itemEditTitle').textContent = title;
         document.getElementById('itemEditName').value = item ? item.name : "";
         document.getElementById('itemEditDesc').value = item ? (item.desc || "") : "";
-        document.getElementById('itemEditMod').value = item ? (item.mod || "") : "";
         document.getElementById('itemEditUses').value = item ? (item.uses || "") : "";
         document.getElementById('itemEditSlots').value = item ? (item.slots || 1) : 1;
+        renderItemEffects(item);
+        const effectsSection = document.getElementById('itemEffectsSection');
+        if (effectsSection) {
+            if (type === 'skill') effectsSection.classList.add('hidden');
+            else effectsSection.classList.remove('hidden');
+        }
         
         document.getElementById('itemEditModal').style.display = 'flex';
     }
@@ -4089,83 +4917,105 @@ ${treasureText}
 
     function saveItem() {
         if (!editingItem) return;
-        const { charId, type, index } = editingItem;
-        const char = appState.characters[charId];
-        const name = document.getElementById('itemEditName').value;
-        const desc = document.getElementById('itemEditDesc').value;
-        const mod = document.getElementById('itemEditMod').value;
-        const uses = document.getElementById('itemEditUses').value;
-        const slots = parseInt(document.getElementById('itemEditSlots').value) || 1;
-        const isTwoHanded = document.getElementById('itemEditTwoHanded').checked;
-        
-        const updateItem = (itm) => {
-            itm.name = name;
-            itm.desc = desc;
-            itm.mod = mod;
-            itm.uses = uses ? parseInt(uses) : "";
-            itm.slots = slots;
-            if (isTwoHanded) {
-                itm.isTwoHanded = true;
-            } else {
-                delete itm.isTwoHanded;
-            }
-        };
+        try {
+            const { charId, type, index } = editingItem;
+            const char = appState.characters[charId];
+            if (!char || !char.data || !char.data.slots) throw new Error("Invalid character data structure");
+            
+            const name = document.getElementById('itemEditName').value;
+            const desc = document.getElementById('itemEditDesc').value;
+            const uses = document.getElementById('itemEditUses').value;
+            const slots = parseInt(document.getElementById('itemEditSlots').value) || 1;
+            const isTwoHanded = document.getElementById('itemEditTwoHanded').checked;
+            
+            const updateItem = (itm) => {
+                itm.name = name;
+                itm.desc = desc;
+                delete itm.mod; // Remove old mod if exists
+                itm.uses = uses ? parseInt(uses) : "";
+                itm.slots = slots;
+                if (isTwoHanded) {
+                    itm.isTwoHanded = true;
+                } else {
+                    delete itm.isTwoHanded;
+                }
+                if (type !== 'skill') {
+                    itm.effects = readItemEffectsFromModal();
+                    delete itm.limitBonus;
+                }
+            };
 
-        if (type === 'skill') {
-            if (!char.data.slots.skills[index]) char.data.slots.skills[index] = {};
-            updateItem(char.data.slots.skills[index]);
-        } else if (type === 'equip') {
-            if (name) {
-                if (!char.data.slots.equipped[index].item) char.data.slots.equipped[index].item = {};
-                updateItem(char.data.slots.equipped[index].item);
-            } else {
-                char.data.slots.equipped[index].item = null;
-            }
-        } else if (type === 'inv') {
-            if (name) {
-                // Inventory Slot Management
-                const inv = char.data.slots.inventory;
-                const currentItem = inv[index] || {};
-                const oldSlots = currentItem.slots || 1;
-                
-                // Check capacity if expanding
-                if (slots > oldSlots) {
-                    for (let i = 1; i < slots; i++) {
-                        const targetIdx = index + i;
-                        // Check if slot exists and is empty (or is our own placeholder)
-                        if (inv[targetIdx] && !inv[targetIdx].isPlaceholder) {
-                            alert(`スロット ${targetIdx + 1} が空いていないため、枠数を増やせません。`);
-                            return;
-                        }
-                        if (inv[targetIdx] && inv[targetIdx].isPlaceholder && inv[targetIdx].parentIndex !== index) {
-                            alert(`スロット ${targetIdx + 1} が空いていないため、枠数を増やせません。`);
-                            return;
-                        }
+            if (type === 'skill') {
+                if (!char.data.slots.skills[index]) char.data.slots.skills[index] = {};
+                updateItem(char.data.slots.skills[index]);
+            } else if (type === 'equip') {
+                if (name) {
+                    if (!char.data.slots.equipped[index]) char.data.slots.equipped[index] = {};
+                    if (!char.data.slots.equipped[index].item) char.data.slots.equipped[index].item = {};
+                    updateItem(char.data.slots.equipped[index].item);
+                } else {
+                    if (char.data.slots.equipped[index]) {
+                        char.data.slots.equipped[index].item = null;
                     }
                 }
-
-                if (!inv[index]) inv[index] = {};
-                updateItem(inv[index]);
-
-                // Update placeholders
-                const maxRange = Math.max(oldSlots, slots);
-                for (let i = 1; i < maxRange; i++) {
-                    if (i < slots) {
-                        inv[index + i] = { isPlaceholder: true, parentIndex: index, name: "(続)" };
-                    } else {
-                        // If we are shrinking, clear the slot if it was our placeholder
-                        if (inv[index + i] && inv[index + i].isPlaceholder && inv[index + i].parentIndex === index) {
-                            inv[index + i] = null;
+            } else if (type === 'inv') {
+                if (name) {
+                    // Inventory Slot Management
+                    if (!char.data.slots.inventory) char.data.slots.inventory = [];
+                    const inv = char.data.slots.inventory;
+                    const currentItem = inv[index] || {};
+                    const oldSlots = currentItem.slots || 1;
+                    
+                    // Check capacity if expanding
+                    if (slots > oldSlots) {
+                        for (let i = 1; i < slots; i++) {
+                            const targetIdx = index + i;
+                            // Check if slot exists and is empty (or is our own placeholder)
+                            if (inv[targetIdx] && !inv[targetIdx].isPlaceholder) {
+                                alert(`スロット ${targetIdx + 1} が空いていないため、枠数を増やせません。`);
+                                return; // abort save
+                            }
+                            if (inv[targetIdx] && inv[targetIdx].isPlaceholder && inv[targetIdx].parentIndex !== index) {
+                                alert(`スロット ${targetIdx + 1} が空いていないため、枠数を増やせません。`);
+                                return; // abort save
+                            }
                         }
                     }
+
+                    if (!inv[index]) inv[index] = {};
+                    updateItem(inv[index]);
+
+                    // Update placeholders
+                    const maxRange = Math.max(oldSlots, slots);
+                    for (let i = 1; i < maxRange; i++) {
+                        if (i < slots) {
+                            inv[index + i] = { isPlaceholder: true, parentIndex: index, name: "(続)" };
+                        } else {
+                            // If we are shrinking, clear the slot if it was our placeholder
+                            if (inv[index + i] && inv[index + i].isPlaceholder && inv[index + i].parentIndex === index) {
+                                inv[index + i] = null;
+                            }
+                        }
+                    }
+                } else {
+                    deleteInventoryItem(char, index);
                 }
-            } else {
-                deleteInventoryItem(char, index);
+            }
+            if (type === 'equip') {
+                checkAndLimitAbilityCaps(charId);
+            }
+            saveData();
+        } catch (err) {
+            console.error("Error during saveItem:", err);
+            alert("保存中にエラーが発生しました: " + err.message);
+        } finally {
+            closeItemModal();
+            try {
+                renderCurrentCharacterSheet();
+            } catch (renderErr) {
+                console.error("Error rendering character sheet after save:", renderErr);
             }
         }
-        saveData();
-        renderCurrentCharacterSheet();
-        closeItemModal();
     }
 
     function deleteItem() {
@@ -4177,6 +5027,7 @@ ${treasureText}
             char.data.slots.skills.splice(index, 1);
         } else if (type === 'equip') {
             char.data.slots.equipped[index].item = null;
+            checkAndLimitAbilityCaps(charId);
         } else if (type === 'inv') {
             deleteInventoryItem(char, index);
         }
@@ -4320,6 +5171,7 @@ ${treasureText}
         }
         
         addLogEntry('system', '装備変更', `[${char.name}] ${invItem.name} を ${equipSlots[targetSlotIdx].label} に装備しました`);
+        checkAndLimitAbilityCaps(editingItem.charId);
         saveData(); renderCurrentCharacterSheet(); closeItemModal();
     }
 
@@ -4355,6 +5207,7 @@ ${treasureText}
             }
             d.slots.equipped[equipIdx].item = null;
             addLogEntry('system', '装備解除', `[${char.name}] ${item.name} を外しました`);
+            checkAndLimitAbilityCaps(editingItem.charId);
             saveData(); renderCurrentCharacterSheet(); closeItemModal();
         } else {
             showToast("⚠️ 所持品がいっぱいです");
@@ -4428,6 +5281,7 @@ ${treasureText}
 
             if (sourceType === 'equip') {
                 sourceChar.data.slots.equipped[sourceIndex].item = null;
+                checkAndLimitAbilityCaps(sourceCharId);
             } else if (sourceType === 'inv') {
                 deleteInventoryItem(sourceChar, sourceIndex);
             }
@@ -4510,6 +5364,7 @@ ${treasureText}
                 }
                 d.slots.equipped[index].item = null;
                 addLogEntry('system', '装備解除', `[${c.name}] ${item.name} を外しました`);
+                checkAndLimitAbilityCaps(id);
                 saveData();
                 renderCurrentCharacterSheet();
             } else {
@@ -4528,6 +5383,7 @@ ${treasureText}
                 d.slots.equipped[targetIdx].item = item;
                 deleteInventoryItem(c, index);
                 addLogEntry('system', '装備', `[${c.name}] ${item.name} を装備しました`);
+                checkAndLimitAbilityCaps(id);
                 saveData();
                 renderCurrentCharacterSheet();
             } else {
@@ -4604,7 +5460,7 @@ ${treasureText}
             </section>
 
             <section class="text-[11px] text-gray-500 pt-2 border-t">
-                <p><b>バージョン:</b> 2.4.2</p>
+                <p><b>バージョン:</b> 2.5.0</p>
                 <p><b>詳細(note)：</b> https://note.com/sandman_sunao/n/ndaeb94b048f3?sub_rt=share_sb</p>
             </section>
 
@@ -4634,19 +5490,6 @@ ${treasureText}
                 <label class="flex items-center space-x-3 cursor-pointer">
                     <input type="checkbox" id="navBallToggle" onchange="toggleNavBall(this.checked)" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500">
                     <span class="text-xs font-bold text-gray-700">フローティング・ナビボールを表示</span>
-                </label>
-            </div>
-        </div>
-        <div class="mb-6">
-            <h3 class="font-bold mb-2 text-sm text-gray-700">フォント設定</h3>
-            <div class="flex gap-2 bg-gray-50 p-1 rounded border border-gray-200">
-                <label class="flex-1 text-center cursor-pointer">
-                    <input type="radio" name="fontPreference" value="gothic" onchange="changeFontPreference('gothic')" class="hidden peer">
-                    <span class="block py-2 rounded text-xs font-bold text-gray-600 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all hover:bg-gray-100">ゴシック体</span>
-                </label>
-                <label class="flex-1 text-center cursor-pointer">
-                    <input type="radio" name="fontPreference" value="mincho" onchange="changeFontPreference('mincho')" class="hidden peer">
-                    <span class="block py-2 rounded text-xs font-bold text-gray-600 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all hover:bg-gray-100">明朝体</span>
                 </label>
             </div>
         </div>
@@ -4772,10 +5615,8 @@ ${treasureText}
             <label class="block text-xs font-bold text-gray-500 mb-1">名前</label>
             <input type="text" id="itemEditName" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none">
         </div>
-        <div class="mb-3">
-            <label class="block text-xs font-bold text-gray-500 mb-1">修正値(メモ)</label>
-            <input type="text" id="itemEditMod" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="+1など">
-        </div>
+        <!-- 修正値(メモ)入力欄は削除されました -->
+        <!-- 旧 itemLimitBonusSection を削除し、代わりに itemEffectsSection を下に配置します -->
         <div class="flex gap-2 mb-3">
             <div class="flex-1">
                 <label class="block text-xs font-bold text-gray-500 mb-1">残り回数</label>
@@ -4784,6 +5625,15 @@ ${treasureText}
             <div class="flex-1">
                 <label class="block text-xs font-bold text-gray-500 mb-1">装備品欄占有枠数</label>
                 <input type="number" id="itemEditSlots" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" min="1" value="1">
+            </div>
+        </div>
+        <div id="itemEffectsSection" class="mb-4">
+            <div class="flex items-center justify-between mb-1">
+                <label class="block text-xs font-bold text-gray-500">装備補正効果</label>
+                <button onclick="addItemEffectRow()" class="text-[10px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-bold hover:bg-indigo-100">+ 補正効果を追加</button>
+            </div>
+            <div id="itemEffectsList" class="flex flex-col gap-1">
+                <!-- 動的に生成される補正行 -->
             </div>
         </div>
         <div class="mb-4">
