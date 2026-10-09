@@ -2273,12 +2273,22 @@ function renderTabContent(id, tab) {
         
         // 3. 装備品（所持品）
         const invMultiplier = (d.inventoryMultiplier !== undefined) ? d.inventoryMultiplier : 1;
-        const maxLife = (d.life && d.life.max) ? parseInt(d.life.max) : 10;
-        const maxInv = Math.floor(maxLife * invMultiplier);
+        // 装備補正を含む表示上の生命点最大値をベースに計算
+        const baseMaxLife = (d.life && d.life.max) ? parseInt(d.life.max) : 10;
+        const lifeEquipBonus = getEquippedLimitBonusTotal(c, 'life');
+        const displayMaxLife = baseMaxLife + lifeEquipBonus;
+        const maxInv = Math.floor(displayMaxLife * invMultiplier);
+        // 現在の所持品数（プレースホルダー除く、nullも除く）
+        const currentInvCount = d.slots.inventory.filter(i => i && !i.isPlaceholder).length;
+        const isOverCapacity = currentInvCount > maxInv;
         const invCount = Math.max(maxInv, d.slots.inventory.length);
+        const invHeaderClass = isOverCapacity ? 'text-red-600 font-bold' : 'text-slate-600 font-bold';
+        const invHeaderText = isOverCapacity
+            ? `装備品 (最大: ${maxInv}) ⚠ 超過中: ${currentInvCount}/${maxInv}`
+            : `装備品 (最大: ${maxInv})`;
         h += `<div class="border-t border-gray-100 pt-2">
                 <div class="flex justify-between items-center mb-1">
-                    <span class="text-[10px] font-bold text-slate-600">装備品 (最大: ${maxInv})</span>
+                    <span class="text-[10px] ${invHeaderClass}">${invHeaderText}</span>
                     <div class="flex items-center gap-1">
                         <span class="text-[9px] text-gray-500">枠倍率:</span>
                         <input type="number" value="${invMultiplier}" step="0.5" class="w-10 text-center text-[11px] font-bold bg-white border border-gray-200 rounded outline-none shadow-sm" onchange="const v=parseFloat(this.value); appState.characters['${id}'].data.inventoryMultiplier=isNaN(v)?1:v; renderCurrentCharacterSheet(); saveData();">
@@ -2293,7 +2303,9 @@ function renderTabContent(id, tab) {
                         const slotsText = (item && item.slots > 1) ? `<span class="text-[8px] bg-gray-200 rounded px-1 ml-1">x${item.slots}</span>` : '';
                         const itemTooltip = item ? (item.name + formatEffectsSummary(item)) : '';
                         const itemTitleAttr = itemTooltip ? `title="${itemTooltip}"` : '';
-                        return `<div class="inv-slot ${item ? 'filled' : ''}" ${itemTitleAttr} onclick="openItemModal('${id}', 'inv', ${i})">${item ? item.name + slotsText : (i < maxInv ? (i+1) : '+')}</div>`;
+                        // 超過スロットは赤くハイライト
+                        const overStyle = (isOverCapacity && i >= maxInv && item) ? ' style="border-color:#ef4444; background-color:#fef2f2;"' : '';
+                        return `<div class="inv-slot ${item ? 'filled' : ''}" ${itemTitleAttr}${overStyle} onclick="openItemModal('${id}', 'inv', ${i})">${item ? item.name + slotsText : (i < maxInv ? (i+1) : '+')}</div>`;
                     }).join('')}
                 </div>
               </div>`;
