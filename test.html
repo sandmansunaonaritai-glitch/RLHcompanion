@@ -217,6 +217,14 @@
             border-radius: 0 !important;
             }
 
+            /* D66 summaryバーをスクロールコンテナ内でスティッキー固定（モバイル） */
+            #log-section details > summary {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background-color: #ccfbf1; /* teal-100 相当（テーマカラーの薄い緑系） */
+            }
+
             /* 選択肢エリアのスタイル */
             #choice-container {
             flex-shrink: 0 !important;
@@ -241,13 +249,26 @@
             /* セッション名入力欄の幅を確保 */
             #logTitle {min-width: 60px !important;}
 
-            /* モバイル：アクティブなタブのボタン色 */
+            /* モバイル：アクティブなタブのボタン色 (通常) */
             .tab-btn.active {
             background-color: #4f46e5 !important; /* 鮮やかなインディゴ */
             color: white !important;
             border-bottom: 3px solid #facc15 !important; /* 下線にアクセントの黄色 */
             font-weight: bold;
             }
+            /* ナイトモード用モバイルタブ色 */
+            body.theme-night .tab-btn.active {
+                background-color: #1d4ed8 !important; /* blue-700相当 */
+                color: #eff6ff !important;
+                border-bottom: 3px solid #fbbf24 !important;
+            }
+            /* セピアモード用モバイルタブ色 */
+            body.theme-sepia .tab-btn.active {
+                background-color: #6D4C41 !important; /* セピアに合う色 */
+                color: #fdf6e3 !important;
+                border-bottom: 3px solid #d97706 !important;
+            }
+
 
             /* モバイル：非アクティブなタブ（基本状態） */
             .tab-btn {
@@ -3707,28 +3728,47 @@ function renderTabContent(id, tab) {
         a.click();
         URL.revokeObjectURL(url);
     }
-    // ログをテキスト形式で保存
+// ログをテキスト形式で保存
     function exportLogText() {
         const title = document.getElementById('logTitle').value || "session_log"; // タイトル取得
         let t = `SESSION: ${title}\n\n`;
-        appState.logEntries.forEach(e => t += `[${e.time}] ${e.content}\n`);
+        appState.logEntries.forEach(e => {
+            if (e.type === 'separator') {
+                t += `\n---\n\n`;
+            } else {
+                let prefix = "";
+                // ダイス、または「タイトルが空のシステムログ（ステータス変動など）」にのみプレフィックスをつける
+                if (e.type === 'dice') {
+                    prefix = "> 🎲 ";
+                } else if (e.type === 'system' && e.content.includes('->')) {
+                    prefix = "> 📊 ";
+                }
+                t += `${prefix}${e.content}\n\n`;
+            }
+        });
         const b = new Blob([t], {type:'text/plain'});
         const a = document.createElement('a');
         a.href = URL.createObjectURL(b);
-        a.download = `${title}.txt`; // ファイル名に反映
+        a.download = `${title}.txt`;
         a.click();
     }
 
-    function exportLogMarkdown() {
+function exportLogMarkdown() {
         const title = document.getElementById('logTitle').value || "session_log";
         let md = `# SESSION: ${title}\n\n`;
         appState.logEntries.forEach(e => {
-            if (e.type === 'separator') {
-                md += `\n---\n\n`;
-            } else {
-                const icon = e.type === 'input' ? '💬' : (e.type === 'dice' ? '🎲' : '💻');
-                md += `### ${icon} [${e.time}]\n\n${e.content}\n\n`;
+         if (e.type === 'separator') {
+            md += `\n---\n\n`;
+         } else {
+            let prefix = "";
+            if (e.type === 'dice') {
+                prefix = "> 🎲 ";
+            } else if (e.type === 'system' && e.content.includes('->')) {
+                // システムログのうち、「->」が含まれるステータス変更（生命: 6 -> 5 など）だけに絞る
+                prefix = "> 📊 ";
             }
+            md += `${prefix}${e.content}\n\n`;
+         }
         });
         const b = new Blob([md], {type:'text/markdown'});
         const a = document.createElement('a');
@@ -3741,7 +3781,6 @@ function renderTabContent(id, tab) {
     function openLogExportModal() {
         document.getElementById('logExportModal').style.display = 'flex';
     }
-
     // 表示中のキャラのみ保存
     function downloadCharacterById(id) {
         const c = appState.characters[id];
@@ -5067,23 +5106,29 @@ ${treasureText}
         let item = null;
 
         if (type === 'skill') item = char.data.slots.skills[index];
-        else if (type === 'equip') item = char.data.slots.equipped[index].item;
+        else if (type === 'equip') item = char.data.slots.equipped[index] && char.data.slots.equipped[index].item;
         else if (type === 'inv') item = char.data.slots.inventory[index];
 
         if (!item) return;
 
-        addLogEntry('system', 'アイテム使用', `[${char.name}] ${item.name} を使用します`);
+        try {
+            addLogEntry('system', 'アイテム使用', `[${char.name}] ${item.name} を使用します`);
 
-        if (item.uses && item.uses > 0) {
-            item.uses--;
-            if (item.uses <= 0) {
-                deleteItem(); // 残り回数0で削除
-                return;
-            } else {
-                document.getElementById('itemEditUses').value = item.uses;
+            if (item.uses && item.uses > 0) {
+                item.uses--;
+                if (item.uses <= 0) {
+                    deleteItem(); // 残り回数0で削除（deleteItem内でcloseItemModalが呼ばれる）
+                    return;
+                }
+                saveData();
+                renderCurrentCharacterSheet();
             }
-            saveData();
-            renderCurrentCharacterSheet();
+
+            // 使用処理が正常に完了したらモーダルを閉じる
+            closeItemModal();
+        } catch (err) {
+            console.error("Error during useItem:", err);
+            // エラー発生時はモーダルを閉じない
         }
     }
 
