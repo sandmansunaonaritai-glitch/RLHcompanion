@@ -717,6 +717,257 @@
         body.theme-sepia .nav-dice-btn:hover { background: rgba(255,255,255,0.2); }
         body.theme-sepia .nav-label { color: #f0e6d2; }
         body.theme-sepia .nav-ctrl-input { background: rgba(255,255,255,0.1); border-color: #d3c6a6; color: white; }
+
+        /* ======================================= */
+        /*   Log Selection Floating Popup Menu     */
+        /* ======================================= */
+        .log-selection-popup {
+            position: fixed;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            padding: 3px 4px;
+            gap: 2px;
+            user-select: none;
+            animation: logPopupFadeIn 0.15s ease-out;
+            pointer-events: auto;
+        }
+
+        .log-selection-popup.hidden {
+            display: none !important;
+        }
+
+        @keyframes logPopupFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(4px) scale(0.96);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .log-popup-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: transparent !important;
+            border: none !important;
+            border-radius: 6px;
+            padding: 6px 9px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #334155 !important;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+            line-height: 1.2;
+        }
+
+        .log-popup-btn:hover {
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
+        }
+
+        .log-popup-btn:active {
+            transform: scale(0.96);
+        }
+
+        .log-popup-btn .btn-icon {
+            font-size: 13px;
+            line-height: 1;
+        }
+
+        .log-popup-divider {
+            width: 1px;
+            height: 18px;
+            background: #e2e8f0;
+            margin: 0 2px;
+        }
+
+        /* --- テーマ別カラー --- */
+        /* 1. ナイトモード */
+        body.theme-night .log-selection-popup {
+            background-color: #1e293b !important;
+            border-color: #475569 !important;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6), 0 8px 10px -6px rgba(0, 0, 0, 0.4) !important;
+        }
+
+        body.theme-night .log-selection-popup .log-popup-btn {
+            background-color: transparent !important;
+            color: #cbd5e1 !important;
+            border: none !important;
+        }
+
+        body.theme-night .log-selection-popup .log-popup-btn:hover {
+            background-color: #334155 !important;
+            color: #ffffff !important;
+        }
+
+        body.theme-night .log-selection-popup .log-popup-divider {
+            background-color: #475569 !important;
+        }
+
+        /* 2. セピアモード */
+        body.theme-sepia .log-selection-popup {
+            background-color: #fdf6e3 !important;
+            border-color: #d3c6a6 !important;
+            box-shadow: 0 10px 25px -5px rgba(78, 52, 46, 0.25), 0 8px 10px -6px rgba(78, 52, 46, 0.15) !important;
+        }
+
+        body.theme-sepia .log-selection-popup .log-popup-btn {
+            background-color: transparent !important;
+            color: #4e342e !important;
+            border: none !important;
+        }
+
+        body.theme-sepia .log-selection-popup .log-popup-btn:hover {
+            background-color: #f5e5c5 !important;
+            color: #27160c !important;
+        }
+
+        body.theme-sepia .log-selection-popup .log-popup-divider {
+            background-color: #d3c6a6 !important;
+        }
+
+        /* ======================================= */
+        /*   Chat-style Log Input & Send Button    */
+        /* ======================================= */
+        .log-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            border-radius: 20px;
+            padding: 4px 6px 4px 12px;
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        .log-input-wrapper:focus-within {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25);
+        }
+
+        .log-input-textarea {
+            flex: 1;
+            min-height: 24px;
+            max-height: 100px;
+            height: 24px;
+            padding: 2px 4px 2px 0;
+            margin: 0;
+            border: none !important;
+            outline: none !important;
+            background: transparent !important;
+            resize: none;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #1f2937;
+            box-shadow: none !important;
+        }
+
+        .log-send-btn {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #2563eb !important;
+            color: #ffffff !important;
+            border: none !important;
+            border-radius: 9999px;
+            padding: 0 !important;
+            margin-left: 6px;
+            margin-bottom: 0px;
+            cursor: pointer;
+            transition: background-color 0.15s, transform 0.1s;
+            outline: none;
+        }
+
+        .log-send-btn:hover {
+            background-color: #1d4ed8 !important;
+        }
+
+        .log-send-btn:active {
+            transform: scale(0.92);
+        }
+
+        .log-send-icon {
+            width: 14px;
+            height: 14px;
+            transform: translate(1px, 0);
+            fill: currentColor;
+        }
+
+        /* --- テーマ別上書き --- */
+        /* ナイトモード */
+        body.theme-night #input-control-panel {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+        }
+
+        body.theme-night .log-input-wrapper {
+            background-color: #0f172a !important;
+            border-color: #475569 !important;
+            box-shadow: none;
+        }
+
+        body.theme-night .log-input-wrapper:focus-within {
+            border-color: #60a5fa !important;
+            box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.25) !important;
+        }
+
+        body.theme-night .log-input-textarea {
+            color: #f1f5f9 !important;
+            background-color: transparent !important;
+        }
+
+        body.theme-night .log-send-btn {
+            background-color: #3b82f6 !important;
+            color: #ffffff !important;
+        }
+
+        body.theme-night .log-send-btn:hover {
+            background-color: #2563eb !important;
+        }
+
+        /* セピアモード */
+        body.theme-sepia #input-control-panel {
+            background-color: #fdf6e3 !important;
+            border-color: #d3c6a6 !important;
+        }
+
+        body.theme-sepia .log-input-wrapper {
+            background-color: #fffbf0 !important;
+            border-color: #d3c6a6 !important;
+            box-shadow: none;
+        }
+
+        body.theme-sepia .log-input-wrapper:focus-within {
+            border-color: #8d6e63 !important;
+            box-shadow: 0 0 0 2px rgba(141, 110, 99, 0.25) !important;
+        }
+
+        body.theme-sepia .log-input-textarea {
+            color: #3e2723 !important;
+            background-color: transparent !important;
+        }
+
+        body.theme-sepia .log-send-btn {
+            background-color: #8d6e63 !important;
+            color: #ffffff !important;
+        }
+
+        body.theme-sepia .log-send-btn:hover {
+            background-color: #6d4c41 !important;
+        }
     </style>
 </head>
 
@@ -858,12 +1109,15 @@
         <div id="logArea"></div> </div>
         <div id="choice-container" class="hidden"></div>
 
-        <div id="input-control-panel" class="flex-shrink-0 bg-white border-t border-gray-200 pt-2 mt-auto">
-        <textarea id="logInput" placeholder="ログ入力 (Enterで送信)" rows="2" class="w-full p-2 border border-gray-300 rounded-md text-sm resize-none focus:ring-2 focus:ring-blue-400 mb-2 shadow-sm"></textarea>
-        <div class="flex space-x-2 text-xs pb-2">
-            <button onclick="addLogEntry('input')" class="flex-grow bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded shadow">送信</button>
-            <button onclick="addLogEntry('separator')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded">区切り線</button>
-        </div>
+        <div id="input-control-panel" class="flex-shrink-0 bg-white border-t border-gray-200 p-2 mt-auto">
+            <div class="log-input-wrapper">
+                <textarea id="logInput" placeholder="ログ入力 (Enterで送信)" rows="1" class="log-input-textarea" oninput="autoResizeLogInput(this)"></textarea>
+                <button type="button" id="btnLogSubmit" onclick="addLogEntry('input')" class="log-send-btn" title="送信 (Enter)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="log-send-icon" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
         </div>
         </section>
         <!--Character Section-->
@@ -873,6 +1127,24 @@
         </section>
     </main>
     <div id="toast-container"></div>
+
+    <!-- ログテキスト選択時のフローティングポップアップメニュー -->
+    <div id="logSelectionPopup" class="log-selection-popup hidden" onmousedown="event.preventDefault();">
+        <button type="button" class="log-popup-btn btn-equip" onclick="handleLogPopupAction('equip')" title="選択テキストを装備品（所持品）に追加">
+            <span class="btn-icon">🎒</span>
+            <span class="btn-text">装備品に追加</span>
+        </button>
+        <div class="log-popup-divider"></div>
+        <button type="button" class="log-popup-btn btn-skill" onclick="handleLogPopupAction('skill')" title="選択テキストを習得スキルに追加">
+            <span class="btn-icon">⚡</span>
+            <span class="btn-text">習得スキルに追加</span>
+        </button>
+        <div class="log-popup-divider"></div>
+        <button type="button" class="log-popup-btn btn-memo" onclick="handleLogPopupAction('memo')" title="選択テキストをメモに追記">
+            <span class="btn-icon">📝</span>
+            <span class="btn-text">メモに記入</span>
+        </button>
+    </div>
 
 <!--③ 司令塔：JavaScript-->
 <script>
@@ -3542,9 +3814,16 @@ function renderTabContent(id, tab) {
         });
     }
 
+    function autoResizeLogInput(el) {
+        if (!el) el = document.getElementById('logInput');
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+    }
+
     function addLogEntry(type, title='', content='') {
         const e = { type, content: type==='dice'?`【${title}】\n${content}`:content, time: new Date().toLocaleTimeString() };
-        if(type==='input') { const i=document.getElementById('logInput'); if(!i.value.trim()) return; e.content=i.value; i.value=''; }
+        if(type==='input') { const i=document.getElementById('logInput'); if(!i.value.trim()) return; e.content=i.value; i.value=''; autoResizeLogInput(i); }
         appState.logEntries.push(e); renderLogArea(); saveData();
 
         // ダイスロール時はトースト通知を出す（キャラシート閲覧中などに便利）
@@ -3842,8 +4121,12 @@ function exportLogMarkdown() {
             location.reload();
         }
     }
-    // --- 初期化処理 ---
-    document.getElementById('logInput').addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); addLogEntry('input'); }});
+    document.getElementById('logInput').addEventListener('keydown', e => { 
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { 
+            e.preventDefault(); 
+            addLogEntry('input'); 
+        }
+    });
     document.getElementById('logArea').addEventListener('click', e => {
         if(e.target.tagName === 'IMG') {
             const m = document.getElementById('imageModal');
@@ -5878,6 +6161,396 @@ ${treasureText}
             initNavInputs(); // Sync values before showing
             navContainer.classList.toggle('active');
         }
+    }
+
+    // ========================================================
+    // --- ログ選択ポップアップメニュー & スマート転記機能 ---
+    // ========================================================
+
+    let currentSelectedLogText = "";
+
+    /**
+     * テキストをスマートに解析し、「名前」と「詳細（説明文）」に振り分ける
+     */
+    function parseLogTextToNameAndDesc(rawText) {
+        if (!rawText) return { name: '', desc: '' };
+        
+        let text = rawText.trim();
+
+        // Markdown記法や箇条書き記号をトリムする補助関数
+        function cleanString(str) {
+            if (!str) return '';
+            return str
+                .replace(/^[#\*\-_\`・●\s>]+/, '')
+                .replace(/[#\*\-_\`\s]+$/, '')
+                .trim();
+        }
+
+        // 改行で分割
+        let lines = text.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+        if (lines.length === 0) return { name: '', desc: '' };
+
+        // 1. 複数行ある場合：1行目を名前、2行目以降を詳細に格納
+        if (lines.length > 1) {
+            let firstLine = cleanString(lines[0]);
+            let remainingLines = lines.slice(1).join('\n').trim();
+
+            // 1行目が 【名前】 や 『名前』 「名前」 などの囲みの場合
+            const bracketMatch = firstLine.match(/^[【『「]([^】』」]+)[】』」](.*)$/);
+            if (bracketMatch) {
+                const innerName = cleanString(bracketMatch[1]);
+                const restOfFirstLine = bracketMatch[2].trim();
+                if (restOfFirstLine) {
+                    remainingLines = restOfFirstLine + '\n' + remainingLines;
+                }
+                return { name: innerName || firstLine, desc: remainingLines };
+            }
+
+            // 1行目が "名前：説明" または "名前: 説明" の場合
+            const colonMatch = firstLine.match(/^([^:：\t\-—–]+)[:：\t\-—–]\s*(.+)$/);
+            if (colonMatch && colonMatch[1].length <= 30) {
+                const namePart = cleanString(colonMatch[1]);
+                const descPart = colonMatch[2].trim();
+                return { name: namePart, desc: descPart + (remainingLines ? '\n' + remainingLines : '') };
+            }
+
+            return { name: firstLine, desc: remainingLines };
+        }
+
+        // 2. 1行のみの場合
+        let line = lines[0];
+
+        // パターンA: 【名前】詳細 or 『名前』詳細 or 「名前」詳細
+        const bracketMatch = line.match(/^[【『「]([^】』」]+)[】』」][\s:：\-—–]*(.*)$/);
+        if (bracketMatch) {
+            return {
+                name: cleanString(bracketMatch[1]),
+                desc: bracketMatch[2].trim()
+            };
+        }
+
+        // パターンB: 名前: 詳細 or 名前：詳細 or 名前 - 詳細
+        const colonMatch = line.match(/^([^:：\t\-—–]{1,30})[:：\t\-—–]\s*(.+)$/);
+        if (colonMatch) {
+            return {
+                name: cleanString(colonMatch[1]),
+                desc: colonMatch[2].trim()
+            };
+        }
+
+        const cleanLine = cleanString(line);
+
+        // パターンC: 句点「。」で区切られている場合（1文目が20文字以内かつ後続がある場合）
+        if (cleanLine.includes('。')) {
+            const periodIdx = cleanLine.indexOf('。');
+            const firstPart = cleanLine.slice(0, periodIdx).trim();
+            const secondPart = cleanLine.slice(periodIdx + 1).trim();
+            if (firstPart.length > 0 && firstPart.length <= 20 && secondPart.length > 0) {
+                return {
+                    name: firstPart,
+                    desc: secondPart ? (secondPart.endsWith('。') ? secondPart : secondPart + '。') : ''
+                };
+            }
+        }
+
+        // パターンD: 読点「、」で区切られている場合（1文目が15文字以内かつ後続がある場合）
+        if (cleanLine.length > 15 && cleanLine.includes('、')) {
+            const commaIdx = cleanLine.indexOf('、');
+            const firstPart = cleanLine.slice(0, commaIdx).trim();
+            const secondPart = cleanLine.slice(commaIdx + 1).trim();
+            if (firstPart.length > 0 && firstPart.length <= 15 && secondPart.length > 0) {
+                return {
+                    name: firstPart,
+                    desc: secondPart
+                };
+            }
+        }
+
+        // パターンE: 区切りがなく長すぎる場合（25文字超）
+        if (cleanLine.length > 25) {
+            return {
+                name: cleanLine.slice(0, 20),
+                desc: cleanLine.slice(20).trim()
+            };
+        }
+
+        // パターンF: 短いテキスト（そのまま名前、説明は空）
+        return {
+            name: cleanLine,
+            desc: ''
+        };
+    }
+
+    /**
+     * 転記対象のアクティブキャラクターを取得する
+     */
+    function getActiveCharacterForLogAction() {
+        let charId = appState.currentCharacterId;
+        if (!charId || !appState.characters || !appState.characters[charId]) {
+            const ids = (appState.characterOrder && appState.characterOrder.length > 0)
+                ? appState.characterOrder
+                : Object.keys(appState.characters || {});
+            for (const id of ids) {
+                if (appState.characters[id]) {
+                    charId = id;
+                    appState.currentCharacterId = id;
+                    break;
+                }
+            }
+        }
+        if (!charId || !appState.characters || !appState.characters[charId]) {
+            return null;
+        }
+        const char = appState.characters[charId];
+        if (!char.data) char.data = {};
+        if (!char.data.slots) char.data.slots = { skills: [], equipped: [], inventory: [] };
+        if (!char.data.slots.skills) char.data.slots.skills = [];
+        if (!char.data.slots.inventory) char.data.slots.inventory = [];
+        if (!char.data.slots.equipped) char.data.slots.equipped = [
+            { label: '手1', item: null }, { label: '手2', item: null },
+            { label: '胴', item: null }, { label: '遠隔', item: null }
+        ];
+        return { id: charId, char: char };
+    }
+
+    /**
+     * ログポップアップの各メニュー処理
+     */
+    function handleLogPopupAction(action) {
+        const rawText = currentSelectedLogText || (window.getSelection ? window.getSelection().toString() : "");
+        if (!rawText || !rawText.trim()) {
+            hideLogSelectionPopup();
+            return;
+        }
+
+        const activeInfo = getActiveCharacterForLogAction();
+        if (!activeInfo) {
+            showToast("⚠️ キャラクターが登録されていません。");
+            hideLogSelectionPopup();
+            return;
+        }
+
+        const { id: charId, char } = activeInfo;
+        const trimmedText = rawText.trim();
+        const charName = char.name || "キャラクター";
+
+        if (action === 'equip') {
+            const parsed = parseLogTextToNameAndDesc(trimmedText);
+            const itemName = parsed.name || "名称未設定アイテム";
+            const itemDesc = parsed.desc || "";
+
+            const inv = char.data.slots.inventory;
+            const newItem = {
+                name: itemName,
+                desc: itemDesc,
+                slots: 1,
+                uses: ""
+            };
+
+            // 空いているスロット（null, 未定義, または名前なし）を探して配置
+            let targetIdx = -1;
+            for (let i = 0; i < inv.length; i++) {
+                if (!inv[i] || !inv[i].name) {
+                    targetIdx = i;
+                    break;
+                }
+            }
+
+            if (targetIdx !== -1) {
+                inv[targetIdx] = newItem;
+            } else {
+                inv.push(newItem);
+            }
+
+            char.activeSubTab = 'equipment';
+            char.isExpanded = true;
+            saveData();
+            renderCurrentCharacterSheet();
+            showToast(`🎒 [${charName}] 装備品「${itemName}」を追加しました`);
+
+        } else if (action === 'skill') {
+            const parsed = parseLogTextToNameAndDesc(trimmedText);
+            const skillName = parsed.name || "名称未設定スキル";
+            const skillDesc = parsed.desc || "";
+
+            char.data.slots.skills.push({
+                name: skillName,
+                desc: skillDesc
+            });
+
+            char.activeSubTab = 'equipment';
+            char.isExpanded = true;
+            saveData();
+            renderCurrentCharacterSheet();
+            showToast(`⚡ [${charName}] 習得スキル「${skillName}」を追加しました`);
+
+        } else if (action === 'memo') {
+            const currentMemo = char.data.memo || "";
+            if (currentMemo.trim().length > 0) {
+                char.data.memo = currentMemo + "\n" + trimmedText;
+            } else {
+                char.data.memo = trimmedText;
+            }
+
+            char.activeSubTab = 'memo';
+            char.isExpanded = true;
+            saveData();
+            renderCurrentCharacterSheet();
+            showToast(`📝 [${charName}] メモに記入しました`);
+        }
+
+        // 選択解除とポップアップ非表示
+        if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+        }
+        hideLogSelectionPopup();
+    }
+
+    /**
+     * ポップアップを非表示にする
+     */
+    function hideLogSelectionPopup() {
+        const popup = document.getElementById('logSelectionPopup');
+        if (popup) {
+            popup.classList.add('hidden');
+        }
+        currentSelectedLogText = "";
+    }
+
+    /**
+     * ログエリアの選択を監視し、フローティングメニューを表示する
+     */
+    function checkLogTextSelection() {
+        const selection = window.getSelection();
+        if (!selection || selection.isCollapsed) {
+            hideLogSelectionPopup();
+            return;
+        }
+
+        const text = selection.toString().trim();
+        if (!text) {
+            hideLogSelectionPopup();
+            return;
+        }
+
+        const logArea = document.getElementById('logArea');
+        if (!logArea) {
+            hideLogSelectionPopup();
+            return;
+        }
+
+        // 選択範囲がlogArea内に存在するか確認
+        let isInside = false;
+        try {
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                const commonAncestor = range.commonAncestorContainer;
+                if (logArea.contains(commonAncestor)) {
+                    isInside = true;
+                } else if (logArea.contains(selection.anchorNode) || logArea.contains(selection.focusNode)) {
+                    isInside = true;
+                }
+            }
+        } catch (e) {
+            isInside = false;
+        }
+
+        if (!isInside) {
+            hideLogSelectionPopup();
+            return;
+        }
+
+        // 選択テキストをキャッシュ
+        currentSelectedLogText = text;
+
+        const popup = document.getElementById('logSelectionPopup');
+        if (!popup) return;
+
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        if (!rect || (rect.width === 0 && rect.height === 0)) {
+            hideLogSelectionPopup();
+            return;
+        }
+
+        // 表示して座標を計算
+        popup.classList.remove('hidden');
+
+        const popupWidth = popup.offsetWidth || 300;
+        const popupHeight = popup.offsetHeight || 38;
+
+        // 選択範囲の中央上部に配置
+        let top = rect.top - popupHeight - 8;
+        let left = rect.left + (rect.width / 2) - (popupWidth / 2);
+
+        // 上部が画面外にはみ出す場合は下部に配置
+        if (top < 10) {
+            top = rect.bottom + 8;
+        }
+
+        // 画面左右のはみ出しガード
+        const pad = 10;
+        if (left < pad) {
+            left = pad;
+        } else if (left + popupWidth > window.innerWidth - pad) {
+            left = window.innerWidth - popupWidth - pad;
+        }
+
+        popup.style.top = `${Math.round(top)}px`;
+        popup.style.left = `${Math.round(left)}px`;
+    }
+
+    /**
+     * ポップアップのイベント初期化
+     */
+    function initLogSelectionPopup() {
+        // マウス選択
+        document.addEventListener('mouseup', (e) => {
+            const popup = document.getElementById('logSelectionPopup');
+            if (popup && popup.contains(e.target)) return;
+            setTimeout(checkLogTextSelection, 10);
+        });
+
+        // キーボード選択（Shift+矢印など）
+        document.addEventListener('keyup', (e) => {
+            const popup = document.getElementById('logSelectionPopup');
+            if (popup && popup.contains(e.target)) return;
+            setTimeout(checkLogTextSelection, 10);
+        });
+
+        // タッチ選択（モバイル対応）
+        document.addEventListener('touchend', (e) => {
+            const popup = document.getElementById('logSelectionPopup');
+            if (popup && popup.contains(e.target)) return;
+            setTimeout(checkLogTextSelection, 100);
+        });
+
+        // ログリストのスクロールでメニューを非表示
+        const logList = document.getElementById('log-list');
+        if (logList) {
+            logList.addEventListener('scroll', () => {
+                hideLogSelectionPopup();
+            }, { passive: true });
+        }
+
+        // 画面クリックでメニュー外をクリックした際の非表示処理
+        document.addEventListener('mousedown', (e) => {
+            const popup = document.getElementById('logSelectionPopup');
+            if (popup && !popup.contains(e.target) && !popup.classList.contains('hidden')) {
+                setTimeout(() => {
+                    const sel = window.getSelection();
+                    if (!sel || sel.isCollapsed || !sel.toString().trim()) {
+                        hideLogSelectionPopup();
+                    }
+                }, 20);
+            }
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLogSelectionPopup);
+    } else {
+        initLogSelectionPopup();
     }
 </script>
 </body>
