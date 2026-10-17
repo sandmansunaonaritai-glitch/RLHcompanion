@@ -161,6 +161,8 @@
         /* 1. 画面全体の固定（二重スクロール防止） */
         body {
         height: 100dvh;
+        height: calc(var(--vh, 1dvh) * 100); /* iOS Safariの100dvhバグ対策フォールバック */
+        max-height: 100dvh;             /* 実機アドレスバー収縮時の超過を防止 */
         display: flex;
         flex-direction: column;
         overflow: hidden; /* 外側はスクロールさせない */
@@ -168,7 +170,10 @@
 
         /* mainエリアを縦並びにする（モバイル） */
         main {
+            flex: 1 1 0px !important;      /* 残り高さを全て確実に占有 */
             flex-direction: column !important;
+            min-height: 0 !important;      /* Flexboxでの縮小を許可（子要素が溢れないよう） */
+            overflow: hidden !important;
         }
 
         /* 2. タブエリアの基本設定 */
@@ -177,41 +182,53 @@
         display: flex !important; 
         flex-direction: column; 
         width: 100% !important; /* ヘッダーとタブボタンの高さを引いた残りを設定 */
-        flex: 1 !important;     /* 親要素(main)に合わせて伸縮 */
-        height: auto !important; /* 固定高さを解除 */
+        flex: 1 1 0px !important; /* 0pxベースで伸縮し、mainに完全に収まる */
+        height: 100% !important; /* 親(main)の高さを確実に占有 */
         min-height: 0 !important; /* Flexboxでの縮小を許可 */
+        max-height: 100% !important; /* 実機での高さ超過を防止 */
         overflow-y: auto !important; /* 基本はここでスクロールを許可 */
         -webkit-overflow-scrolling: touch;
         }
 
         /* 3. ログタブ専用の設定（入力欄を下に固定、ログだけスクロール） */
         #log-section.active {
-        overflow: hidden !important; /* ログタブ自体はスクロールさせず、中身で制御 */
-        padding: 0 !important; /* モバイルではパディングを削除して画面を広く使う */
+        display: flex !important;           /* flexコンテナとして明示 */
+        flex-direction: column !important;  /* 縦並び */
+        overflow: hidden !important;        /* ログタブ自体はスクロールさせず、中身で制御 */
+        padding: 0 !important;              /* モバイルではパディングを削除して画面を広く使う */
+        height: 100% !important;            /* 親(main)の高さに完全に収まるよう強制 */
+        max-height: 100% !important;        /* 実機のブラウザChromeでの高さ超過を防止 */
         }
 
             /* ログリスト：可変エリア */
              #log-list { 
-            flex: 1 !important; 
+            flex: 1 1 0px !important;   /* 0pxベースで伸縮し、必ず余剰高さを吸収 */
             overflow-y: auto !important; 
-            min-height: 0; 
+            min-height: 0 !important;   /* Flexboxでの縮小を許可（重要） */
             padding-bottom: 10px;
             border-radius: 0 !important; /* 角丸解除 */
             border-left: none !important; border-right: none !important; /* 左右ボーダー解除 */
+            -webkit-overflow-scrolling: touch;
             }
 
             /* ログ入力エリア：IDで直接指定 */
             #input-control-panel { /* 入力エリアを包むdivにこのIDを付ける */
             flex-shrink: 0 !important;
+            min-height: 52px;           /* 潰れ防止の最低高さ */
             padding: 8px;
-            border-top: 1px solid #e5e7eb;
             padding-bottom: max(8px, env(safe-area-inset-bottom)); /* iPhone等のホームバー対応 */
-            z-index: 10;
+            border-top: 1px solid #e5e7eb;
+            z-index: 20;
+            position: sticky !important; /* コンテンツ溢れ時の保険として下部に固定 */
+            bottom: 0 !important;
+            background: inherit;        /* 親の背景色を継承して下に被さる */
+            width: 100%;
+            box-sizing: border-box;
             }
 
-            /* D66エリアの高さ制限（モバイルのみ） */
+            /* D66エリアの高さ制限（モバイルのみ）※実機はアドレスバー分を引いて厳しく制限 */
             #log-section details {
-            max-height: 40vh; /* 画面の40%までに制限 */
+            max-height: 30vh; /* 実機での表示崩れ防止のため40→30vhに縮小 */
             overflow-y: auto; /* それ以上はスクロール */
             margin-bottom: 0 !important;
             border-radius: 0 !important;
@@ -842,6 +859,7 @@
             position: relative;
             display: flex;
             align-items: flex-end;
+            min-height: 36px;           /* モバイルで潰れないための最低高さ */
             background-color: #ffffff;
             border: 1px solid #d1d5db;
             border-radius: 20px;
@@ -911,6 +929,7 @@
         body.theme-night #input-control-panel {
             background-color: #1e293b !important;
             border-color: #334155 !important;
+            border-top: 1px solid #334155 !important;
         }
 
         body.theme-night .log-input-wrapper {
@@ -942,6 +961,7 @@
         body.theme-sepia #input-control-panel {
             background-color: #fdf6e3 !important;
             border-color: #d3c6a6 !important;
+            border-top: 1px solid #d3c6a6 !important;
         }
 
         body.theme-sepia .log-input-wrapper {
@@ -967,6 +987,108 @@
 
         body.theme-sepia .log-send-btn:hover {
             background-color: #6d4c41 !important;
+        }
+
+        /* ======================================= */
+        /*   Drag and Drop for Items & Skills      */
+        /* ======================================= */
+        .inv-slot {
+            user-select: none;
+            -webkit-user-select: none;
+            transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+            touch-action: manipulation;
+        }
+
+        .inv-slot.filled,
+        .inv-slot.placeholder {
+            cursor: grab;
+        }
+
+        .inv-slot.filled:active,
+        .inv-slot.placeholder:active {
+            cursor: grabbing;
+        }
+
+        .slot-badge[draggable="true"] {
+            cursor: grab;
+        }
+
+        .slot-badge[draggable="true"]:active {
+            cursor: grabbing;
+        }
+
+        /* ドラッグ中の元の要素 */
+        .inv-slot.dragging,
+        .slot-badge.dragging {
+            opacity: 0.35 !important;
+            transform: scale(0.95);
+        }
+
+        /* ドロップ先のホバー・ハイライト */
+        .inv-slot.drag-over {
+            border: 2px dashed #4f46e5 !important;
+            background-color: #e0e7ff !important;
+            transform: scale(1.05);
+            z-index: 5;
+        }
+
+        .slot-badge.drag-over {
+            border: 2px dashed #4f46e5 !important;
+            background-color: #c7d2fe !important;
+            transform: scale(1.08);
+        }
+
+        /* タッチ操作用のゴースト要素 */
+        #touch-drag-ghost {
+            position: fixed;
+            pointer-events: none;
+            z-index: 100000;
+            transform: translate(-50%, -50%) scale(1.08);
+            opacity: 0.92;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 4px 8px;
+            background-color: #ffffff;
+            color: #1e1b4b;
+            border: 2px solid #4f46e5;
+        }
+
+        /* --- テーマ別上書き --- */
+        body.theme-night .inv-slot.drag-over {
+            border-color: #818cf8 !important;
+            background-color: #312e81 !important;
+        }
+
+        body.theme-night .slot-badge.drag-over {
+            border-color: #818cf8 !important;
+            background-color: #3730a3 !important;
+        }
+
+        body.theme-night #touch-drag-ghost {
+            background-color: #1e293b;
+            color: #e0e7ff;
+            border-color: #818cf8;
+        }
+
+        body.theme-sepia .inv-slot.drag-over {
+            border-color: #8d6e63 !important;
+            background-color: #efebe9 !important;
+        }
+
+        body.theme-sepia .slot-badge.drag-over {
+            border-color: #8d6e63 !important;
+            background-color: #d7ccc8 !important;
+        }
+
+        body.theme-sepia #touch-drag-ghost {
+            background-color: #fdf6e3;
+            color: #3e2723;
+            border-color: #8d6e63;
         }
     </style>
 </head>
@@ -2535,7 +2657,7 @@ function renderTabContent(id, tab) {
                     <button onclick="addSkillSlot('${id}')" class="text-[9px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded hover:bg-slate-200">+ 追加</button>
                 </div>
                 <div class="flex flex-wrap gap-1">
-                    ${d.slots.skills.map((s, i) => `<span class="slot-badge" onclick="openItemModal('${id}', 'skill', ${i})">${s.name || '名称未設定'}</span>`).join('')}
+                    ${d.slots.skills.map((s, i) => `<span class="slot-badge" draggable="true" data-drag-char="${id}" data-drag-type="skill" data-drag-index="${i}" ondragstart="handleItemDragStart(event, '${id}', 'skill', ${i})" ondragover="handleItemDragOver(event)" ondragenter="handleItemDragEnter(event)" ondragleave="handleItemDragLeave(event)" ondrop="handleItemDrop(event, '${id}', 'skill', ${i})" onclick="handleSlotBadgeClick(event, '${id}', 'skill', ${i})">${s.name || '名称未設定'}</span>`).join('')}
                     ${d.slots.skills.length === 0 ? '<span class="text-[9px] text-gray-400 italic">なし</span>' : ''}
                 </div>
               </div>`;
@@ -2559,7 +2681,7 @@ function renderTabContent(id, tab) {
                         }
                         const itemTooltip = slot.item ? (slot.item.name + formatEffectsSummary(slot.item)) : '';
                         const itemTitleAttr = itemTooltip ? `title="${itemTooltip}"` : '';
-                        return `<div class="equip-row"><span class="equip-label">${slot.label}</span><span class="slot-badge flex-grow justify-center ${!slot.item ? 'empty' : ''}" ${itemTitleAttr} onclick="openItemModal('${id}', 'equip', ${i})">${slot.item ? slot.item.name : '装備なし'}</span></div>`;
+                        return `<div class="equip-row"><span class="equip-label">${slot.label}</span><span class="slot-badge flex-grow justify-center ${!slot.item ? 'empty' : ''}" ${itemTitleAttr} draggable="${slot.item ? 'true' : 'false'}" data-drag-char="${id}" data-drag-type="equip" data-drag-index="${i}" ondragstart="handleItemDragStart(event, '${id}', 'equip', ${i})" ondragover="handleItemDragOver(event)" ondragenter="handleItemDragEnter(event)" ondragleave="handleItemDragLeave(event)" ondrop="handleItemDrop(event, '${id}', 'equip', ${i})" onclick="handleSlotBadgeClick(event, '${id}', 'equip', ${i})">${slot.item ? slot.item.name : '装備なし'}</span></div>`;
                     }).join('');
                 })()}
               </div>`;
@@ -2591,14 +2713,14 @@ function renderTabContent(id, tab) {
                     ${Array.from({length: invCount}).map((_, i) => {
                         const item = d.slots.inventory[i];
                         if (item && item.isPlaceholder) {
-                             return `<div class="inv-slot placeholder" style="background-color:#f3f4f6; color:#d1d5db; border-style:dashed; cursor:default;">(続)</div>`;
+                             return `<div class="inv-slot placeholder" draggable="true" data-drag-char="${id}" data-drag-type="inv" data-drag-index="${i}" ondragstart="handleItemDragStart(event, '${id}', 'inv', ${i})" ondragover="handleItemDragOver(event)" ondragenter="handleItemDragEnter(event)" ondragleave="handleItemDragLeave(event)" ondrop="handleItemDrop(event, '${id}', 'inv', ${i})" onclick="handleInvSlotClick(event, '${id}', ${i})" style="background-color:#f3f4f6; color:#d1d5db; border-style:dashed;">(続)</div>`;
                         }
                         const slotsText = (item && item.slots > 1) ? `<span class="text-[8px] bg-gray-200 rounded px-1 ml-1">x${item.slots}</span>` : '';
                         const itemTooltip = item ? (item.name + formatEffectsSummary(item)) : '';
                         const itemTitleAttr = itemTooltip ? `title="${itemTooltip}"` : '';
                         // 超過スロットは赤くハイライト
                         const overStyle = (isOverCapacity && i >= maxInv && item) ? ' style="border-color:#ef4444; background-color:#fef2f2;"' : '';
-                        return `<div class="inv-slot ${item ? 'filled' : ''}" ${itemTitleAttr}${overStyle} onclick="openItemModal('${id}', 'inv', ${i})">${item ? item.name + slotsText : (i < maxInv ? (i+1) : '+')}</div>`;
+                        return `<div class="inv-slot ${item ? 'filled' : ''}" ${itemTitleAttr}${overStyle} draggable="${item ? 'true' : 'false'}" data-drag-char="${id}" data-drag-type="inv" data-drag-index="${i}" ondragstart="handleItemDragStart(event, '${id}', 'inv', ${i})" ondragover="handleItemDragOver(event)" ondragenter="handleItemDragEnter(event)" ondragleave="handleItemDragLeave(event)" ondrop="handleItemDrop(event, '${id}', 'inv', ${i})" onclick="handleInvSlotClick(event, '${id}', ${i})">${item ? item.name + slotsText : (i < maxInv ? (i+1) : '+')}</div>`;
                     }).join('')}
                 </div>
               </div>`;
@@ -4153,6 +4275,24 @@ document.addEventListener('focusin', function(e) {
 window.onload = loadData; // ←ここにつながるようにする
 
     window.onload = loadData;
+
+    // --- モバイル向け初期化 ---
+    // ① モバイル（幅1024px未満）ではD66エリアをデフォルトで閉じる
+    //    （openのままにすると入力欄が押し出される原因になるため）
+    (function initMobileLayout() {
+        if (window.innerWidth < 1024) {
+            const d = document.querySelector('#log-section details');
+            if (d) {
+                d.removeAttribute('open');
+            }
+        }
+        // ② iOS Safariの100dvhバグ対策：ビューポート高さをCSS変数として設定
+        function setViewportHeight() {
+            document.documentElement.style.setProperty('--vh', window.innerHeight * 0.01 + 'px');
+        }
+        setViewportHeight();
+        window.addEventListener('resize', setViewportHeight);
+    })();
         
     // ------------------------
     // --- Enemy Panel Logic --
@@ -5731,6 +5871,540 @@ ${treasureText}
             }
         }
     }
+
+    // ========================================================
+    // --- 装備品・スキル等のドラッグ＆ドロップ並び替え・移動 ---
+    // ========================================================
+
+    let currentItemDragSource = null;
+    let windowJustFinishedItemDrag = false;
+
+    /**
+     * 複数枠消費アイテムのプレースホルダー (続) を全整合性保持して再同期する
+     */
+    function rebuildInventoryPlaceholders(char) {
+        if (!char || !char.data || !char.data.slots || !char.data.slots.inventory) return;
+        const inv = char.data.slots.inventory;
+        // 一旦すべてのプレースホルダーをnullにリセット
+        for (let i = 0; i < inv.length; i++) {
+            if (inv[i] && inv[i].isPlaceholder) {
+                inv[i] = null;
+            }
+        }
+        // 各実アイテムの slots に応じてプレースホルダーを再配置
+        for (let i = 0; i < inv.length; i++) {
+            const item = inv[i];
+            if (item && !item.isPlaceholder && item.slots > 1) {
+                for (let k = 1; k < item.slots; k++) {
+                    if (i + k < inv.length) {
+                        inv[i + k] = { isPlaceholder: true, parentIndex: i, name: "(続)" };
+                    } else {
+                        inv.push({ isPlaceholder: true, parentIndex: i, name: "(続)" });
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * インベントリ内のアイテム移動・スワップ
+     */
+    function executeInventoryMove(char, fromIdx, toIdx) {
+        const inv = char.data.slots.inventory;
+        
+        let srcIdx = fromIdx;
+        if (inv[srcIdx] && inv[srcIdx].isPlaceholder && typeof inv[srcIdx].parentIndex === 'number') {
+            srcIdx = inv[srcIdx].parentIndex;
+        }
+        let dstIdx = toIdx;
+        if (inv[dstIdx] && inv[dstIdx].isPlaceholder && typeof inv[dstIdx].parentIndex === 'number') {
+            dstIdx = inv[dstIdx].parentIndex;
+        }
+
+        if (srcIdx === dstIdx) return false;
+
+        const srcItem = inv[srcIdx];
+        if (!srcItem || srcItem.isPlaceholder) return false;
+
+        const dstItem = inv[dstIdx] && !inv[dstIdx].isPlaceholder ? inv[dstIdx] : null;
+
+        const srcSlots = srcItem.slots || 1;
+        const dstSlots = dstItem ? (dstItem.slots || 1) : 0;
+
+        const invMultiplier = (char.data.inventoryMultiplier !== undefined) ? char.data.inventoryMultiplier : 1;
+        const baseMaxLife = (char.data.life && char.data.life.max) ? parseInt(char.data.life.max) : 10;
+        const lifeEquipBonus = getEquippedLimitBonusTotal(char, 'life');
+        const displayMaxLife = baseMaxLife + lifeEquipBonus;
+        const maxInv = Math.floor(displayMaxLife * invMultiplier);
+
+        // 枠数チェック
+        if (dstIdx + srcSlots > maxInv) {
+            showToast("⚠️ 移動先が最大枠数を超えています");
+            return false;
+        }
+        if (dstItem && (srcIdx + dstSlots > maxInv)) {
+            showToast("⚠️ 入れ替え先が最大枠数を超えています");
+            return false;
+        }
+
+        // 現在の実アイテム配置マップ
+        const itemMap = new Map();
+        for (let i = 0; i < maxInv; i++) {
+            if (inv[i] && !inv[i].isPlaceholder) {
+                itemMap.set(i, inv[i]);
+            }
+        }
+
+        itemMap.delete(srcIdx);
+        if (dstItem) {
+            itemMap.delete(dstIdx);
+        }
+
+        function isCollision(targetStart, targetItemSlots) {
+            for (let s = 0; s < targetItemSlots; s++) {
+                const checkSlot = targetStart + s;
+                if (checkSlot >= maxInv) return true;
+                for (let [otherStart, otherItem] of itemMap.entries()) {
+                    const otherSlots = otherItem.slots || 1;
+                    if (checkSlot >= otherStart && checkSlot < otherStart + otherSlots) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        if (isCollision(dstIdx, srcSlots)) {
+            showToast("⚠️ 移動先に十分な空き枠がありません");
+            return false;
+        }
+
+        itemMap.set(dstIdx, srcItem);
+
+        if (dstItem) {
+            if (isCollision(srcIdx, dstSlots)) {
+                showToast("⚠️ アイテム同士のサイズが合わず入れ替えできません");
+                return false;
+            }
+            itemMap.set(srcIdx, dstItem);
+        }
+
+        const newInv = Array(maxInv).fill(null);
+        for (let [idx, item] of itemMap.entries()) {
+            newInv[idx] = item;
+            const slots = item.slots || 1;
+            for (let k = 1; k < slots; k++) {
+                newInv[idx + k] = { isPlaceholder: true, parentIndex: idx, name: "(続)" };
+            }
+        }
+
+        char.data.slots.inventory = newInv;
+        saveData();
+        renderCurrentCharacterSheet();
+        showToast(dstItem ? `🔄 「${srcItem.name}」と「${dstItem.name}」を入れ替えました` : `📦 「${srcItem.name}」を移動しました`);
+        return true;
+    }
+
+    /**
+     * 習得スキルの並び替え
+     */
+    function moveSkillItem(charId, fromIndex, toIndex) {
+        if (fromIndex === toIndex) return false;
+        const char = appState.characters[charId];
+        if (!char || !char.data || !char.data.slots || !char.data.slots.skills) return false;
+        const skills = char.data.slots.skills;
+        if (fromIndex < 0 || fromIndex >= skills.length || toIndex < 0 || toIndex >= skills.length) return false;
+
+        const item = skills.splice(fromIndex, 1)[0];
+        skills.splice(toIndex, 0, item);
+
+        saveData();
+        renderCurrentCharacterSheet();
+        showToast(`⚡ スキル「${item.name}」を並び替えました`);
+        return true;
+    }
+
+    /**
+     * 所持品から装備枠への装備
+     */
+    function executeInvToEquip(char, invIdx, equipIdx) {
+        let actualInvIdx = invIdx;
+        const inv = char.data.slots.inventory;
+        if (inv[actualInvIdx] && inv[actualInvIdx].isPlaceholder && typeof inv[actualInvIdx].parentIndex === 'number') {
+            actualInvIdx = inv[actualInvIdx].parentIndex;
+        }
+        const invItem = inv[actualInvIdx];
+        if (!invItem) return false;
+
+        const equipSlots = char.data.slots.equipped;
+        const targetSlot = equipSlots[equipIdx];
+        if (!targetSlot) return false;
+
+        const hand1Index = equipSlots.findIndex(s => s.label === '手1');
+        const hand2Index = equipSlots.findIndex(s => s.label === '手2');
+
+        if (invItem.isTwoHanded) {
+            if (equipIdx === hand1Index && hand2Index !== -1 && equipSlots[hand2Index].item) {
+                showToast("⚠️ 両手武器を装備するには、手2を空けてください。");
+                return false;
+            }
+            if (equipIdx === hand2Index && hand1Index !== -1 && equipSlots[hand1Index].item) {
+                showToast("⚠️ 両手武器を装備するには、手1を空けてください。");
+                return false;
+            }
+        }
+        if (equipIdx === hand1Index && hand2Index !== -1 && equipSlots[hand2Index].item && equipSlots[hand2Index].item.isTwoHanded) {
+            showToast("⚠️ 手2に両手武器が装備されているため、手1には装備できません。");
+            return false;
+        }
+        if (equipIdx === hand2Index && hand1Index !== -1 && equipSlots[hand1Index].item && equipSlots[hand1Index].item.isTwoHanded) {
+            showToast("⚠️ 手1に両手武器が装備されているため、手2には装備できません。");
+            return false;
+        }
+
+        const oldEquipped = targetSlot.item;
+
+        deleteInventoryItem(char, actualInvIdx);
+        targetSlot.item = invItem;
+
+        if (oldEquipped) {
+            inv[actualInvIdx] = oldEquipped;
+        }
+        rebuildInventoryPlaceholders(char);
+
+        addLogEntry('system', '装備変更', `[${char.name}] ${invItem.name} を ${targetSlot.label} に装備しました`);
+        checkAndLimitAbilityCaps(char.id);
+        saveData();
+        renderCurrentCharacterSheet();
+        showToast(`⚔️ [${targetSlot.label}] に「${invItem.name}」を装備しました`);
+        return true;
+    }
+
+    /**
+     * 装備枠から所持品スロットへの解除・移動
+     */
+    function executeEquipToInv(char, equipIdx, invIdx) {
+        const equipSlots = char.data.slots.equipped;
+        const equipSlot = equipSlots[equipIdx];
+        if (!equipSlot || !equipSlot.item) return false;
+
+        const item = equipSlot.item;
+        const slotsNeeded = item.slots || 1;
+        const inv = char.data.slots.inventory;
+
+        let targetIdx = invIdx;
+        if (inv[targetIdx] && inv[targetIdx].isPlaceholder && typeof inv[targetIdx].parentIndex === 'number') {
+            targetIdx = inv[targetIdx].parentIndex;
+        }
+
+        if (inv[targetIdx] && !inv[targetIdx].isPlaceholder) {
+            return executeInvToEquip(char, targetIdx, equipIdx);
+        }
+
+        const invMultiplier = (char.data.inventoryMultiplier !== undefined) ? char.data.inventoryMultiplier : 1;
+        const baseMaxLife = (char.data.life && char.data.life.max) ? parseInt(char.data.life.max) : 10;
+        const lifeEquipBonus = getEquippedLimitBonusTotal(char, 'life');
+        const displayMaxLife = baseMaxLife + lifeEquipBonus;
+        const maxInv = Math.floor(displayMaxLife * invMultiplier);
+
+        if (targetIdx + slotsNeeded > maxInv) {
+            showToast("⚠️ 移動先が最大枠数を超えています");
+            return false;
+        }
+
+        for (let k = 0; k < slotsNeeded; k++) {
+            if (inv[targetIdx + k]) {
+                showToast("⚠️ 移動先に十分な空き枠がありません");
+                return false;
+            }
+        }
+
+        inv[targetIdx] = item;
+        rebuildInventoryPlaceholders(char);
+        equipSlot.item = null;
+
+        addLogEntry('system', '装備解除', `[${char.name}] ${item.name} を外しました`);
+        checkAndLimitAbilityCaps(char.id);
+        saveData();
+        renderCurrentCharacterSheet();
+        showToast(`🎒 「${item.name}」を所持品枠に外しました`);
+        return true;
+    }
+
+    /**
+     * 装備枠同士の入れ替え
+     */
+    function executeEquipToEquip(char, fromEquipIdx, toEquipIdx) {
+        if (fromEquipIdx === toEquipIdx) return false;
+        const equipSlots = char.data.slots.equipped;
+        const fromSlot = equipSlots[fromEquipIdx];
+        const toSlot = equipSlots[toEquipIdx];
+        if (!fromSlot || !toSlot) return false;
+
+        const temp = fromSlot.item;
+        fromSlot.item = toSlot.item;
+        toSlot.item = temp;
+
+        checkAndLimitAbilityCaps(char.id);
+        saveData();
+        renderCurrentCharacterSheet();
+        showToast(`🔄 「${fromSlot.label}」と「${toSlot.label}」の装備を入れ替えました`);
+        return true;
+    }
+
+    /**
+     * アイテムドロップ振り分け
+     */
+    function dispatchItemTransfer(source, target) {
+        if (!source || !target) return;
+        if (source.charId !== target.charId) return;
+
+        const char = appState.characters[source.charId];
+        if (!char) return;
+
+        if (source.type === 'inv' && target.type === 'inv') {
+            executeInventoryMove(char, source.index, target.index);
+        } else if (source.type === 'skill' && target.type === 'skill') {
+            moveSkillItem(source.charId, source.index, target.index);
+        } else if (source.type === 'inv' && target.type === 'equip') {
+            executeInvToEquip(char, source.index, target.index);
+        } else if (source.type === 'equip' && target.type === 'inv') {
+            executeEquipToInv(char, source.index, target.index);
+        } else if (source.type === 'equip' && target.type === 'equip') {
+            executeEquipToEquip(char, source.index, target.index);
+        }
+    }
+
+    // --- PC用 HTML5 Drag & Drop ハンドラー ---
+
+    function handleItemDragStart(e, charId, type, index) {
+        currentItemDragSource = { charId, type, index };
+        e.dataTransfer.effectAllowed = 'move';
+        try {
+            e.dataTransfer.setData('text/plain', JSON.stringify(currentItemDragSource));
+        } catch(err) {}
+
+        const targetEl = e.currentTarget;
+        setTimeout(() => {
+            if (targetEl) targetEl.classList.add('dragging');
+        }, 0);
+    }
+
+    function handleItemDragOver(e) {
+        if (!currentItemDragSource) return;
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    }
+
+    function handleItemDragEnter(e) {
+        if (!currentItemDragSource) return;
+        e.preventDefault();
+        e.currentTarget.classList.add('drag-over');
+    }
+
+    function handleItemDragLeave(e) {
+        e.currentTarget.classList.remove('drag-over');
+    }
+
+    function handleItemDrop(e, targetCharId, targetType, targetIndex) {
+        if (e.stopPropagation) e.stopPropagation();
+        if (e.preventDefault) e.preventDefault();
+        e.currentTarget.classList.remove('drag-over');
+
+        if (!currentItemDragSource) return;
+
+        const source = currentItemDragSource;
+        const target = { charId: targetCharId, type: targetType, index: targetIndex };
+
+        windowJustFinishedItemDrag = true;
+        setTimeout(() => { windowJustFinishedItemDrag = false; }, 250);
+
+        dispatchItemTransfer(source, target);
+        currentItemDragSource = null;
+    }
+
+    function handleItemDragEnd(e) {
+        document.querySelectorAll('.inv-slot.dragging, .slot-badge.dragging').forEach(el => el.classList.remove('dragging'));
+        document.querySelectorAll('.inv-slot.drag-over, .slot-badge.drag-over').forEach(el => el.classList.remove('drag-over'));
+        currentItemDragSource = null;
+    }
+
+    // --- クリック誤爆防止ハンドラー ---
+
+    function handleInvSlotClick(e, charId, index) {
+        if (windowJustFinishedItemDrag) {
+            windowJustFinishedItemDrag = false;
+            return;
+        }
+        openItemModal(charId, 'inv', index);
+    }
+
+    function handleSlotBadgeClick(e, charId, type, index) {
+        if (windowJustFinishedItemDrag) {
+            windowJustFinishedItemDrag = false;
+            return;
+        }
+        openItemModal(charId, type, index);
+    }
+
+    // ========================================================
+    // --- スマホ・タブレット用 タッチドラッグ＆ドロップ ---
+    // ========================================================
+
+    (function initTouchDragAndDrop() {
+        let touchStartTimer = null;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchSource = null;
+        let touchGhostEl = null;
+        let currentTouchOverEl = null;
+        let isTouchDragging = false;
+
+        document.addEventListener('touchstart', (e) => {
+            const dragTarget = e.target.closest('[data-drag-type]');
+            if (!dragTarget) return;
+
+            const charId = dragTarget.getAttribute('data-drag-char');
+            const type = dragTarget.getAttribute('data-drag-type');
+            const index = parseInt(dragTarget.getAttribute('data-drag-index'), 10);
+
+            // 空枠のインベントリスロットや装備枠はドラッグ元にならない
+            if (type === 'inv') {
+                const char = appState.characters[charId];
+                if (!char || !char.data || !char.data.slots || !char.data.slots.inventory || !char.data.slots.inventory[index]) {
+                    return;
+                }
+            } else if (type === 'equip') {
+                const char = appState.characters[charId];
+                if (!char || !char.data || !char.data.slots || !char.data.slots.equipped || !char.data.slots.equipped[index] || !char.data.slots.equipped[index].item) {
+                    return;
+                }
+            }
+
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchSource = { charId, type, index, el: dragTarget };
+            isTouchDragging = false;
+
+            // 長押し検知タイマー (180ms)
+            touchStartTimer = setTimeout(() => {
+                isTouchDragging = true;
+                if (navigator.vibrate) navigator.vibrate(20);
+
+                touchGhostEl = document.createElement('div');
+                touchGhostEl.id = 'touch-drag-ghost';
+                touchGhostEl.textContent = dragTarget.textContent || 'アイテム';
+                document.body.appendChild(touchGhostEl);
+                touchGhostEl.style.left = touchStartX + 'px';
+                touchGhostEl.style.top = touchStartY + 'px';
+
+                dragTarget.classList.add('dragging');
+            }, 180);
+
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!touchSource) return;
+
+            const touch = e.touches[0];
+            const dx = touch.clientX - touchStartX;
+            const dy = touch.clientY - touchStartY;
+
+            // 長押し前の大きな移動はスクロールとみなしドラッグキャンセル
+            if (!isTouchDragging) {
+                if (Math.hypot(dx, dy) > 8) {
+                    if (touchStartTimer) {
+                        clearTimeout(touchStartTimer);
+                        touchStartTimer = null;
+                    }
+                    touchSource = null;
+                }
+                return;
+            }
+
+            // ドラッグ中：スクロール抑止
+            if (e.cancelable) e.preventDefault();
+
+            if (touchGhostEl) {
+                touchGhostEl.style.left = touch.clientX + 'px';
+                touchGhostEl.style.top = touch.clientY + 'px';
+            }
+
+            // 指の下にあるドロップ対象枠を検出
+            const elemBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+            const dropTarget = elemBelow ? elemBelow.closest('[data-drag-type]') : null;
+
+            if (dropTarget !== currentTouchOverEl) {
+                if (currentTouchOverEl) currentTouchOverEl.classList.remove('drag-over');
+                currentTouchOverEl = dropTarget;
+                if (currentTouchOverEl) currentTouchOverEl.classList.add('drag-over');
+            }
+
+        }, { passive: false });
+
+        document.addEventListener('touchend', (e) => {
+            if (touchStartTimer) {
+                clearTimeout(touchStartTimer);
+                touchStartTimer = null;
+            }
+
+            if (touchGhostEl && touchGhostEl.parentNode) {
+                touchGhostEl.parentNode.removeChild(touchGhostEl);
+                touchGhostEl = null;
+            }
+
+            if (currentTouchOverEl) {
+                currentTouchOverEl.classList.remove('drag-over');
+            }
+
+            if (touchSource && touchSource.el) {
+                touchSource.el.classList.remove('dragging');
+            }
+
+            if (isTouchDragging && touchSource) {
+                windowJustFinishedItemDrag = true;
+                setTimeout(() => { windowJustFinishedItemDrag = false; }, 250);
+
+                const changedTouch = e.changedTouches[0];
+                const elemBelow = document.elementFromPoint(changedTouch.clientX, changedTouch.clientY);
+                const dropTarget = elemBelow ? elemBelow.closest('[data-drag-type]') : null;
+
+                if (dropTarget) {
+                    const targetCharId = dropTarget.getAttribute('data-drag-char');
+                    const targetType = dropTarget.getAttribute('data-drag-type');
+                    const targetIndex = parseInt(dropTarget.getAttribute('data-drag-index'), 10);
+                    const target = { charId: targetCharId, type: targetType, index: targetIndex };
+
+                    dispatchItemTransfer(touchSource, target);
+                }
+            }
+
+            isTouchDragging = false;
+            touchSource = null;
+            currentTouchOverEl = null;
+        }, { passive: true });
+
+        document.addEventListener('touchcancel', () => {
+            if (touchStartTimer) {
+                clearTimeout(touchStartTimer);
+                touchStartTimer = null;
+            }
+            if (touchGhostEl && touchGhostEl.parentNode) {
+                touchGhostEl.parentNode.removeChild(touchGhostEl);
+                touchGhostEl = null;
+            }
+            if (currentTouchOverEl) {
+                currentTouchOverEl.classList.remove('drag-over');
+            }
+            if (touchSource && touchSource.el) {
+                touchSource.el.classList.remove('dragging');
+            }
+            isTouchDragging = false;
+            touchSource = null;
+            currentTouchOverEl = null;
+        });
+    })();
 </script>
 
 
