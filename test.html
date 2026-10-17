@@ -228,7 +228,7 @@
 
             /* D66エリアの高さ制限（モバイルのみ）※実機はアドレスバー分を引いて厳しく制限 */
             #log-section details {
-            max-height: 40vh; /* 実機での表示崩れ防止のため40→30vhに縮小 */
+            max-height: 40vh; 
             overflow-y: auto; /* それ以上はスクロール */
             margin-bottom: 0 !important;
             border-radius: 0 !important;
@@ -7154,12 +7154,12 @@ ${treasureText}
         const popupHeight = popup.offsetHeight || 38;
 
         // 選択範囲の中央上部に配置
-        let top = rect.top - popupHeight - 8;
+        let top = rect.top - popupHeight - 55;
         let left = rect.left + (rect.width / 2) - (popupWidth / 2);
 
         // 上部が画面外にはみ出す場合は下部に配置
-        if (top < 10) {
-            top = rect.bottom + 8;
+        if (top < 60) {
+            top = rect.bottom + 12;
         }
 
         // 画面左右のはみ出しガード
