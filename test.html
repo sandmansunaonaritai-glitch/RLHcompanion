@@ -1253,17 +1253,14 @@
     <!-- ログテキスト選択時のフローティングポップアップメニュー -->
     <div id="logSelectionPopup" class="log-selection-popup hidden" onmousedown="event.preventDefault();">
         <button type="button" class="log-popup-btn btn-equip" onclick="handleLogPopupAction('equip')" title="選択テキストを装備品（所持品）に追加">
-            <span class="btn-icon">🎒</span>
             <span class="btn-text">装備品に追加</span>
         </button>
         <div class="log-popup-divider"></div>
         <button type="button" class="log-popup-btn btn-skill" onclick="handleLogPopupAction('skill')" title="選択テキストを習得スキルに追加">
-            <span class="btn-icon">⚡</span>
             <span class="btn-text">習得スキルに追加</span>
         </button>
         <div class="log-popup-divider"></div>
         <button type="button" class="log-popup-btn btn-memo" onclick="handleLogPopupAction('memo')" title="選択テキストをメモに追記">
-            <span class="btn-icon">📝</span>
             <span class="btn-text">メモに記入</span>
         </button>
     </div>
@@ -3877,11 +3874,11 @@ function renderTabContent(id, tab) {
                 } 
                 else {// 【CSVにデータがなかった場合】黄昏の騎士準拠
                     if (total <= 1) {
-                            detail = "金貨1枚";
+                            detail = "-> 1枚の金貨";
                     } 
                     else if (total === 2) {
                         const d = Math.floor(Math.random()*6)+1;
-                        detail = `1D6(${d})枚の金貨`;
+                        detail = `1D6(${d}) -> ${d}枚の金貨`;
                     } 
                     else if (total === 3) {
                         const d1 = Math.floor(Math.random()*6)+1;
@@ -3889,12 +3886,12 @@ function renderTabContent(id, tab) {
                         let sum = d1 + d2;
                         let lowLimit = "";
                         if (sum < 5) { sum = 5; lowLimit = "(下限5枚適用)"; }
-                        detail = `2D6${d1},${d2} -> ${sum}枚の金貨 ${lowLimit}`;
+                        detail = `2D6(${d1},${d2})-> ${sum}枚の金貨 ${lowLimit}`;
                     } 
                     else if (total === 4) {
                         const a1 = Math.floor(Math.random()*6)+1;
                         const a2 = Math.floor(Math.random()*6)+1;
-                        detail = `アクセサリー1個 (価値: 1D6[${a1}]×1D6[${a2}] = ${a1*a2}枚の金貨)`;
+                        detail = `アクセサリー1個 (価値: 1D6(${a1})×1D6(${a2}) -> ${a1*a2}枚の金貨)`;
                     }
                     else if (total === 5) {
                         const d = Math.floor(Math.random()*6)+1;
@@ -4117,17 +4114,47 @@ function renderTabContent(id, tab) {
             }
         }, { passive: true });
     }
+// --- 保存共通ヘルパー関数 ---
+async function saveFileWithPicker(filename, content, mimeType) {
+    if ('showSaveFilePicker' in window) {
+        try {
+            const handle = await window.showSaveFilePicker({
+                suggestedName: filename,
+                types: [{
+                    description: 'Files',
+                    accept: { [mimeType]: [filename.substring(filename.lastIndexOf('.'))] },
+                }],
+            });
+            const writable = await handle.createWritable();
+            await writable.write(content);
+            await writable.close();
+            return true;
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                console.error('Save failed:', err);
+            }
+            return false; // キャンセルまたはエラー
+        }
+    }
 
-    // セッション全体の保存
+    // フォールバック（従来のダウンロード）
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+    return true;
+}
+// セッション全体の保存
     function downloadData() {
         const title = document.getElementById('logTitle').value || "session";
-        const blob = new Blob([JSON.stringify(appState, (key, value) => key.startsWith('_') ? undefined : value, 2)], {type: 'application/json'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `RLH_Session_${title}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
+        const jsonStr = JSON.stringify(appState, (key, value) => key.startsWith('_') ? undefined : value, 2);
+        const filename = `RLH_Session_${title}.json`;
+        
+        // 共通ヘルパー関数を呼び出す
+        saveFileWithPicker(filename, jsonStr, 'application/json');
     }
 // ログをテキスト形式で保存
     function exportLogText() {
@@ -4147,14 +4174,15 @@ function renderTabContent(id, tab) {
                 t += `${prefix}${e.content}\n\n`;
             }
         });
-        const b = new Blob([t], {type:'text/plain'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(b);
-        a.download = `${title}.txt`;
-        a.click();
+        
+        const filename = `${title}.txt`;
+        
+        // 共通ヘルパー関数を呼び出す
+        saveFileWithPicker(filename, t, 'text/plain');
     }
 
-function exportLogMarkdown() {
+// ログをmarkdown形式で保存
+    function exportLogMarkdown() {
         const title = document.getElementById('logTitle').value || "session_log";
         let md = `# SESSION: ${title}\n\n`;
         appState.logEntries.forEach(e => {
@@ -4171,27 +4199,27 @@ function exportLogMarkdown() {
             md += `${prefix}${e.content}\n\n`;
          }
         });
-        const b = new Blob([md], {type:'text/markdown'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(b);
-        a.download = `${title}.md`;
-        a.click();
-        URL.revokeObjectURL(a.href);
+        
+        const filename = `${title}.md`;
+        
+        // 共通ヘルパー関数を呼び出す
+        saveFileWithPicker(filename, md, 'text/markdown');
     }
 
-    function openLogExportModal() {
+function openLogExportModal() {
         document.getElementById('logExportModal').style.display = 'flex';
     }
+
     // 表示中のキャラのみ保存
     function downloadCharacterById(id) {
         const c = appState.characters[id];
         if (!c) return;
         const exportData = { ...c, isSingleChar: true };
-        const b = new Blob([JSON.stringify(exportData, null, 2)], {type:'application/json'});
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(b);
-        a.download = `RLH_Character_${c.name || 'no_name'}.json`;
-        a.click();
+        const jsonStr = JSON.stringify(exportData, null, 2);
+        const filename = `RLH_Character_${c.name || 'no_name'}.json`;
+        
+        // 共通ヘルパー関数を呼び出す
+        saveFileWithPicker(filename, jsonStr, 'application/json');
     }
 
     //③ handleFileUpload（読み込み機能）
@@ -4844,9 +4872,15 @@ window.onload = loadData; // ←ここにつながるようにする
             }
 
             // 金貨
-            const goldMatch1 = c.match(/(\d+)枚の金貨/g);
-            if (goldMatch1) {
-                goldMatch1.forEach(m => stats.gold += parseInt(m.match(/\d+/)[0]));
+            // 「-> 〇枚の金貨」というパターンを、ログ内からすべて（複数回あっても）見つけて足す
+             const matches = c.match(/->\s*(\d+)枚の金貨/g);
+               if (matches) {
+                   matches.forEach(m => {
+             const num = m.match(/\d+/);
+               if (num) {
+                stats.gold += parseInt(num[0]);
+                }
+                   });
             }
 
             // お宝リスト
@@ -6843,7 +6877,7 @@ ${treasureText}
 
     let currentSelectedLogText = "";
 
-    /**
+/**
      * テキストをスマートに解析し、「名前」と「詳細（説明文）」に振り分ける
      */
     function parseLogTextToNameAndDesc(rawText) {
@@ -6893,13 +6927,24 @@ ${treasureText}
 
         // 2. 1行のみの場合
         let line = lines[0];
+        const cleanLine = cleanString(line);
+
+        // ★【最優先】「名前 (価値: ... )」のような、名前に続いてスペースとカッコがある場合を一番上で確実にキャッチする
+        // 例: "宝石・小1個 (価値: 1D6(6)×5 = 30 -> 30枚の金貨 )"
+        const parenDetailMatch = cleanLine.match(/^(.+?)\s+(\([\s\S]*\))$/);
+        if (parenDetailMatch) {
+            return {
+                name: cleanString(parenDetailMatch[1]),
+                desc: parenDetailMatch[2].trim()
+            };
+        }
 
         // パターンA: 【名前】詳細 or 『名前』詳細 or 「名前」詳細
         const bracketMatch = line.match(/^[【『「]([^】』」]+)[】』」][\s:：\-—–]*(.*)$/);
         if (bracketMatch) {
             return {
                 name: cleanString(bracketMatch[1]),
-                desc: bracketMatch[2].trim()
+                desc: bracketMatch[2].trim() // ← ここを安全なインデックスアクセスに修正済み
             };
         }
 
@@ -6911,8 +6956,6 @@ ${treasureText}
                 desc: colonMatch[2].trim()
             };
         }
-
-        const cleanLine = cleanString(line);
 
         // パターンC: 句点「。」で区切られている場合（1文目が20文字以内かつ後続がある場合）
         if (cleanLine.includes('。')) {
@@ -7040,7 +7083,7 @@ ${treasureText}
             char.isExpanded = true;
             saveData();
             renderCurrentCharacterSheet();
-            showToast(`🎒 [${charName}] 装備品「${itemName}」を追加しました`);
+            showToast(` [${charName}] 装備品「${itemName}」を追加しました`);
 
         } else if (action === 'skill') {
             const parsed = parseLogTextToNameAndDesc(trimmedText);
@@ -7056,7 +7099,7 @@ ${treasureText}
             char.isExpanded = true;
             saveData();
             renderCurrentCharacterSheet();
-            showToast(`⚡ [${charName}] 習得スキル「${skillName}」を追加しました`);
+            showToast(` [${charName}] 習得スキル「${skillName}」を追加しました`);
 
         } else if (action === 'memo') {
             const currentMemo = char.data.memo || "";
@@ -7070,7 +7113,7 @@ ${treasureText}
             char.isExpanded = true;
             saveData();
             renderCurrentCharacterSheet();
-            showToast(`📝 [${charName}] メモに記入しました`);
+            showToast(` [${charName}] メモに記入しました`);
         }
 
         // 選択解除とポップアップ非表示
