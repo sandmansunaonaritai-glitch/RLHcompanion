@@ -1,4 +1,4 @@
-<!--RLH_ScenarioEditor.html2.0-->
+<!--RLH_ScenarioEditor.html-->
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -67,6 +67,8 @@
         <span id="lock-badge" class="hidden bg-red-600 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse cursor-pointer hover:bg-red-700 inline-flex items-center" onclick="unlockScenario()" title="クリックしてパスワード解除">🔒 頒布用ロック中</span>
     </div>
     <div class="flex gap-2 items-center">
+        <button id="btn-undo" onclick="undo()" class="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed px-2.5 py-1.5 rounded text-xs font-bold transition" title="元に戻す (Ctrl+Z)" disabled>↩ Undo</button>
+        <button id="btn-redo" onclick="redo()" class="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed px-2.5 py-1.5 rounded text-xs font-bold transition" title="やり直す (Ctrl+Y)" disabled>↪ Redo</button>
         <button onclick="toggleRightPanel()" class="bg-slate-500 hover:bg-slate-400 px-3 py-1.5 rounded text-xs font-bold transition" title="右パネル表示切替">👀 枠切替</button>
         
         <!-- Hamburger Menu -->
@@ -202,7 +204,7 @@
                     </div>
                     <div class="col-span-1">
                         <label class="block text-xs font-bold text-gray-500 mb-1">回目</label>
-                        <input type="number" id="edit-turn" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" min="1" max="3" value="1" oninput="updateCurrentEntry('turn', parseInt(this.value))">
+                        <input type="number" id="edit-turn" class="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-indigo-400 outline-none" min="1" max="99" value="1" oninput="updateCurrentEntry('turn', parseInt(this.value))">
                     </div>
                     <div class="col-span-1">
                         <label class="block text-xs font-bold text-gray-500 mb-1">コスト</label>
@@ -552,6 +554,14 @@
     let draggedIdeaId = null;
     let draggedUuid = null;
     let editingTagTarget = null; // { type: 'scenario'|'idea', id: string }
+
+    // Undo / Redo stacks and states
+    let undoStack = [];
+    let redoStack = [];
+    let isInputting = false;
+    let debounceTimer = null;
+    // 現在リストに表示されているエントリの UUID（表示順）を保持する
+    let renderedEntryUuids = [];
     const TYPE_ORDER = {
         'title': 1, 'overview': 2, 'rule': 3, 'linear': 4, 'pro': 5, 'start': 6,'d66': 7,
         'mid': 8,  'finish':9, 'clear': 10, 'ending': 11,'treasure': 12, 'magictreasure': 13, 'reference': 14
@@ -696,6 +706,178 @@
         return Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
 
+    function getAppState() {
+        return {
+            scenarioData: JSON.parse(JSON.stringify(scenarioData)),
+            ideaData: JSON.parse(JSON.stringify(ideaData)),
+            scenarioNpcs: JSON.parse(JSON.stringify(scenarioNpcs)),
+            scenarioSynopsis: scenarioSynopsis,
+            scenarioTitle: document.getElementById('scenario-title').value
+        };
+    }
+
+    function applyAppState(state) {
+        scenarioData = JSON.parse(JSON.stringify(state.scenarioData));
+        ideaData = JSON.parse(JSON.stringify(state.ideaData));
+        scenarioNpcs = JSON.parse(JSON.stringify(state.scenarioNpcs));
+        scenarioSynopsis = state.scenarioSynopsis;
+        localStorage.setItem('rlh_scenario_synopsis', scenarioSynopsis);
+        
+        const titleVal = state.scenarioTitle || "";
+        document.getElementById('scenario-title').value = titleVal;
+        localStorage.setItem(STORAGE_KEY_TITLE, titleVal);
+    }
+
+    function updateUndoRedoButtons() {
+        const undoBtn = document.getElementById('btn-undo');
+        const redoBtn = document.getElementById('btn-redo');
+        if (undoBtn) undoBtn.disabled = undoStack.length === 0;
+        if (redoBtn) redoBtn.disabled = redoStack.length === 0;
+    }
+
+    function saveHistory() {
+        undoStack.push(getAppState());
+        redoStack = [];
+        updateUndoRedoButtons();
+    }
+
+    function saveHistoryDebounced() {
+        if (!isInputting) {
+            saveHistory();
+            isInputting = true;
+        }
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            isInputting = false;
+        }, 400);
+    }
+
+    function undo() {
+        if (undoStack.length === 0) return;
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        
+        redoStack.push(getAppState());
+        const prevState = undoStack.pop();
+        applyAppState(prevState);
+        
+        saveData();
+        refreshUIAfterHistoryChange();
+    }
+
+    function redo() {
+        if (redoStack.length === 0) return;
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        
+        undoStack.push(getAppState());
+        const nextState = redoStack.pop();
+        applyAppState(nextState);
+        
+        saveData();
+        refreshUIAfterHistoryChange();
+    }
+
+    function refreshUIAfterHistoryChange() {
+        renderList();
+        renderIdeaList();
+        renderNpcList();
+        
+        if (currentUuid) {
+            const exists = scenarioData.some(e => e._uuid === currentUuid);
+            if (exists) {
+                selectEntry(currentUuid);
+            } else {
+                currentUuid = null;
+                document.getElementById('editor-form').classList.add('hidden');
+                document.getElementById('no-selection').classList.remove('hidden');
+            }
+        } else {
+            document.getElementById('editor-form').classList.add('hidden');
+            document.getElementById('no-selection').classList.remove('hidden');
+        }
+        
+        updateUndoRedoButtons();
+    }
+
+    // --- Markdown 入力支援ヘルパー ---
+
+    /**
+     * テキストエリアの選択範囲を prefix/suffix でラップする汎用関数。
+     * 選択範囲がない場合は prefix+suffix を挿入してカーソルをその間に置く。
+     */
+    function applyMarkdownWrap(textarea, prefix, suffix) {
+        const start  = textarea.selectionStart;
+        const end    = textarea.selectionEnd;
+        const before = textarea.value.substring(0, start);
+        const sel    = textarea.value.substring(start, end);
+        const after  = textarea.value.substring(end);
+
+        // すでに同じ記号でラップされていたらトグル解除
+        if (before.endsWith(prefix) && after.startsWith(suffix)) {
+            textarea.value = before.slice(0, -prefix.length) + sel + after.slice(suffix.length);
+            textarea.setSelectionRange(start - prefix.length, end - prefix.length);
+        } else {
+            const replacement = prefix + (sel || '') + suffix;
+            textarea.value = before + replacement + after;
+            const newCursor = start + prefix.length + sel.length;
+            textarea.setSelectionRange(
+                start + prefix.length,
+                newCursor
+            );
+        }
+        updateCurrentEntry('text', textarea.value);
+    }
+
+    /**
+     * テキストエリアのカーソル行先頭に "### " を付ける（すでにあれば除去）。
+     */
+    function makeCurrentLineHeading(textarea) {
+        const pos   = textarea.selectionStart;
+        const val   = textarea.value;
+        const lineStart = val.lastIndexOf('\n', pos - 1) + 1;
+        const lineEnd   = val.indexOf('\n', pos);
+        const end       = lineEnd === -1 ? val.length : lineEnd;
+        const line      = val.substring(lineStart, end);
+
+        let newLine;
+        if (line.startsWith('### ')) {
+            newLine = line.slice(4);
+        } else {
+            newLine = '### ' + line;
+        }
+        textarea.value = val.substring(0, lineStart) + newLine + val.substring(end);
+        const offset = newLine.length - line.length;
+        textarea.setSelectionRange(pos + offset, pos + offset);
+        updateCurrentEntry('text', textarea.value);
+    }
+
+    /**
+     * Alt+ArrowUp/Down で renderList が表示したリスト内を前後に移動する。
+     * direction: -1 = 前へ、+1 = 次へ
+     */
+    function navigateEntry(direction) {
+        if (renderedEntryUuids.length === 0) return;
+        if (!currentUuid) {
+            // 未選択なら先頭 or 末尾を選択
+            const target = direction === 1
+                ? renderedEntryUuids[0]
+                : renderedEntryUuids[renderedEntryUuids.length - 1];
+            selectEntry(target);
+            return;
+        }
+        const idx = renderedEntryUuids.indexOf(currentUuid);
+        if (idx === -1) return;
+        const next = idx + direction;
+        if (next < 0 || next >= renderedEntryUuids.length) return;
+        selectEntry(renderedEntryUuids[next]);
+        // 選択したカードをリストビュー内でスクロールして見えるようにする
+        const card = document.querySelector(
+            `#scenario-list .scenario-card-item[onclick="selectEntry('${renderedEntryUuids[next]}')"]`
+        );
+        if (card) card.scrollIntoView({ block: 'nearest' });
+    }
+
     function toggleRightPanel() {
         const panel = document.getElementById('right-panel-wrapper');
         const resizer = document.getElementById('right-panel-resizer');
@@ -827,15 +1009,105 @@
                 }
             }
         });
+
+        // Undo / Redo キーボードショートカット
+        window.addEventListener('keydown', function(e) {
+            const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+            const isCmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+            const isTextarea  = e.target && e.target.id === 'edit-text';
+
+            // -------------------------------------------------------
+            // Alt + ArrowUp / ArrowDown : リスト項目の前後に移動
+            // -------------------------------------------------------
+            if (e.altKey && !isCmdOrCtrl && !e.shiftKey) {
+                if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    navigateEntry(-1);
+                    return;
+                }
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    navigateEntry(1);
+                    return;
+                }
+            }
+
+            if (isCmdOrCtrl) {
+                // -------------------------------------------------------
+                // Ctrl + Alt + N : 新規項目追加
+                // -------------------------------------------------------
+                if (e.altKey && e.key.toLowerCase() === 'n') {
+                    e.preventDefault();
+                    addNewEntry();
+                    return;
+                }
+
+                // -------------------------------------------------------
+                // Ctrl + / または Ctrl + B : プレビューパネルの表示切り替え
+                // (テキストエリアフォーカス中でない場合)
+                // -------------------------------------------------------
+                if (!isTextarea && (e.key === '/' || e.key.toLowerCase() === 'b')) {
+                    e.preventDefault();
+                    toggleRightPanel();
+                    return;
+                }
+
+                // -------------------------------------------------------
+                // テキストエリアフォーカス中 の Markdown ショートカット
+                // -------------------------------------------------------
+                if (isTextarea) {
+                    const ta = e.target;
+
+                    if (e.key.toLowerCase() === 'b') {
+                        // Ctrl + B : 太字
+                        e.preventDefault();
+                        applyMarkdownWrap(ta, '**', '**');
+                        return;
+                    }
+                    if (e.key.toLowerCase() === 'i') {
+                        // Ctrl + I : 斜体
+                        e.preventDefault();
+                        applyMarkdownWrap(ta, '*', '*');
+                        return;
+                    }
+                    if (e.key.toLowerCase() === 'h') {
+                        // Ctrl + H : 見出し（現在行に ### を付与/解除）
+                        e.preventDefault();
+                        makeCurrentLineHeading(ta);
+                        return;
+                    }
+                }
+
+                // -------------------------------------------------------
+                // Undo / Redo
+                // -------------------------------------------------------
+                if (e.key.toLowerCase() === 'z') {
+                    e.preventDefault();
+                    if (isMac && e.shiftKey) {
+                        redo();
+                    } else {
+                        undo();
+                    }
+                } else if (e.key.toLowerCase() === 'y') {
+                    e.preventDefault();
+                    redo();
+                }
+            }
+        });
     }
 
     function saveTitle() {
+        saveHistoryDebounced();
         localStorage.setItem(STORAGE_KEY_TITLE, document.getElementById('scenario-title').value);
     }
 
     function createNewScenario() {
         if(!confirm("現在の編集内容を破棄して、新規シナリオを作成しますか？\n（未保存のデータは失われます）")) return;
         
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         scenarioData = [];
         scenarioData.push({ _uuid: generateUuid(), id: "", type: "title", turn: 1, text: "# シナリオタイトル\n\n## サブタイトル\n\n作者名", choice1_label: "", choice1_next_id: "", listTitle: "" });
         scenarioData.push({ _uuid: generateUuid(), id: "", type: "overview", turn: 1, text: OVERVIEW_TEMPLATE, choice1_label: "", choice1_next_id: "", listTitle: "" });
@@ -954,6 +1226,10 @@
     }
 
     function addIdea() {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const newIdea = {
             id: generateUuid(),
             type: 'note',
@@ -971,23 +1247,44 @@
     }
 
     function archiveIdea(id) {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const idea = ideaData.find(i => i.id === id);
         if (idea) { idea.archived = true; saveIdeas(); renderIdeaList(); }
     }
 
     function unarchiveIdea(id) {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const idea = ideaData.find(i => i.id === id);
         if (idea) { idea.archived = false; saveIdeas(); renderIdeaList(); }
     }
 
     function deleteIdea(id) {
         if(!confirm("このネタを削除しますか？")) return;
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         ideaData = ideaData.filter(i => i.id !== id);
         saveIdeas();
         renderIdeaList();
     }
 
     function updateIdea(id, key, value) {
+        const debounceKeys = ['text', 'listTitle'];
+        if (debounceKeys.includes(key)) {
+            saveHistoryDebounced();
+        } else {
+            isInputting = false;
+            clearTimeout(debounceTimer);
+            saveHistory();
+        }
+
         const idea = ideaData.find(i => i.id === id);
         if (idea) {
             idea[key] = value;
@@ -1147,6 +1444,9 @@
                 ${tagsHtml}
             </div>`;
         }).join('');
+
+        // Alt+矢印キーによる移動用に、現在表示中エントリの UUID 配列を更新
+        renderedEntryUuids = filtered.filter(e => !e.isPlaceholder).map(e => e._uuid);
     }
 
     function updateFilterIndicator() {
@@ -1248,6 +1548,10 @@
     }
 
     function reorderItems(srcUuid, tgtUuid, clientY, targetElement) {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const srcIdx = scenarioData.findIndex(e => e._uuid === srcUuid);
         if (srcIdx < 0) return;
         const item = scenarioData[srcIdx];
@@ -1280,6 +1584,10 @@
     }
 
     function convertIdeaToCard(ideaId, targetUuid, clientY, targetElement) {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const idea = ideaData.find(i => i.id === ideaId);
         if (!idea) return;
 
@@ -1323,6 +1631,11 @@
         e.preventDefault();
         e.stopPropagation();
         e.currentTarget.style.backgroundColor = ''; // Reset background
+        
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         if (draggedUuid) {
             // シナリオカードを背景（隙間）にドロップした場合はリストの末尾に移動
             const srcIdx = scenarioData.findIndex(entry => entry._uuid === draggedUuid);
@@ -1377,6 +1690,10 @@
     function handleIdeaDrop(e) {
         e.preventDefault();
         if (draggedUuid) {
+            isInputting = false;
+            clearTimeout(debounceTimer);
+            saveHistory();
+
             const entry = scenarioData.find(e => e._uuid === draggedUuid);
             if (entry) {
                 const newIdea = { 
@@ -1464,6 +1781,10 @@
     }
 
     function addNewEntry() {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const searchInput = document.getElementById('search-input');
         if(searchInput) searchInput.value = "";
 
@@ -1476,6 +1797,10 @@
     }
 
     function addPlaceholderEntry() {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const uuid = generateUuid();
         const newEntry = { _uuid: uuid, id: "", type: "d66", turn: 1, text: "", listTitle: "", isPlaceholder: true, cost: 0 };
         scenarioData.unshift(newEntry);
@@ -1484,6 +1809,10 @@
     }
 
     function convertPlaceholder(uuid) {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const entry = scenarioData.find(e => e._uuid === uuid);
         if(entry) {
             delete entry.isPlaceholder;
@@ -1496,6 +1825,10 @@
     }
 
     function fillPlaceholderWithIdea(uuid, ideaId) {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const entry = scenarioData.find(e => e._uuid === uuid);
         const idea = ideaData.find(i => i.id === ideaId);
         if(entry && idea) {
@@ -1528,6 +1861,10 @@
             return;
         }
 
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const searchInput = document.getElementById('search-input');
         if(searchInput) searchInput.value = "";
 
@@ -1552,6 +1889,15 @@
     }
 
     function updateCurrentEntry(key, value) {
+        const debounceKeys = ['text', 'listTitle', 'roleNote', 'refEvent', 'refWork', 'refAuthor', 'refUrl', 'id'];
+        if (debounceKeys.includes(key)) {
+            saveHistoryDebounced();
+        } else {
+            isInputting = false;
+            clearTimeout(debounceTimer);
+            saveHistory();
+        }
+
         const entry = scenarioData.find(e => e._uuid === currentUuid);
         if(!entry) return;
         entry[key] = value;
@@ -1564,17 +1910,20 @@
 
         updatePreview(entry);
         // リストのID表示更新などは遅延させるか、ID変更時のみ再描画
-        if(key === 'id' || key === 'text' || key === 'type' || key === 'listTitle' || key === 'image') renderList(); 
+        if(key === 'id' || key === 'text' || key === 'type' || key === 'listTitle' || key === 'image' || key === 'turn') renderList(); 
         renderRelations(entry); // ID変更時などに関係図を更新
         saveData();
     }
 
     function updateGlobalConfig(key, value) {
+        saveHistoryDebounced();
         scenarioConfig[key] = parseInt(value) || 0;
         saveData();
     }
 
     function updateChoice(index, field, value) {
+        saveHistoryDebounced();
+
         const entry = scenarioData.find(e => e._uuid === currentUuid);
         if(!entry) return;
         entry[`choice${index}_${field}`] = value;
@@ -1597,6 +1946,10 @@
 
     function deleteCurrentEntry() {
         if(!confirm("本当に削除しますか？")) return;
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         scenarioData = scenarioData.filter(e => e._uuid !== currentUuid);
         currentUuid = null;
         document.getElementById('editor-form').classList.add('hidden');
@@ -1613,6 +1966,10 @@
         }
         const headingPrefix = '#'.repeat(level) + ' ';
         const textToInsert = headingPrefix + listTitle + '\n\n'; // Add newlines for separation
+
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
 
         const textarea = document.getElementById('edit-text');
         const start = textarea.selectionStart;
@@ -1738,6 +2095,10 @@ function insertMarkdown(before, after) {
     const currentContainerScroll = container ? container.scrollTop : 0;
     const currentTextareaScroll = textarea.scrollTop;
 
+    isInputting = false;
+    clearTimeout(debounceTimer);
+    saveHistory();
+
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const text = textarea.value;
@@ -1767,6 +2128,10 @@ function insertMarkdown(before, after) {
         if (!templateObj) return;
         const template = templateObj.text;
         
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const textarea = document.getElementById('edit-text');
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
@@ -1928,6 +2293,10 @@ function insertMarkdown(before, after) {
         const file = event.target.files[0];
         if (!file) return;
 
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         // ファイル名からタイトルをセット（拡張子除く）
         const fileName = file.name.replace(/\.json$/i, "");
         document.getElementById('scenario-title').value = fileName;
@@ -2025,6 +2394,10 @@ function insertMarkdown(before, after) {
         const file = event.target.files[0];
         if (!file) return;
 
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const fileName = file.name.replace(/\.csv$/i, "");
         document.getElementById('scenario-title').value = fileName;
         saveTitle();
@@ -2069,6 +2442,10 @@ function insertMarkdown(before, after) {
     function importText(event) {
         const file = event.target.files[0];
         if (!file) return;
+
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
 
         const fileName = file.name.replace(/\.txt$/i, "");
         document.getElementById('scenario-title').value = fileName;
@@ -2677,6 +3054,10 @@ function insertMarkdown(before, after) {
             }
             if (!confirm(`ID: 1 ～ ${count} で ${count} 件のデータを作成しますか？\n(タイプ: ${type})`)) return;
 
+            isInputting = false;
+            clearTimeout(debounceTimer);
+            saveHistory();
+
             for (let i = 1; i <= count; i++) {
                 newEntries.push({
                     _uuid: generateUuid(),
@@ -2703,6 +3084,10 @@ function insertMarkdown(before, after) {
             }
 
             if (!confirm(`${r}×${c} のグリッドで ${r * c} 件のデータを作成しますか？\n(タイプ: ${type})\n\n※IDは ${11} ～ ${r}${c} の形式で生成されます`)) return;
+
+            isInputting = false;
+            clearTimeout(debounceTimer);
+            saveHistory();
 
             // 設定値を更新
             scenarioConfig.rows = r;
@@ -2856,6 +3241,10 @@ function insertMarkdown(before, after) {
     function addTag(tag) {
         if (!tag) return;
         
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         // 管理リストにない場合は追加して保存
         if (!managedTags.includes(tag)) {
             managedTags.push(tag);
@@ -2905,6 +3294,10 @@ function insertMarkdown(before, after) {
     }
 
     function removeTag(tag, type = 'scenario', id = null) {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         if (type === 'idea') {
             const idea = ideaData.find(i => i.id === id);
             if (idea && Array.isArray(idea.tags)) {
@@ -2924,6 +3317,10 @@ function insertMarkdown(before, after) {
     }
 
     function removeTag(tag) {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         if (!currentUuid) return;
         const entry = scenarioData.find(e => e._uuid === currentUuid);
         if (!entry || !entry.tags) return;
@@ -3009,6 +3406,10 @@ function insertMarkdown(before, after) {
     }
 
     function saveSynopsis() {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         scenarioSynopsis = document.getElementById('edit-synopsis-text').value;
         localStorage.setItem('rlh_scenario_synopsis', scenarioSynopsis);
         scenarioConfig.rows = parseInt(document.getElementById('panel-config-rows').value) || 6;
@@ -3263,6 +3664,10 @@ function insertMarkdown(before, after) {
         if (fields.length === 0) return alert("置換対象の項目を少なくとも1つ選択してください");
         if (!confirm(`「${findText}」を「${replaceText}」に一括置換します。よろしいですか？`)) return;
 
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         let totalReplacements = 0;
         const escapedFind = findText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(escapedFind, 'g');
@@ -3349,6 +3754,10 @@ function insertMarkdown(before, after) {
     }
 
     function saveTemplateChanges() {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         if (editingTemplateType === 'creature') creatureTemplates = tempTemplates;
         else if (editingTemplateType === 'reaction') reactionTemplates = tempTemplates;
         else if (editingTemplateType === 'tag') classificationTags = tempTemplates;
@@ -3362,6 +3771,10 @@ function insertMarkdown(before, after) {
     let scenarioNpcs = [];
 
     function addNewNpc() {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const id = 'npc_' + generateUuid();
         const newNpc = {
             id: id,
@@ -3382,6 +3795,10 @@ function insertMarkdown(before, after) {
 
     function removeNpc(id) {
         if (!confirm("この人物データを削除しますか？")) return;
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         scenarioNpcs = scenarioNpcs.filter(npc => npc.id !== id);
         saveData();
         renderNpcList();
@@ -3396,6 +3813,10 @@ function insertMarkdown(before, after) {
     }
 
     function toggleNpcField(npcId, fieldKey) {
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
         const npc = scenarioNpcs.find(n => n.id === npcId);
         if (npc) {
             const field = npc.fields.find(f => f.key === fieldKey);
@@ -3408,6 +3829,8 @@ function insertMarkdown(before, after) {
     }
 
     function updateNpcFieldLabel(npcId, fieldKey, newLabel) {
+        saveHistoryDebounced();
+
         const npc = scenarioNpcs.find(n => n.id === npcId);
         if (npc) {
             const field = npc.fields.find(f => f.key === fieldKey);
@@ -3420,6 +3843,8 @@ function insertMarkdown(before, after) {
     }
 
     function updateNpcFieldValue(npcId, fieldKey, newValue) {
+        saveHistoryDebounced();
+
         const npc = scenarioNpcs.find(n => n.id === npcId);
         if (npc) {
             const field = npc.fields.find(f => f.key === fieldKey);
@@ -3438,6 +3863,10 @@ function insertMarkdown(before, after) {
             alert("エディタでシナリオ項目を選択した状態で挿入してください。");
             return;
         }
+
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
 
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
@@ -3589,7 +4018,7 @@ function insertMarkdown(before, after) {
                     </label>
                     <div class="flex items-center gap-2 pl-4">
                         <label class="text-xs text-gray-500">周回数:</label>
-                        <input type="number" id="batch-story-turns" class="w-12 border rounded p-1 text-sm text-center outline-none focus:ring-2 focus:ring-indigo-300" value="1" min="1" max="3">
+                        <input type="number" id="batch-story-turns" class="w-12 border rounded p-1 text-sm text-center outline-none focus:ring-2 focus:ring-indigo-300" value="1" min="1" max="99">
                     </div>
                 </div>
             </div>
@@ -3713,6 +4142,39 @@ function insertMarkdown(before, after) {
                     <p class="text-xs mb-1">「CR▼」ボタンでクリーチャーの定型文を挿入することができます</p>
                     <div class="bg-gray-50 p-2 rounded text-xs border border-gray-200">
                         本文入力欄にフォーカスがある状態で Tabキー を押すと、♪が選択状態になり、そのまま入力すると♪が消えます。再度 Tabキーを押すと次の♪にジャンプします。戻りたいときは Shift + Tab で逆順にジャンプします。
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h3 class="text-lg font-bold text-slate-800 border-b-2 border-slate-200 mb-3 pb-1">⌨️ ショートカットキー一覧</h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-bold text-gray-800 mb-1.5 text-xs text-indigo-700">■ エディタの基本操作・ナビゲーション</h4>
+                        <div class="bg-gray-50 p-2.5 rounded text-xs border border-gray-200 space-y-1.5 font-mono">
+                            <div class="flex items-center justify-between"><span class="font-bold text-gray-700">新規項目の追加</span> <kbd class="bg-white px-2 py-0.5 rounded border shadow-sm text-gray-800 font-sans font-bold">Ctrl + Alt + N</kbd></div>
+                            <div class="flex items-center justify-between"><span class="font-bold text-gray-700">右側プレビューパネルの表示切替</span> <div class="flex gap-1"><kbd class="bg-white px-2 py-0.5 rounded border shadow-sm text-gray-800 font-sans font-bold">Ctrl + /</kbd><span class="font-sans text-gray-400">または</span><kbd class="bg-white px-2 py-0.5 rounded border shadow-sm text-gray-800 font-sans font-bold">Ctrl + B</kbd></div></div>
+                            <div class="flex items-center justify-between"><span class="font-bold text-gray-700">元に戻す (Undo)</span> <kbd class="bg-white px-2 py-0.5 rounded border shadow-sm text-gray-800 font-sans font-bold">Ctrl + Z</kbd> <span class="text-[10px] text-gray-400 font-sans">(Mac: Cmd+Z)</span></div>
+                            <div class="flex items-center justify-between"><span class="font-bold text-gray-700">やり直す (Redo)</span> <kbd class="bg-white px-2 py-0.5 rounded border shadow-sm text-gray-800 font-sans font-bold">Ctrl + Y</kbd> <span class="text-[10px] text-gray-400 font-sans">(Mac: Cmd+Shift+Z)</span></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold text-gray-800 mb-1.5 text-xs text-indigo-700">■ 本文（Markdown）入力中の支援 <span class="text-gray-400 font-normal">※本文欄フォーカス時</span></h4>
+                        <div class="bg-gray-50 p-2.5 rounded text-xs border border-gray-200 space-y-1.5 font-mono">
+                            <div class="flex items-center justify-between"><span class="font-bold text-gray-700">選択範囲を太字にする (**太字**)</span> <kbd class="bg-white px-2 py-0.5 rounded border shadow-sm text-gray-800 font-sans font-bold">Ctrl + B</kbd></div>
+                            <div class="flex items-center justify-between"><span class="font-bold text-gray-700">選択範囲を斜体にする (*斜体*)</span> <kbd class="bg-white px-2 py-0.5 rounded border shadow-sm text-gray-800 font-sans font-bold">Ctrl + I</kbd></div>
+                            <div class="flex items-center justify-between"><span class="font-bold text-gray-700">現在行を見出しにする (### 見出し)</span> <kbd class="bg-white px-2 py-0.5 rounded border shadow-sm text-gray-800 font-sans font-bold">Ctrl + H</kbd></div>
+                            <div class="flex items-center justify-between"><span class="font-bold text-gray-700">次の入力位置（♪）へジャンプ</span> <div class="flex gap-1"><kbd class="bg-white px-2 py-0.5 rounded border shadow-sm text-gray-800 font-sans font-bold">Tab</kbd><span class="font-sans text-gray-400">/</span><kbd class="bg-white px-2 py-0.5 rounded border shadow-sm text-gray-800 font-sans font-bold">Shift + Tab</kbd></div></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h4 class="font-bold text-gray-800 mb-1.5 text-xs text-indigo-700">■ リスト・データ選択の移動</h4>
+                        <div class="bg-gray-50 p-2.5 rounded text-xs border border-gray-200 space-y-1.5 font-mono">
+                            <div class="flex items-center justify-between"><span class="font-bold text-gray-700">前の項目 / 次の項目へ選択を移動</span> <div class="flex gap-1"><kbd class="bg-white px-2 py-0.5 rounded border shadow-sm text-gray-800 font-sans font-bold">Alt + ↑</kbd><span class="font-sans text-gray-400">/</span><kbd class="bg-white px-2 py-0.5 rounded border shadow-sm text-gray-800 font-sans font-bold">Alt + ↓</kbd></div></div>
+                        </div>
                     </div>
                 </div>
             </section>
