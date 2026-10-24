@@ -53,6 +53,11 @@
         .cell-row-0 { background-color: #ccfbf1 !important; border-color: #2dd4bf; } /* 1回目：ターコイズ */
         .cell-row-1 { background-color: #fef3c7 !important; border-color: #fbbf24; } /* 2回目：アンバー */
         .cell-row-2 { background-color: #ffe4e6 !important; border-color: #fb7185; } /* 3回目：ローズ */
+        .cell-row-3 { background-color: #e0e7ff !important; border-color: #818cf8; } /* 4回目：インディゴ */
+        .cell-row-4 { background-color: #e0f2fe !important; border-color: #38bdf8; } /* 5回目：スカイ */
+        .cell-row-5 { background-color: #f3e8ff !important; border-color: #c084fc; } /* 6回目：パープル */
+        .cell-row-6 { background-color: #fef08a !important; border-color: #eab308; } /* 7回目：イエロー */
+        .cell-row-7 { background-color: #dcfce7 !important; border-color: #4ade80; } /* 8回目：エメラルド */
         .d66-order-tag { position: absolute; font-size: 0.5rem; color: #374151; font-weight: 900; }
 
         /* Drag & Drop Indicators */
@@ -392,6 +397,11 @@
        body.theme-night .cell-row-0 { background-color: #134e4a !important; color: #ccfbf1 !important; border-color: #115e59 !important; }
        body.theme-night .cell-row-1 { background-color: #78350f !important; color: #fef3c7 !important; border-color: #92400e !important; }
        body.theme-night .cell-row-2 { background-color: #881337 !important; color: #ffe4e6 !important; border-color: #9f1239 !important; }
+       body.theme-night .cell-row-3 { background-color: #312e81 !important; color: #e0e7ff !important; border-color: #4338ca !important; }
+       body.theme-night .cell-row-4 { background-color: #075985 !important; color: #e0f2fe !important; border-color: #0369a1 !important; }
+       body.theme-night .cell-row-5 { background-color: #581c87 !important; color: #f3e8ff !important; border-color: #6b21a8 !important; }
+       body.theme-night .cell-row-6 { background-color: #713f12 !important; color: #fef08a !important; border-color: #854d0e !important; }
+       body.theme-night .cell-row-7 { background-color: #064e3b !important; color: #dcfce7 !important; border-color: #065f46 !important; }
        body.theme-night .record-table tr.active-row { background-color: #312e81 !important; }
        body.theme-night .choice-btn { background-color: #312e81 !important; color: #e0e7ff !important; border-color: #4338ca !important; }
        body.theme-night #view-char div.border-blue-300.bg-blue-50 { background-color: #312e81 !important; border-color: #4f46e5 !important; }
@@ -1271,16 +1281,16 @@
         let ttsVoices = []; // TTSの声を格納するグローバル変数
     // --- appState: このアプリの**全データ（心臓部） ---
         let appState = { theme: 'colorful', showToastNotifications: true, settings: { soundEnabled: true, volume: 50, showNavBall: true, showHeaderDice: true }, 
-            d66GridSettings: { rows: 6, cols: 6 }, enemies: [], activeEnemyId: null, currentRound: 0,
+            d66GridSettings: { rows: 6, cols: 6 }, scenarioGridSettings: { rows: 3, cols: 11 }, enemies: [], activeEnemyId: null, currentRound: 0,
             logTitle: "セッション", logEntries: [], characters: {}, currentCharacterId: null, 
             d66State: [
                 { grid: Array(36).fill(0), clickOrder: 1 },
                 { grid: Array(36).fill(0), clickOrder: 1 },
                 { grid: Array(36).fill(0), clickOrder: 1 }
             ],
-            d66Table: Array.from({ length: 3 }, () => Array(13).fill("")), activeRow: 0,
-            eventMarkers: Array(13).fill(""),
-            eventNotes: Array(13).fill(""),
+            d66Table: Array.from({ length: 3 }, () => Array(11).fill("")), activeRow: 0,
+            eventMarkers: Array(11).fill(""),
+            eventNotes: Array(11).fill(""),
             ttsSettings: {
                 enabled: false, // 自動読み上げの有効/無効
                 voiceURI: null, // 選択された声のURI
@@ -1306,6 +1316,77 @@
         // 4. ボタンの色を変更（存在チェック付き）
         const targetBtn = document.getElementById('btn-tab-' + tab);
         if (targetBtn) {targetBtn.classList.add('active');}
+    }
+
+    // --- D66ステート・テーブル・行選択の整合性保証 ---
+    function ensureD66StateConsistency() {
+        if (!appState.d66GridSettings) appState.d66GridSettings = { rows: 6, cols: 6 };
+        if (!appState.scenarioGridSettings) appState.scenarioGridSettings = { rows: 3, cols: 11 };
+        
+        const totalCells = (parseInt(appState.d66GridSettings.rows) || 6) * (parseInt(appState.d66GridSettings.cols) || 6);
+        const sRows = parseInt(appState.scenarioGridSettings.rows) || 3;
+        const sCols = parseInt(appState.scenarioGridSettings.cols) || 11;
+
+        if (!Array.isArray(appState.d66State)) {
+            appState.d66State = [];
+        }
+
+        // d66State の行数（回数）調整
+        while (appState.d66State.length < sRows) {
+            appState.d66State.push({
+                grid: Array(totalCells).fill(0),
+                clickOrder: 1
+            });
+        }
+        if (appState.d66State.length > sRows) {
+            appState.d66State = appState.d66State.slice(0, sRows);
+        }
+
+        // 各行の grid 長さを totalCells に合わせる
+        appState.d66State.forEach(state => {
+            if (!state || !Array.isArray(state.grid) || state.grid.length !== totalCells) {
+                const oldGrid = (state && Array.isArray(state.grid)) ? state.grid : [];
+                state.grid = Array.from({length: totalCells}, (_, idx) => oldGrid[idx] || 0);
+            }
+            if (!state.clickOrder || typeof state.clickOrder !== 'number' || state.clickOrder < 1) {
+                const maxVal = Math.max(0, ...state.grid);
+                state.clickOrder = maxVal + 1;
+            }
+        });
+
+        // d66Table の行数・列数調整
+        if (!Array.isArray(appState.d66Table)) {
+            appState.d66Table = Array.from({length: sRows}, () => Array(sCols).fill(""));
+        }
+        while (appState.d66Table.length < sRows) {
+            appState.d66Table.push(Array(sCols).fill(""));
+        }
+        if (appState.d66Table.length > sRows) {
+            appState.d66Table = appState.d66Table.slice(0, sRows);
+        }
+        appState.d66Table = appState.d66Table.map(row => {
+            if (!Array.isArray(row)) return Array(sCols).fill("");
+            while (row.length < sCols) row.push("");
+            if (row.length > sCols) return row.slice(0, sCols);
+            return row;
+        });
+
+        // eventMarkers / eventNotes の整合性調整
+        if (!Array.isArray(appState.eventMarkers) || appState.eventMarkers.length !== sCols) {
+            const old = Array.isArray(appState.eventMarkers) ? appState.eventMarkers : [];
+            appState.eventMarkers = Array.from({length: sCols}, (_, i) => old[i] || "");
+        }
+        if (!Array.isArray(appState.eventNotes) || appState.eventNotes.length !== sCols) {
+            const old = Array.isArray(appState.eventNotes) ? appState.eventNotes : [];
+            appState.eventNotes = Array.from({length: sCols}, (_, i) => old[i] || "");
+        }
+
+        // activeRow のチェック・上限補正
+        if (typeof appState.activeRow !== 'number' || isNaN(appState.activeRow) || appState.activeRow < 0) {
+            appState.activeRow = 0;
+        } else if (appState.activeRow >= sRows) {
+            appState.activeRow = Math.max(0, sRows - 1);
+        }
     }
 
     function saveData() { localStorage.setItem(STORAGE_KEY, JSON.stringify(appState)); }
@@ -1335,18 +1416,11 @@
                     if (!appState.d66GridSettings) {
                         appState.d66GridSettings = { rows: 6, cols: 6 };
                     }
-                    if (!appState.settings.logFontSize) appState.settings.logFontSize = 'small';
-                    // グリッドサイズとデータ配列の整合性チェック
-                    const expectedSize = appState.d66GridSettings.rows * appState.d66GridSettings.cols;
-                    if (appState.d66State && appState.d66State[0].grid.length !== expectedSize) {
-                        console.warn("D66 grid size mismatch. Resetting D66 data.");
-                        appState.d66State = appState.d66State.map(() => ({
-                            grid: Array(expectedSize).fill(0),
-                            clickOrder: 1
-                        }));
-                        // テーブルもリセットした方が安全
-                        appState.d66Table = [Array(13).fill(""), Array(13).fill(""), Array(13).fill("")];
+                    if (!appState.scenarioGridSettings) {
+                        appState.scenarioGridSettings = { rows: 3, cols: 11 };
                     }
+                    if (!appState.settings.logFontSize) appState.settings.logFontSize = 'small';
+                    ensureD66StateConsistency();
                 } 
                 catch(e) { console.error(e); } 
             }
@@ -1368,18 +1442,7 @@
 
             if (!appState.enemies) appState.enemies = [];
             if (!appState.currentRound) appState.currentRound = 0;
-            // --- データ整合性チェック (D66テーブルの列数不足を修正) ---
-            if (appState.d66Table) {
-                // 行数が足りない場合
-                while(appState.d66Table.length < 3) appState.d66Table.push(Array(13).fill(""));
-                // 列数が足りない場合 (13列未満なら埋める)
-                appState.d66Table.forEach(row => {
-                    while(row.length < 13) row.push("");
-                });
-            }
-
-            if (!appState.eventMarkers) appState.eventMarkers = Array(13).fill("");
-            if (!appState.eventNotes) appState.eventNotes = Array(13).fill("");
+            ensureD66StateConsistency();
             if (Object.keys(appState.characters).length === 0) addFromPreset('pc');
             if (!appState.currentCharacterId || !appState.characters[appState.currentCharacterId]) {
                 appState.currentCharacterId = Object.keys(appState.characters)[0];
@@ -1612,7 +1675,7 @@
         const isSystemType = systemTypes.includes(targetType);
 
         // --- 1. 特殊イベント（中間・最終）のタイル記録処理 ---
-        if (targetType === 'mid' || targetType === 'finish') {
+        if ((targetType === 'mid' || targetType === 'finish') && appState.d66Table && appState.d66Table[r]) {
             const label = (targetType === 'mid') ? "中間" : "最終";
             const emptyIdx = appState.d66Table[r].indexOf("");
             if (emptyIdx !== -1) {
@@ -1847,12 +1910,15 @@ else {
             appState.d66GridSettings.cols = cols;
             const newSize = rows * cols;
             
-            appState.d66State = appState.d66State.map(() => ({
+            const _sCols = appState.scenarioGridSettings ? appState.scenarioGridSettings.cols : 11;
+            const _sRows = appState.scenarioGridSettings ? appState.scenarioGridSettings.rows : 3;
+            
+            appState.d66State = Array.from({length: _sRows}, () => ({
                 grid: Array(newSize).fill(0),
                 clickOrder: 1
             }));
             
-            appState.d66Table = [Array(13).fill(""), Array(13).fill(""), Array(13).fill("")];
+            appState.d66Table = Array.from({length: _sRows}, () => Array(_sCols).fill(""));
 
             renderAll();
             saveData();
@@ -1864,30 +1930,77 @@ else {
         }
     }
 
+    // --- シナリオ進行テーブル グリッドサイズ変更 ---
+    function updateScenarioGridSize() {
+        const rows = parseInt(document.getElementById('scenarioRows').value) || 3;
+        const cols = parseInt(document.getElementById('scenarioCols').value) || 11;
+        changeScenarioGridSize(rows, cols, true);
+    }
+
+    function changeScenarioGridSize(rows, cols, confirmMsg = true) {
+        if (!rows || !cols) return;
+        if (rows === appState.scenarioGridSettings.rows && cols === appState.scenarioGridSettings.cols) return;
+
+        if (!confirmMsg || confirm(`シナリオ進行テーブルのサイズを ${rows}行 × ${cols}列 に変更しますか？\n現在のテーブルデータはリセットされます。`)) {
+            appState.scenarioGridSettings.rows = rows;
+            appState.scenarioGridSettings.cols = cols;
+
+            const totalCells = (appState.d66GridSettings.rows || 6) * (appState.d66GridSettings.cols || 6);
+            appState.d66State = Array.from({length: rows}, () => ({
+                grid: Array(totalCells).fill(0),
+                clickOrder: 1
+            }));
+
+            appState.d66Table = Array.from({length: rows}, () => Array(cols).fill(""));
+            appState.eventMarkers = Array(cols).fill("");
+            appState.eventNotes = Array(cols).fill("");
+
+            if (appState.activeRow >= rows) {
+                appState.activeRow = Math.max(0, rows - 1);
+            }
+
+            renderAll();
+            saveData();
+
+            // 設定画面のinput値も更新
+            const rInput = document.getElementById('scenarioRows');
+            const cInput = document.getElementById('scenarioCols');
+            if(rInput && cInput) { rInput.value = rows; cInput.value = cols; }
+        }
+    }
+
     function renderD66Grid() {
+        ensureD66StateConsistency();
         const { rows, cols } = appState.d66GridSettings;
         const gridEl = document.getElementById('d66Grid');
+        if (!gridEl) return;
         gridEl.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
         const totalCells = rows * cols;
 
         gridEl.innerHTML = Array(totalCells).fill(0).map((_, i) => {
             let cls = "d66-grid-cell", tags = "";
-                appState.d66State.forEach((state, rIdx) => {
-                    if (state.grid[i] > 0) { // state.grid[i] が存在するかチェック
-                        cls += ` cell-row-${rIdx}`;
-                        tags += `<span class="d66-order-tag" style="top:${rIdx*5}px; right:1px;">${state.grid[i]}</span>`;
-                    }
-                });
-                return `<div class="${cls}" onclick="hD66(${i})"><span>${Math.floor(i/cols)+1}${i%cols+1}</span>${tags}</div>`;
-            }).join('');
-            document.getElementById('d66NextNumber').textContent = appState.d66State[appState.activeRow].clickOrder;
-            document.getElementById('rowLabel').textContent = `Next (${appState.activeRow + 1}回目)`;
+            appState.d66State.forEach((state, rIdx) => {
+                if (state && state.grid && state.grid[i] > 0) {
+                    cls += ` cell-row-${rIdx % 8}`;
+                    tags += `<span class="d66-order-tag" style="top:${rIdx*5}px; right:1px;">${state.grid[i]}</span>`;
+                }
+            });
+            return `<div class="${cls}" onclick="hD66(${i})"><span>${Math.floor(i/cols)+1}${i%cols+1}</span>${tags}</div>`;
+        }).join('');
+        
+        const curState = appState.d66State[appState.activeRow] || { clickOrder: 1 };
+        const nextNumEl = document.getElementById('d66NextNumber');
+        const rowLabelEl = document.getElementById('rowLabel');
+        if (nextNumEl) nextNumEl.textContent = curState.clickOrder;
+        if (rowLabelEl) rowLabelEl.textContent = `Next (${appState.activeRow + 1}回目)`;
     }
 
         // --- hD66: D66グリッドをクリックしたときの処理 ---
         function hD66(i) {
+            ensureD66StateConsistency();
             const { cols } = appState.d66GridSettings;
             const r = appState.activeRow;
+            if (!appState.d66State[r] || !appState.d66Table[r]) return;
             const val = `${Math.floor(i/cols)+1}${(i%cols)+1}`;
             // 同じ行の中でのみキャンセル可能
             if (appState.d66State[r].grid[i] > 0) {
@@ -1907,14 +2020,15 @@ else {
         }
 
         function renderD66Table() {
+            const { rows, cols } = appState.scenarioGridSettings || { rows: 3, cols: 11 };
             const head = document.getElementById('recordHead');
             if (head) {
-                const markers = appState.eventMarkers || Array(13).fill("");
-                const notes = appState.eventNotes || Array(13).fill("");
+                const markers = appState.eventMarkers || Array(cols).fill("");
+                const notes = appState.eventNotes || Array(cols).fill("");
                 head.innerHTML = `
                     <tr>
                         <th style="width: 50px;">回数</th>
-                        ${Array.from({length: 13}).map((_, i) => {
+                        ${Array.from({length: cols}).map((_, i) => {
                             const display = markers[i] || (i + 1);
                             const noteAttr = notes[i] ? `title="${notes[i]}"` : `title="${i+1}枚目: クリックで目印切替 / 右クリックでメモ入力"`;
                             return `<th class="cursor-pointer hover:bg-gray-200 select-none text-[11px] font-bold" 
@@ -1925,15 +2039,18 @@ else {
                     </tr>`;
             }
             const body = document.getElementById('recordBody');
-            body.innerHTML = appState.d66Table.map((row, rIdx) => `
-                <tr class="${appState.activeRow === rIdx ? 'active-row' : ''}">
-                    <td class="bg-gray-100 font-bold"><input type="radio" name="rowSel" ${appState.activeRow === rIdx ? 'checked' : ''} onchange="appState.activeRow=${rIdx}; renderAll(); saveData();"> ${rIdx+1}</td>
-                    ${row.map((cell, cIdx) => `<td onclick="clearTableCell(${rIdx},${cIdx})" class="cursor-pointer">${cell}</td>`).join('')}
-                </tr>`).join('');
+            if (body) {
+                body.innerHTML = appState.d66Table.map((row, rIdx) => `
+                    <tr class="${appState.activeRow === rIdx ? 'active-row' : ''}">
+                        <td class="bg-gray-100 font-bold"><input type="radio" name="rowSel" ${appState.activeRow === rIdx ? 'checked' : ''} onchange="appState.activeRow=${rIdx}; renderAll(); saveData();"> ${rIdx+1}</td>
+                        ${row.map((cell, cIdx) => `<td onclick="clearTableCell(${rIdx},${cIdx})" class="cursor-pointer">${cell}</td>`).join('')}
+                    </tr>`).join('');
+            }
         }
 
         function cycleEventMarker(i) {
-            if(!appState.eventMarkers) appState.eventMarkers = Array(13).fill("");
+            const cols = appState.scenarioGridSettings ? appState.scenarioGridSettings.cols : 11;
+            if(!appState.eventMarkers) appState.eventMarkers = Array(cols).fill("");
             const states = ["", "🚩", "⑩", "⑳", "㉚", "㊵", "㊿", "🏁"];
             const current = appState.eventMarkers[i];
             let idx = states.indexOf(current);
@@ -1946,7 +2063,8 @@ else {
 
         function setEventNote(e, i) {
             e.preventDefault();
-            if(!appState.eventNotes) appState.eventNotes = Array(13).fill("");
+            const cols = appState.scenarioGridSettings ? appState.scenarioGridSettings.cols : 11;
+            if(!appState.eventNotes) appState.eventNotes = Array(cols).fill("");
             const oldNote = appState.eventNotes[i] || "";
             const newNote = prompt(`${i+1}枚目のタイルにメモを残す（マウスホバーで表示されます）:`, oldNote);
             if (newNote !== null) {
@@ -1958,12 +2076,13 @@ else {
 
         function clearTableCell(r, c) {
             const { cols } = appState.d66GridSettings;
+            if (!appState.d66Table || !appState.d66Table[r]) return;
             const val = appState.d66Table[r][c];
             if (val && !isNaN(val)) {
                 // グリッド状態のクリア（標準的な2桁の出目の場合のみ対応）
                 if (val.length === 2) {
                     const i = (parseInt(val[0])-1)*cols + (parseInt(val[1])-1);
-                    if (appState.d66State[r].grid[i] && appState.d66State[r].grid[i] > 0) {
+                    if (appState.d66State && appState.d66State[r] && appState.d66State[r].grid && appState.d66State[r].grid[i] > 0) {
                         const order = appState.d66State[r].grid[i];
                         appState.d66State[r].grid[i] = 0;
                         appState.d66State[r].grid = appState.d66State[r].grid.map(v => v > order ? v-1 : v);
@@ -1976,13 +2095,24 @@ else {
 
         function resetD66Area() {
             if(confirm("D66データと読み込んだシナリオをリセットしますか？")) {
-                appState.d66State = appState.d66State.map(() => ({ grid: Array(36).fill(0), clickOrder: 1 }));
                 appState.d66GridSettings = { rows: 6, cols: 6 };
                 const newSize = appState.d66GridSettings.rows * appState.d66GridSettings.cols;
-                appState.d66State = appState.d66State.map(() => ({ grid: Array(newSize).fill(0), clickOrder: 1 }));
-                appState.d66Table = [Array(13).fill(""), Array(13).fill(""), Array(13).fill("")];
-                appState.eventMarkers = Array(13).fill("");
-                appState.eventNotes = Array(13).fill("");
+                
+                const sRows = appState.scenarioGridSettings ? appState.scenarioGridSettings.rows : 3;
+                const sCols = appState.scenarioGridSettings ? appState.scenarioGridSettings.cols : 11;
+                
+                appState.d66State = Array.from({length: sRows}, () => ({
+                    grid: Array(newSize).fill(0),
+                    clickOrder: 1
+                }));
+                
+                appState.d66Table = Array.from({length: sRows}, () => Array(sCols).fill(""));
+                appState.eventMarkers = Array(sCols).fill("");
+                appState.eventNotes = Array(sCols).fill("");
+                
+                if (appState.activeRow >= sRows) {
+                    appState.activeRow = 0;
+                }
                 
                 // シナリオデータのクリア
                 scenarioMaster = [];
@@ -4241,6 +4371,7 @@ function openLogExportModal() {
                 // 全体セーブデータの場合
                 else {
                     appState = { ...appState, ...data };
+                    ensureD66StateConsistency();
                     if (appState.characters) {
                         Object.keys(appState.characters).forEach(id => {
                             checkAndLimitAbilityCaps(id);
@@ -4628,6 +4759,11 @@ window.onload = loadData; // ←ここにつながるようにする
                 if (document.getElementById('d66Rows')) {
                     document.getElementById('d66Rows').value = appState.d66GridSettings.rows;
                     document.getElementById('d66Cols').value = appState.d66GridSettings.cols;
+                }
+                if (document.getElementById('scenarioRows')) {
+                    const sSettings = appState.scenarioGridSettings || { rows: 3, cols: 11 };
+                    document.getElementById('scenarioRows').value = sSettings.rows;
+                    document.getElementById('scenarioCols').value = sSettings.cols;
                 }
             // TTS設定をUIに反映
             document.getElementById('ttsEnabledToggle').checked = appState.ttsSettings.enabled;
@@ -6568,6 +6704,19 @@ ${treasureText}
                 <button onclick="updateD66GridSize()" class="ml-auto bg-teal-600 text-white text-[10px] px-3 py-1.5 rounded hover:bg-teal-700 font-bold">更新</button>
             </div>
             <p class="text-[10px] text-gray-400 mt-1 ml-1">※変更すると現在のグリッド状態はリセットされます</p>
+        </div>
+
+        <div class="mb-6">
+            <h3 class="font-bold mb-2 text-sm text-gray-700">シナリオ進行テーブル設定</h3>
+            <div class="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg border">
+                <span class="text-xs font-bold text-gray-600">行数(回数):</span>
+                <input type="number" id="scenarioRows" min="1" class="w-12 text-center text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                <span class="text-xs font-bold text-gray-500">×</span>
+                <span class="text-xs font-bold text-gray-600">列数:</span>
+                <input type="number" id="scenarioCols" min="1" class="w-12 text-center text-sm border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                <button onclick="updateScenarioGridSize()" class="ml-auto bg-teal-600 text-white text-[10px] px-3 py-1.5 rounded hover:bg-teal-700 font-bold">更新</button>
+            </div>
+            <p class="text-[10px] text-gray-400 mt-1 ml-1">※変更すると現在のテーブルデータはリセットされます</p>
         </div>
 
         <div class="mb-6">
