@@ -137,6 +137,122 @@
         .rlh-box-black { background-color: #000000; color: #ffffff; }
         .rlh-box-border { background-color: #ffffff; border: 2px solid #274cb1; color: #000000; }
 
+        /* --- クリーチャーカード共通スタイル --- */
+        .creature-card {
+            border: 1px solid #222;
+            background-color: #ffffff;
+            color: #222222;
+            font-family: sans-serif;
+            width: 100%;
+            max-width: 440px;
+            margin: 12px 0;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        /* ヘッダー */
+        .creature-tags:empty {
+            display: none;
+        }
+        .creature-header {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 14px;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .creature-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .creature-tag {
+            background-color: #333333;
+            color: #ffffff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            border: 1px solid #555555;
+        }
+
+        /* 基本スペック行 */
+        .creature-stats span:empty { display: none; }
+        .creature-stats {
+            padding: 6px 10px;
+            font-size: 12px;
+            background-color: #f7f7f7;
+            border-bottom: 1px solid #cccccc;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            color: #333333;
+        }
+
+        /* 反応表（1d6の出目分割数 1〜6分割に対応する可変グリッド） */
+        .creature-table {
+            display: grid;
+            border-bottom: 1px solid #cccccc;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .creature-table-1cols { grid-template-columns: 65px repeat(1, 1fr); }
+        .creature-table-2cols { grid-template-columns: 65px repeat(2, 1fr); }
+        .creature-table-3cols { grid-template-columns: 65px repeat(3, 1fr); }
+        .creature-table-4cols { grid-template-columns: 65px repeat(4, 1fr); }
+        .creature-table-5cols { grid-template-columns: 65px repeat(5, 1fr); }
+        .creature-table-6cols { grid-template-columns: 65px repeat(6, 1fr); }
+
+        .table-side-title {
+            background-color: #e5e5e5;
+            font-weight: bold;
+            color: #111111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-right: 1px solid #cccccc;
+            padding: 4px;
+        }
+
+        .creature-cell {
+            border-right: 1px solid #cccccc;
+            padding: 5px 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .creature-cell:last-child {
+            border-right: none;
+        }
+
+        .cell-dice {
+            font-weight: bold;
+            color: #555555;
+            background-color: #fafafa;
+            border-bottom: 1px dashed #dddddd;
+            width: 100%;
+            padding-bottom: 2px;
+            margin-bottom: 2px;
+        }
+
+        /* 本文説明 */
+        .creature-body {
+            padding: 8px 10px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #222222;
+        }
+
         /* Table Styles */
         .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 1em; font-size: 0.9em; }
         .markdown-body th, .markdown-body td { border: 1px solid #d1d5db; padding: 4px 8px; text-align: left; }
@@ -1100,6 +1216,77 @@
             color: #3e2723;
             border-color: #8d6e63;
         }
+
+        /* ======================================= */
+        /*   Scenario Dropdown SubMenu Styles      */
+        /* ======================================= */
+        @keyframes menuFadeIn {
+            from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-fadeIn {
+            animation: menuFadeIn 0.15s ease-out forwards;
+        }
+
+        body.theme-night #scenarioSubMenu {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+            color: #f1f5f9 !important;
+            box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.6) !important;
+        }
+        body.theme-night #scenarioSubMenu .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+            border-color: #334155 !important;
+        }
+        body.theme-night #scenarioSubMenu .scenario-menu-item {
+            color: #cbd5e1 !important;
+        }
+        body.theme-night #scenarioSubMenu .scenario-menu-item:hover {
+            background-color: #334155 !important;
+            color: #ffffff !important;
+        }
+        body.theme-night #scenarioSubMenu .bg-gray-50\/70,
+        body.theme-night #scenarioSubMenu .bg-gray-100\/60 {
+            background-color: #0f172a !important;
+            border-color: #334155 !important;
+        }
+        body.theme-night #scenarioSubMenu button.bg-white {
+            background-color: #1e293b !important;
+            border-color: #475569 !important;
+            color: #99f6e4 !important;
+        }
+        body.theme-night #scenarioSubMenu button.bg-white:hover {
+            background-color: #334155 !important;
+        }
+
+        body.theme-sepia #scenarioSubMenu {
+            background-color: #fffbf0 !important;
+            border-color: #d3c6a6 !important;
+            color: #3e2723 !important;
+            box-shadow: 0 15px 30px -5px rgba(78, 52, 46, 0.25) !important;
+        }
+        body.theme-sepia #scenarioSubMenu .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+            border-color: #d3c6a6 !important;
+        }
+        body.theme-sepia #scenarioSubMenu .scenario-menu-item {
+            color: #4e342e !important;
+        }
+        body.theme-sepia #scenarioSubMenu .scenario-menu-item:hover {
+            background-color: #f5e5c5 !important;
+            color: #27160c !important;
+        }
+        body.theme-sepia #scenarioSubMenu .bg-gray-50\/70,
+        body.theme-sepia #scenarioSubMenu .bg-gray-100\/60 {
+            background-color: #fdf6e3 !important;
+            border-color: #d3c6a6 !important;
+        }
+        body.theme-sepia #scenarioSubMenu button.bg-white {
+            background-color: #fffbf0 !important;
+            border-color: #d3c6a6 !important;
+            color: #004d40 !important;
+        }
+        body.theme-sepia #scenarioSubMenu button.bg-white:hover {
+            background-color: #f5e5c5 !important;
+        }
     </style>
 </head>
 
@@ -1197,29 +1384,111 @@
             <details class="mb-4 border border-teal-600 rounded-lg bg-teal-50" open>
                 <summary class="p-1 font-bold text-teal-800 cursor-pointer text-[10px] bg-teal-100 rounded-t-lg flex justify-between items-center px-3">
                     <span>▼ D66 GRID & SCENARIO</span>
-                    <div class="flex items-center space-x-2">
-                        <button onclick="event.preventDefault(); document.getElementById('csvUpload').click()" class="bg-slate-600 text-white px-2 rounded" title="シナリオ読み込み">シナリオ読込</button>
-                        <a href="RLH_ScenarioEditor?v=2.0.html" target="_blank" class="bg-indigo-600 text-white px-1.5 rounded hover:bg-indigo-500 flex items-center justify-center" title="シナリオデータエディタを開く">作成</a>
-                        <button onclick="event.preventDefault(); resetD66Area()" class="bg-red-600 text-white px-1.5 rounded" title="シナリオ削除">CLR</button>
-                    </div>
                 </summary>
                 <div class="p-2 bg-white flex flex-col space-y-2">
-                    <div class="flex flex-wrap gap-1 border-b pb-2">
-                   	 <button onclick="playScenario('title')" class="bg-indigo-600 text-white text-[9px] px-2 py-1 rounded">タイトル</button>
-   			 <button onclick="playScenario('overview')" class="bg-cyan-600 text-white text-[9px] px-2 py-1 rounded">概要</button>
-   			 <button onclick="playScenario('rule')" class="bg-slate-700 text-white text-[9px] px-2 py-1 rounded">特殊ルール</button>
-   			 <button onclick="playScenario('linear')" class="bg-orange-600 text-white text-[9px] px-2 py-1 rounded">一本道モード</button>
- 			 <button onclick="playScenario('pro')" class="bg-gray-500 text-white text-[9px] px-2 py-1 rounded">プロローグ</button>
-    
-			 <button onclick="playScenario('start')" class="bg-blue-500 text-white text-[9px] px-2 py-1 rounded">開始</button>
-			 <button onclick="playScenario('mid')" class="bg-amber-500 text-white text-[9px] px-2 py-1 rounded">中間</button>
-			 <button onclick="playScenario('finish')" class="bg-rose-500 text-white text-[9px] px-2 py-1 rounded">最終</button>
-			 <button onclick="playScenario('clear')" class="bg-emerald-500 text-white text-[9px] px-2 py-1 rounded">達成</button>
-             <button onclick="playScenario('ending')" class="bg-sky-500 text-white text-[9px] px-2 py-1 rounded">エンディング</button>
-             <button onclick="playScenario('reference')" class="bg-gray-400 text-white text-[9px] px-2 py-1 rounded">参考</button>
+                    <div class="flex items-center justify-between gap-1.5 flex-wrap relative">
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <!-- 📖 シナリオメニュー ドロップダウン -->
+                            <div class="relative inline-block text-left" id="scenarioMenuDropdownContainer">
+                                <button id="scenarioMenuBtn" type="button" onclick="toggleScenarioMenu(event)" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[10px] font-bold px-2 py-1 rounded shadow-xs flex items-center gap-1 transition-all active:scale-95 whitespace-nowrap" title="シナリオメニューを開く">
+                                    <span>📖 シナリオメニュー</span>
+                                    <span id="scenarioMenuArrow" class="text-[8px] transition-transform duration-200">▼</span>
+                                </button>
 
- 		   <span id="csvStatus" class="text-[9px] text-gray-400 self-center ml-2 italic">シナリオ未読込</span>
-            </div>                    
+                            <!-- サブメニュー ドロップダウン -->
+                            <div id="scenarioSubMenu" class="hidden absolute left-0 top-full mt-1.5 w-72 max-w-[90vw] bg-white rounded-lg shadow-2xl border border-gray-200 z-50 overflow-hidden text-xs divide-y divide-gray-100 animate-fadeIn" onclick="event.stopPropagation()">
+                                <!-- 1. シナリオ項目リスト -->
+                                <div class="p-1.5">
+                                    <div class="text-[10px] font-bold text-gray-400 px-2 py-1 uppercase tracking-wider flex items-center justify-between">
+                                        <span>シナリオ進行・確認</span>
+                                        <span class="text-[9px] text-gray-400 font-normal">タップで実行</span>
+                                    </div>
+                                    <div class="flex flex-col gap-0.5 max-h-56 overflow-y-auto custom-scroll pr-0.5">
+                                        <button type="button" onclick="handleScenarioMenuSelect('title')" data-scenario-type="title" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors">
+                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span><span class="font-medium">タイトル</span></span>
+                                            <span class="text-[10px] text-gray-400">#title</span>
+                                        </button>
+                                        <button type="button" onclick="handleScenarioMenuSelect('overview')" data-scenario-type="overview" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 text-left transition-colors">
+                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-cyan-500"></span><span class="font-medium">概要</span></span>
+                                            <span class="text-[10px] text-gray-400">#overview</span>
+                                        </button>
+                                        <button type="button" onclick="handleScenarioMenuSelect('rule')" data-scenario-type="rule" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-slate-100 hover:text-slate-800 text-left transition-colors">
+                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-slate-600"></span><span class="font-medium">特殊ルール</span></span>
+                                            <span class="text-[10px] text-gray-400">#rule</span>
+                                        </button>
+                                        <button type="button" onclick="handleScenarioMenuSelect('linear')" data-scenario-type="linear" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-orange-50 hover:text-orange-700 text-left transition-colors">
+                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="font-medium">一本道モード</span></span>
+                                            <span class="text-[10px] text-gray-400">#linear</span>
+                                        </button>
+                                        <button type="button" onclick="handleScenarioMenuSelect('pro')" data-scenario-type="pro" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-gray-100 hover:text-gray-800 text-left transition-colors">
+                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-500"></span><span class="font-medium">プロローグ</span></span>
+                                            <span class="text-[10px] text-gray-400">#pro</span>
+                                        </button>
+                                        <button type="button" onclick="handleScenarioMenuSelect('start')" data-scenario-type="start" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-blue-50 hover:text-blue-700 text-left transition-colors">
+                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span class="font-medium">開始</span></span>
+                                            <span class="text-[10px] text-gray-400">#start</span>
+                                        </button>
+                                        <button type="button" onclick="handleScenarioMenuSelect('mid')" data-scenario-type="mid" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-amber-50 hover:text-amber-700 text-left transition-colors">
+                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="font-medium">中間</span></span>
+                                            <span class="text-[10px] text-gray-400">#mid</span>
+                                        </button>
+                                        <button type="button" onclick="handleScenarioMenuSelect('finish')" data-scenario-type="finish" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-rose-50 hover:text-rose-700 text-left transition-colors">
+                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500"></span><span class="font-medium">最終</span></span>
+                                            <span class="text-[10px] text-gray-400">#finish</span>
+                                        </button>
+                                        <button type="button" onclick="handleScenarioMenuSelect('clear')" data-scenario-type="clear" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 text-left transition-colors">
+                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="font-medium">達成</span></span>
+                                            <span class="text-[10px] text-gray-400">#clear</span>
+                                        </button>
+                                        <button type="button" onclick="handleScenarioMenuSelect('ending')" data-scenario-type="ending" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-sky-50 hover:text-sky-700 text-left transition-colors">
+                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-sky-500"></span><span class="font-medium">エンディング</span></span>
+                                            <span class="text-[10px] text-gray-400">#ending</span>
+                                        </button>
+                                        <button type="button" onclick="handleScenarioMenuSelect('reference')" data-scenario-type="reference" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-gray-100 hover:text-gray-800 text-left transition-colors">
+                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-400"></span><span class="font-medium">参考</span></span>
+                                            <span class="text-[10px] text-gray-400">#reference</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 2. メンテナンス用ボタンの収納（下部） -->
+                                <div class="p-2 bg-gray-50/70">
+                                    <div class="text-[10px] font-bold text-gray-400 px-1 mb-1 uppercase tracking-wider">メンテナンス</div>
+                                    <div class="grid grid-cols-3 gap-1.5">
+                                        <button type="button" onclick="closeScenarioMenu(); document.getElementById('csvUpload').click();" class="bg-slate-600 hover:bg-slate-700 text-white text-[11px] py-1.5 px-2 rounded font-semibold text-center transition shadow-sm" title="シナリオ読み込み">シナリオ読込</button>
+                                        <a href="RLH_ScenarioEditor?v=2.0.html" target="_blank" onclick="closeScenarioMenu();" class="bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] py-1.5 px-2 rounded font-semibold text-center transition shadow-sm flex items-center justify-center" title="シナリオデータエディタを開く">作成</a>
+                                        <button type="button" onclick="closeScenarioMenu(); resetD66Area();" class="bg-red-600 hover:bg-red-700 text-white text-[11px] py-1.5 px-2 rounded font-semibold text-center transition shadow-sm" title="シナリオ削除">CLR</button>
+                                    </div>
+                                </div>
+
+                                <!-- 3. 設定へのジャンプボタン（最下部） -->
+                                <div class="p-2 bg-gray-100/60">
+                                    <div class="text-[10px] font-bold text-gray-400 px-1 mb-1 uppercase tracking-wider">設定ジャンプ</div>
+                                    <div class="flex flex-col gap-1">
+                                        <button type="button" onclick="openSettingsSection('d66')" class="w-full text-left px-2.5 py-1.5 rounded bg-white hover:bg-teal-50 border border-gray-200 text-teal-800 text-[11px] font-bold flex items-center justify-between transition-colors shadow-xs">
+                                            <span>⚙️ D66グリッド設定</span>
+                                            <span class="text-[10px] text-teal-600">開く ➔</span>
+                                        </button>
+                                        <button type="button" onclick="openSettingsSection('scenario')" class="w-full text-left px-2.5 py-1.5 rounded bg-white hover:bg-teal-50 border border-gray-200 text-teal-800 text-[11px] font-bold flex items-center justify-between transition-colors shadow-xs">
+                                            <span>⚙️ シナリオ進行テーブル設定</span>
+                                            <span class="text-[10px] text-teal-600">開く ➔</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 進行ショートカットボタン群（開始・中間・最終） -->
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="playScenario('start')" data-scenario-type="start" class="scenario-shortcut-btn bg-blue-500 hover:bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-xs transition-all active:scale-95 whitespace-nowrap" title="開始イベントを実行">開始</button>
+                            <button type="button" onclick="playScenario('mid')" data-scenario-type="mid" class="scenario-shortcut-btn bg-amber-500 hover:bg-amber-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-xs transition-all active:scale-95 whitespace-nowrap" title="中間イベントを実行">中間</button>
+                            <button type="button" onclick="playScenario('finish')" data-scenario-type="finish" class="scenario-shortcut-btn bg-rose-500 hover:bg-rose-600 text-white text-[10px] font-bold px-2 py-1 rounded shadow-xs transition-all active:scale-95 whitespace-nowrap" title="最終イベントを実行">最終</button>
+                        </div>
+                    </div>
+
+                    <!-- 読込ステータス表示 -->
+                    <span id="csvStatus" class="text-[9px] text-gray-400 self-center italic truncate">シナリオ未読込</span>
+                </div>                    
                         <div class="overflow-x-auto">
                             <table class="record-table">
                                 <thead id="recordHead"></thead>
@@ -1637,21 +1906,112 @@
         updateScenarioButtonStates();
     }
 
+    // --- シナリオメニュー（ドロップダウン）制御 ---
+    function toggleScenarioMenu(event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        const menu = document.getElementById('scenarioSubMenu');
+        const arrow = document.getElementById('scenarioMenuArrow');
+        if (!menu) return;
+        const isHidden = menu.classList.contains('hidden');
+        if (isHidden) {
+            menu.classList.remove('hidden');
+            if (arrow) arrow.style.transform = 'rotate(180deg)';
+            updateScenarioButtonStates();
+        } else {
+            closeScenarioMenu();
+        }
+    }
+
+    function closeScenarioMenu() {
+        const menu = document.getElementById('scenarioSubMenu');
+        const arrow = document.getElementById('scenarioMenuArrow');
+        if (menu) menu.classList.add('hidden');
+        if (arrow) arrow.style.transform = '';
+    }
+
+    function handleScenarioMenuSelect(type) {
+        closeScenarioMenu();
+        playScenario(type);
+    }
+
+    function openSettingsSection(section) {
+        closeScenarioMenu();
+        toggleSettings(true);
+        setTimeout(() => {
+            let targetId = '';
+            if (section === 'd66') {
+                targetId = 'd66Rows';
+            } else if (section === 'scenario') {
+                targetId = 'scenarioRows';
+            }
+            const targetEl = document.getElementById(targetId);
+            if (targetEl) {
+                const parentSection = targetEl.closest('.mb-6') || targetEl;
+                parentSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                targetEl.focus();
+                parentSection.classList.add('ring-2', 'ring-teal-500', 'rounded-lg', 'transition-all');
+                setTimeout(() => {
+                    parentSection.classList.remove('ring-2', 'ring-teal-500');
+                }, 1600);
+            }
+        }, 120);
+    }
+
+    // シナリオメニュー外クリック・Escキー監視
+    document.addEventListener('click', (e) => {
+        const container = document.getElementById('scenarioMenuDropdownContainer');
+        if (container && !container.contains(e.target)) {
+            closeScenarioMenu();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeScenarioMenu();
+        }
+    });
+
     // シナリオのタイプによってボタンの有効/無効を切り替える
     function updateScenarioButtonStates() {
-        const scenarioContainer = document.querySelector('#log-section details .flex-wrap');
-        if (!scenarioContainer) return;
-        const buttons = scenarioContainer.querySelectorAll('button[onclick^="playScenario"]');
+        const items = document.querySelectorAll('.scenario-menu-item, .scenario-shortcut-btn, button[data-scenario-type]');
+        if (items.length === 0) return;
+
         if (!scenarioMaster || scenarioMaster.length === 0) {
-            buttons.forEach(btn => { btn.style.opacity = ""; btn.style.filter = ""; btn.disabled = false; btn.style.cursor = ""; });
+            items.forEach(btn => { 
+                btn.style.opacity = ""; 
+                btn.style.filter = ""; 
+                btn.disabled = false; 
+                btn.style.pointerEvents = "";
+                btn.classList.remove('opacity-40', 'cursor-not-allowed');
+            });
             return;
         }
+
         const existingTypes = new Set(scenarioMaster.map(item => item.type ? item.type.toLowerCase() : ""));
-        buttons.forEach(btn => {
-            const match = btn.getAttribute('onclick').match(/playScenario\('([^']+)'\)/);
-            if (match) { const type = match[1].toLowerCase();
-                if (existingTypes.has(type)) { btn.style.opacity = ""; btn.style.filter = ""; btn.disabled = false; }
-                else { btn.style.opacity = "0.4"; btn.style.filter = "grayscale(1)"; btn.disabled = true; }
+        items.forEach(btn => {
+            let type = btn.getAttribute('data-scenario-type');
+            if (!type) {
+                const match = (btn.getAttribute('onclick') || '').match(/playScenario\('([^']+)'\)/);
+                if (match) type = match[1];
+            }
+            if (type) {
+                type = type.toLowerCase();
+                if (existingTypes.has(type)) {
+                    btn.style.opacity = "";
+                    btn.style.filter = "";
+                    btn.disabled = false;
+                    btn.style.pointerEvents = "";
+                    btn.classList.remove('opacity-40', 'cursor-not-allowed');
+                } else {
+                    btn.style.opacity = "0.4";
+                    btn.style.filter = "grayscale(1)";
+                    btn.disabled = true;
+                    btn.style.pointerEvents = "none";
+                    btn.classList.add('opacity-40', 'cursor-not-allowed');
+                }
             }
         });
     }
@@ -1663,6 +2023,7 @@
     // --- playScenario: CSVから読み込んだシナリオデータをログに出し、選択肢ボタンを作る ---
     // ------------------------
     function playScenario(type, id = null) {
+        closeScenarioMenu();
         // IDが指定されている場合、現在のIDを「戻る用」に保存
         // ただし、d66の出目（11-66）や初期表示の時は戻り先として更新
         if (id && scenarioData && scenarioData[id]) {
@@ -2896,11 +3257,12 @@ function renderTabContent(id, tab) {
 
         h += `<textarea class="w-full text-[12px] border border-gray-200 h-24 p-2 rounded-md focus:ring-1 focus:ring-blue-400 focus:outline-none bg-yellow-50/30 mb-4" placeholder="メモ" onclick="event.stopPropagation();" onchange="appState.characters['${id}'].data.memo=this.value; saveData();">${d.memo || ""}</textarea>
             
-            <div class="grid grid-cols-4 gap-2 w-full pb-2">
-                <button onclick="event.stopPropagation(); downloadCharacterById('${id}')" class="bg-blue-100 text-blue-700 hover:bg-blue-200 text-[10px] py-2 rounded font-bold">💾 保存</button>
-                <button onclick="event.stopPropagation(); outputCharacterStatusToLog('${id}')" class="bg-teal-100 text-teal-700 hover:bg-teal-200 text-[10px] py-2 rounded font-bold">📋 出力</button>
-                <button onclick="event.stopPropagation(); if(confirm('削除したリソース項目をリセットしますか？')) { appState.characters['${id}'].deletedResources=[]; renderCurrentCharacterSheet(); saveData(); }" class="text-[10px] text-gray-400 bg-gray-50 py-2 rounded border border-gray-100">リセット</button>
-                <button onclick="event.stopPropagation(); if(confirm('${c.name} を削除してもよろしいですか？')) { deleteCharacter('${id}'); }" class="text-[10px] text-red-400 bg-red-50 py-2 rounded border border-red-100">削除</button>
+            <div class="grid grid-cols-5 gap-2 w-full pb-2">
+                <button onclick="event.stopPropagation(); downloadCharacterById('${id}')" class="bg-blue-100 text-blue-700 hover:bg-blue-200 text-[10px] py-2 rounded font-bold" title="キャラクター保存">💾</button>
+                <button onclick="event.stopPropagation(); outputCharacterStatusToLog('${id}')" class="bg-blue-100 text-teal-700 hover:bg-blue-200 text-[10px] py-2 rounded font-bold" title="ログに出力">📝</button>
+                <button onclick="event.stopPropagation(); copyCocofoliaCharacterForCurrent()" class="bg-blue-100 text-purple-700 hover:bg-blue-200 text-[10px] py-2 rounded font-bold" title="ココフォリア用コマをコピー">📋</button>
+                <button onclick="event.stopPropagation(); if(confirm('削除したリソース項目をリセットしますか？')) { appState.characters['${id}'].deletedResources=[]; renderCurrentCharacterSheet(); saveData(); }" class="text-[10px] text-red-400 bg-red-50 py-2 rounded border border-red-100" title="リセット">↺</button>
+                <button onclick="event.stopPropagation(); if(confirm('${c.name} を削除してもよろしいですか？')) { deleteCharacter('${id}'); }" class="text-[10px] text-red-400 bg-red-50 py-2 rounded border border-red-100" title="削除">🗑️</button>
             </div>
         `;
     }
@@ -3718,7 +4080,188 @@ function renderTabContent(id, tab) {
         saveData();
         renderCurrentCharacterSheet();
     }
+/**
+ * チャットパレットの動的生成 ＆ パラメータ整理を完了したココフォリア用JSONコピー関数
+ */
+function copyCocofoliaCharacterForCurrent() {
+    const charId = appState.currentCharacterId;
+    if (!charId || !appState.characters || !appState.characters[charId]) {
+        alert("キャラクターが選択されていないか、データが見つかりません。");
+        return;
+    }
 
+    const charObj = appState.characters[charId];
+    const name = charObj.name || "名無しの冒険者";
+    const d = charObj.data || {};
+
+    // --- 1. メモ欄の組み立て ---
+    let memoLines = [];
+    
+    if (d.memo) {
+        memoLines.push(`【メモ】\n${d.memo}`);
+    }
+    if (d.occupation) {
+        memoLines.push(`【職業/種族】 ${d.occupation}`);
+    }
+    if (d.hometown) {
+        memoLines.push(`【故郷】 ${d.hometown}`);
+    }
+
+    // 習得スキル
+    const skills = d.slots && d.slots.skills ? d.slots.skills.filter(s => s && s.name) : [];
+    if (skills.length > 0) {
+        let skillText = skills.map(s => `・${s.name}${s.desc ? ': ' + s.desc.trim() : ''}`).join('\n');
+        memoLines.push(`【習得スキル】\n${skillText}`);
+    }
+
+    // 装備
+    const equipped = d.slots && d.slots.equipped ? d.slots.equipped : [];
+    const equippedItems = equipped.filter(e => e && e.item && e.item.name);
+    if (equippedItems.length > 0) {
+        let eqText = equippedItems.map(e => `・[${e.label}] ${e.item.name}`).join('\n');
+        memoLines.push(`【装備】\n${eqText}`);
+    }
+
+    // 所持品
+    const inventory = d.slots && d.slots.inventory ? d.slots.inventory : [];
+    const invItems = inventory.filter(i => i && i.name && !i.isPlaceholder);
+    if (invItems.length > 0) {
+        let invText = invItems.map(i => `・${i.name}`).join('\n');
+        memoLines.push(`【所持品】\n${invText}`);
+    }
+
+    const combinedMemo = memoLines.join('\n\n');
+
+    // --- 2. 各種基本数値の取得 ---
+    const levelVal = Number(d.level) || 1;
+    
+    let skillVal = 0;
+    if (d.skill !== undefined && d.skill !== null) {
+        skillVal = Number(d.skill);
+    } else if (d.abilities && d.abilities.dex && d.abilities.dex.base !== undefined) {
+        skillVal = Number(d.abilities.dex.base);
+    }
+
+    // 生命点
+    const lifeCurrent = d.life ? (d.life.current || 0) : 0;
+    const lifeMax = d.life ? (d.life.max || 0) : 0;
+
+    // --- 3. 副能力値の抽出（1つ目・2つ目） ---
+    let sub1Name = null;
+    let sub1Data = null;
+    if (d.subAbility) {
+        let rawLabel = d.subAbility.label || "副能力値";
+        sub1Name = rawLabel.endsWith("点") ? rawLabel : rawLabel + "点";
+        sub1Data = {
+            label: sub1Name,
+            value: d.subAbility.current !== undefined ? d.subAbility.current : 0,
+            max: d.subAbility.max !== undefined ? d.subAbility.max : 0
+        };
+    }
+
+    let sub2Name = null;
+    let sub2Data = null;
+    if (d.subAbilitySecondary) {
+        let rawLabel2 = d.subAbilitySecondary.label || "副能力値2";
+        sub2Name = rawLabel2.endsWith("点") ? rawLabel2 : rawLabel2 + "点";
+        sub2Data = {
+            label: sub2Name,
+            value: d.subAbilitySecondary.current !== undefined ? d.subAbilitySecondary.current : 0,
+            max: d.subAbilitySecondary.max !== undefined ? d.subAbilitySecondary.max : 0
+        };
+    }
+
+    // --- 4. その他のパラメータ・リソース ---
+    const followerVal = d.follower ? (d.follower.current || 0) : 0;
+    const followerMax = d.follower ? (d.follower.max || 0) : 0;
+    const goldVal = d.gold !== undefined ? d.gold : 0;
+    const foodVal = d.food !== undefined ? d.food : 0;
+    const clueVal = d.clue !== undefined ? d.clue : 0;
+
+    // --- 5. チャットパレット文字列の組み立て（副能力値名を動的埋め込み） ---
+    let chatPaletteLines = [
+        "d66",
+        "d33",
+        "RH+{技量点}>={目標値} [技量判定ロール]"
+    ];
+
+    // 1つ目の副能力値ロール
+    if (sub1Name) {
+        chatPaletteLines.push(`RH+{${sub1Name}}>={目標値} [${sub1Name}ロール]`);
+    } else {
+        chatPaletteLines.push("RH+{副能力値}>={目標値} [副能力値ロール]");
+    }
+
+    // 2つ目の副能力値ロール（存在する場合のみ追加）
+    if (sub2Name) {
+        chatPaletteLines.push(`RH+{${sub2Name}}>={目標値} [${sub2Name}ロール]`);
+    }
+
+    chatPaletteLines.push(
+        "RH+{生命点}>={目標値} [生命ロール]",
+        "NTT [宝物ロール]",
+        "1d6*1d6",
+        "1d6*5",
+        "2d6*5",
+        ":金貨+",
+        "",
+        "1d6"
+    );
+
+    const chatPaletteCommands = chatPaletteLines.join("\n");
+
+    // --- 6. パラメータ(params)およびステータス(status)の構築 ---
+    // パラメータには「レベル」と「技量点」のみを残す
+    let paramsList = [
+        { "label": "レベル", "value": String(levelVal) },
+        { "label": "技量点", "value": String(skillVal) }
+    ];
+
+    // ステータスには生命点、副能力値（最大値・現在値がある方）、その他リソースを配置
+    let statusList = [
+        { "label": "生命点", "value": lifeCurrent, "max": lifeMax }
+    ];
+
+    if (sub1Data) {
+        statusList.push({ "label": sub1Data.label, "value": sub1Data.value, "max": sub1Data.max });
+    }
+    if (sub2Data) {
+        statusList.push({ "label": sub2Data.label, "value": sub2Data.value, "max": sub2Data.max });
+    }
+
+    statusList.push(
+        { "label": "従者点", "value": followerVal, "max": followerMax },
+        { "label": "金貨", "value": goldVal, "max": 99 },
+        { "label": "食料", "value": foodVal, "max": 2 },
+        { "label": "持ち物", "value": 0, "max": 0 },
+        { "label": "手がかり", "value": clueVal, "max": 0 }
+    );
+
+    // --- 7. ココフォリア用JSON構造の構築 ---
+    const cocofoliaData = {
+        "kind": "character",
+        "data": {
+            "name": name,
+            "memo": combinedMemo,
+            "initiative": skillVal,
+            "externalUrl": "",
+            "iconUrl": "",
+            "params": paramsList,
+            "status": statusList,
+            "commands": chatPaletteCommands
+        }
+    };
+
+    // --- 8. クリップボードへのコピー処理 ---
+    const jsonString = JSON.stringify(cocofoliaData, null, 2);
+    
+    navigator.clipboard.writeText(jsonString).then(() => {
+        alert(`「${name}」のココフォリア用データをコピーしました！\nココフォリアの画面上で Ctrl+V を押して貼り付けてください。`);
+    }).catch(err => {
+        console.error("クリップボードのコピーに失敗しました", err);
+        prompt("お使いのブラウザ環境により自動コピーできなかったため、以下のJSONを手動でコピーしてください:", jsonString);
+    });
+}
     // キャラ削除用関数（Ver 1.1準拠）
     function deleteCharacter(id) {
         if (Object.keys(appState.characters).length <= 1) {
@@ -4091,6 +4634,34 @@ function renderTabContent(id, tab) {
         }
     }
 
+    function extractCreatureCardBlock(text) {
+        if (!text) return null;
+        const startIdx = text.indexOf('<div class="creature-card');
+        if (startIdx === -1) return null;
+
+        let depth = 0;
+        let pos = startIdx;
+        while (pos < text.length) {
+            if (text.substr(pos, 4) === '<div') {
+                depth++;
+                pos += 4;
+            } else if (text.substr(pos, 6) === '</div>') {
+                depth--;
+                pos += 6;
+                if (depth === 0) {
+                    return {
+                        start: startIdx,
+                        end: pos,
+                        html: text.substring(startIdx, pos)
+                    };
+                }
+            } else {
+                pos++;
+            }
+        }
+        return null;
+    }
+
     //log
     function renderLogArea() {
         const logAreaEl = document.getElementById('logArea');
@@ -4103,19 +4674,42 @@ function renderTabContent(id, tab) {
                 cleanContent = cleanContent.replace(/[\|｜]([^\|｜《》\n]+?)《([^《》\n]+?)》/g, '$2');
                 const speakContent = cleanContent.replace(/\r?\n/g, ' ').replace(/'/g, "\\'");
                 
+                // クリーチャーカードを一時退避（入れ子divの破壊およびMarkdownパーサー誤パースの防止）
+                const savedCards = [];
+                let safeLogContent = '';
+                let remainingLog = e.content || '';
+                while (remainingLog) {
+                    const block = extractCreatureCardBlock(remainingLog);
+                    if (!block) {
+                        safeLogContent += remainingLog;
+                        break;
+                    }
+                    safeLogContent += remainingLog.substring(0, block.start);
+                    const placeholder = `%%CREATURE_CARD_PLACEHOLDER_${savedCards.length}%%`;
+                    savedCards.push(block.html);
+                    safeLogContent += `\n\n${placeholder}\n\n`;
+                    remainingLog = remainingLog.substring(block.end);
+                }
+
                 // 連続する改行（3つ以上）を保持するための処理: 空行を&nbsp;を含む段落に置換
-                let processedContent = e.content.replace(/\n{3,}/g, m => '\n\n' + '&nbsp;\n\n'.repeat(m.length - 2));
+                let processedContent = safeLogContent.replace(/\n{3,}/g, m => '\n\n' + '&nbsp;\n\n'.repeat(m.length - 2));
                 
                 // ルビ記法変換 (|文字《ルビ》 -> <ruby>文字<rt>ルビ</rt></ruby>)
                 processedContent = processedContent.replace(/[\|｜]([^\|｜《》\n]+?)《([^《》\n]+?)》/g, '<ruby>$1<rt>$2</rt></ruby>');
                 
                 // BOX内Markdown対応: div内のテキストを個別にパースする (classとstyleの両方に対応)
                 processedContent = processedContent.replace(/<div[^>]*(class|style)=(['"])(.*?)\2[^>]*>([\s\S]*?)<\/div>/g, function(match, attr, quote, value, content) {
+                    if (value.includes('creature')) return match;
                     return `<div ${attr}="${value}">${marked.parse(content, { breaks: true })}</div>`;
                 });
 
                 // Markdown変換 (breaks: true で改行を反映)
-                const htmlContent = marked.parse(processedContent, { breaks: true });
+                let htmlContent = marked.parse(processedContent, { breaks: true });
+                savedCards.forEach((cardHtml, cIdx) => {
+                    const placeholder = `%%CREATURE_CARD_PLACEHOLDER_${cIdx}%%`;
+                    const pRegex = new RegExp(`<p>\\s*${placeholder}\\s*<\\/p>|${placeholder}`, 'g');
+                    htmlContent = htmlContent.replace(pRegex, cardHtml);
+                });
                 
                 const sizeSetting = appState.settings ? (appState.settings.logFontSize || 'small') : 'small';
                 const bodyClass = sizeSetting === 'large' ? 'text-base' : (sizeSetting === 'medium' ? 'text-sm' : 'text-xs');
@@ -4190,7 +4784,7 @@ function renderTabContent(id, tab) {
             document.getElementById('d66Cols').value = appState.d66GridSettings.cols;
         }
                renderD66Grid(); renderD66Table(); renderLogArea(); renderEnemyPanel(); 
-        renderCurrentCharacterSheet();
+        renderCurrentCharacterSheet(); updateScenarioButtonStates();
         
         // ヘッダーの入力欄にフリック機能を付与
         ['rollCount', 'skillValue', 'targetValue'].forEach(id => {
