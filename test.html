@@ -125,7 +125,35 @@
 
         /* Markdown in Log Styles */
         .markdown-body strong { font-weight: 700; }
-        .markdown-body em { font-style: italic; background-color: #fef3c7; }
+        .markdown-body em { font-style: italic; }
+
+        /* フォント切替スタイル（明朝体・ゴシック体） */
+        .font-mincho,
+        #logArea.font-mincho,
+        #logArea.font-mincho .markdown-body,
+        #logArea.font-mincho .markdown-body p,
+        #logArea.font-mincho .markdown-body h1,
+        #logArea.font-mincho .markdown-body h2,
+        #logArea.font-mincho .markdown-body h3,
+        #logArea.font-mincho .markdown-body li,
+        #logArea.font-mincho .markdown-body blockquote,
+        #logArea.font-mincho .markdown-body td,
+        #logArea.font-mincho .markdown-body th {
+            font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", Georgia, serif !important;
+        }
+        .font-gothic,
+        #logArea.font-gothic,
+        #logArea.font-gothic .markdown-body,
+        #logArea.font-gothic .markdown-body p,
+        #logArea.font-gothic .markdown-body h1,
+        #logArea.font-gothic .markdown-body h2,
+        #logArea.font-gothic .markdown-body h3,
+        #logArea.font-gothic .markdown-body li,
+        #logArea.font-gothic .markdown-body blockquote,
+        #logArea.font-gothic .markdown-body td,
+        #logArea.font-gothic .markdown-body th {
+            font-family: 'Inter', "Hiragino Sans", "Yu Gothic", "YuGothic", Meiryo, sans-serif !important;
+        }
         .markdown-body h1, .markdown-body h2, .markdown-body h3 { font-weight: 700; margin: 0.5em 0 0.2em; border-bottom: 1px solid #eee; }
         .markdown-body ul { list-style: disc; padding-left: 1.2em; }
         .markdown-body ol { list-style: decimal; padding-left: 1.2em; }
@@ -145,10 +173,10 @@
             font-family: sans-serif;
             width: 100%;
             max-width: 440px;
-            margin: 12px 0;
+            margin: 8px 0;
             border-radius: 6px;
             overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            box-shadow: 0 2px 2px rgba(0,0,0,0.15);
         }
 
         /* ヘッダー */
@@ -1228,6 +1256,16 @@
             animation: menuFadeIn 0.15s ease-out forwards;
         }
 
+        .scenario-menu-item {
+            background-color: transparent !important;
+            background: transparent !important;
+            border: none !important;
+        }
+        .scenario-menu-item:hover {
+            background-color: #eef2ff !important;
+            color: #4338ca !important;
+        }
+
         body.theme-night #scenarioSubMenu {
             background-color: #1e293b !important;
             border-color: #334155 !important;
@@ -1238,11 +1276,19 @@
             border-color: #334155 !important;
         }
         body.theme-night #scenarioSubMenu .scenario-menu-item {
+            background-color: transparent !important;
+            background: transparent !important;
             color: #cbd5e1 !important;
+            border: none !important;
+            opacity: 1 !important;
+            filter: none !important;
         }
         body.theme-night #scenarioSubMenu .scenario-menu-item:hover {
             background-color: #334155 !important;
             color: #ffffff !important;
+        }
+        body.theme-night #scenarioSubMenu .scenario-menu-item .rounded-full {
+            background-color: #818cf8 !important;
         }
         body.theme-night #scenarioSubMenu .bg-gray-50\/70,
         body.theme-night #scenarioSubMenu .bg-gray-100\/60 {
@@ -1268,11 +1314,19 @@
             border-color: #d3c6a6 !important;
         }
         body.theme-sepia #scenarioSubMenu .scenario-menu-item {
+            background-color: transparent !important;
+            background: transparent !important;
             color: #4e342e !important;
+            border: none !important;
+            opacity: 1 !important;
+            filter: none !important;
         }
         body.theme-sepia #scenarioSubMenu .scenario-menu-item:hover {
             background-color: #f5e5c5 !important;
             color: #27160c !important;
+        }
+        body.theme-sepia #scenarioSubMenu .scenario-menu-item .rounded-full {
+            background-color: #a1887f !important;
         }
         body.theme-sepia #scenarioSubMenu .bg-gray-50\/70,
         body.theme-sepia #scenarioSubMenu .bg-gray-100\/60 {
@@ -1404,48 +1458,48 @@
                                         <span class="text-[9px] text-gray-400 font-normal">タップで実行</span>
                                     </div>
                                     <div class="flex flex-col gap-0.5 max-h-56 overflow-y-auto custom-scroll pr-0.5">
-                                        <button type="button" onclick="handleScenarioMenuSelect('title')" data-scenario-type="title" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors">
-                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-indigo-500"></span><span class="font-medium">タイトル</span></span>
+                                        <button type="button" onclick="handleScenarioMenuSelect('title')" data-scenario-type="title" class="scenario-menu-item w-full flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors bg-transparent">
+                                            <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span><span class="font-medium">タイトル</span></span>
                                             <span class="text-[10px] text-gray-400">#title</span>
                                         </button>
-                                        <button type="button" onclick="handleScenarioMenuSelect('overview')" data-scenario-type="overview" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-cyan-50 hover:text-cyan-700 text-left transition-colors">
-                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-cyan-500"></span><span class="font-medium">概要</span></span>
+                                        <button type="button" onclick="handleScenarioMenuSelect('overview')" data-scenario-type="overview" class="scenario-menu-item w-full flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors bg-transparent">
+                                            <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span><span class="font-medium">概要</span></span>
                                             <span class="text-[10px] text-gray-400">#overview</span>
                                         </button>
-                                        <button type="button" onclick="handleScenarioMenuSelect('rule')" data-scenario-type="rule" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-slate-100 hover:text-slate-800 text-left transition-colors">
-                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-slate-600"></span><span class="font-medium">特殊ルール</span></span>
+                                        <button type="button" onclick="handleScenarioMenuSelect('rule')" data-scenario-type="rule" class="scenario-menu-item w-full flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors bg-transparent">
+                                            <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span><span class="font-medium">特殊ルール</span></span>
                                             <span class="text-[10px] text-gray-400">#rule</span>
                                         </button>
-                                        <button type="button" onclick="handleScenarioMenuSelect('linear')" data-scenario-type="linear" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-orange-50 hover:text-orange-700 text-left transition-colors">
-                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-orange-500"></span><span class="font-medium">一本道モード</span></span>
+                                        <button type="button" onclick="handleScenarioMenuSelect('linear')" data-scenario-type="linear" class="scenario-menu-item w-full flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors bg-transparent">
+                                            <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span><span class="font-medium">一本道モード</span></span>
                                             <span class="text-[10px] text-gray-400">#linear</span>
                                         </button>
-                                        <button type="button" onclick="handleScenarioMenuSelect('pro')" data-scenario-type="pro" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-gray-100 hover:text-gray-800 text-left transition-colors">
-                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-500"></span><span class="font-medium">プロローグ</span></span>
+                                        <button type="button" onclick="handleScenarioMenuSelect('pro')" data-scenario-type="pro" class="scenario-menu-item w-full flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors bg-transparent">
+                                            <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span><span class="font-medium">プロローグ</span></span>
                                             <span class="text-[10px] text-gray-400">#pro</span>
                                         </button>
-                                        <button type="button" onclick="handleScenarioMenuSelect('start')" data-scenario-type="start" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-blue-50 hover:text-blue-700 text-left transition-colors">
-                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-blue-500"></span><span class="font-medium">開始</span></span>
+                                        <button type="button" onclick="handleScenarioMenuSelect('start')" data-scenario-type="start" class="scenario-menu-item w-full flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors bg-transparent">
+                                            <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span><span class="font-medium">開始</span></span>
                                             <span class="text-[10px] text-gray-400">#start</span>
                                         </button>
-                                        <button type="button" onclick="handleScenarioMenuSelect('mid')" data-scenario-type="mid" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-amber-50 hover:text-amber-700 text-left transition-colors">
-                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="font-medium">中間</span></span>
+                                        <button type="button" onclick="handleScenarioMenuSelect('mid')" data-scenario-type="mid" class="scenario-menu-item w-full flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors bg-transparent">
+                                            <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span><span class="font-medium">中間</span></span>
                                             <span class="text-[10px] text-gray-400">#mid</span>
                                         </button>
-                                        <button type="button" onclick="handleScenarioMenuSelect('finish')" data-scenario-type="finish" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-rose-50 hover:text-rose-700 text-left transition-colors">
-                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-rose-500"></span><span class="font-medium">最終</span></span>
+                                        <button type="button" onclick="handleScenarioMenuSelect('finish')" data-scenario-type="finish" class="scenario-menu-item w-full flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors bg-transparent">
+                                            <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span><span class="font-medium">最終</span></span>
                                             <span class="text-[10px] text-gray-400">#finish</span>
                                         </button>
-                                        <button type="button" onclick="handleScenarioMenuSelect('clear')" data-scenario-type="clear" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 text-left transition-colors">
-                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-emerald-500"></span><span class="font-medium">達成</span></span>
+                                        <button type="button" onclick="handleScenarioMenuSelect('clear')" data-scenario-type="clear" class="scenario-menu-item w-full flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors bg-transparent">
+                                            <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span><span class="font-medium">達成</span></span>
                                             <span class="text-[10px] text-gray-400">#clear</span>
                                         </button>
-                                        <button type="button" onclick="handleScenarioMenuSelect('ending')" data-scenario-type="ending" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-sky-50 hover:text-sky-700 text-left transition-colors">
-                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-sky-500"></span><span class="font-medium">エンディング</span></span>
+                                        <button type="button" onclick="handleScenarioMenuSelect('ending')" data-scenario-type="ending" class="scenario-menu-item w-full flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors bg-transparent">
+                                            <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span><span class="font-medium">エンディング</span></span>
                                             <span class="text-[10px] text-gray-400">#ending</span>
                                         </button>
-                                        <button type="button" onclick="handleScenarioMenuSelect('reference')" data-scenario-type="reference" class="scenario-menu-item flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-gray-100 hover:text-gray-800 text-left transition-colors">
-                                            <span class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-gray-400"></span><span class="font-medium">参考</span></span>
+                                        <button type="button" onclick="handleScenarioMenuSelect('reference')" data-scenario-type="reference" class="scenario-menu-item w-full flex items-center justify-between px-2.5 py-1.5 rounded text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 text-left transition-colors bg-transparent">
+                                            <span class="flex items-center gap-2"><span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span><span class="font-medium">参考</span></span>
                                             <span class="text-[10px] text-gray-400">#reference</span>
                                         </button>
                                     </div>
@@ -1689,6 +1743,9 @@
                         appState.scenarioGridSettings = { rows: 3, cols: 11 };
                     }
                     if (!appState.settings.logFontSize) appState.settings.logFontSize = 'small';
+                    if (!appState.settings.logFont) {
+                        appState.settings.logFont = localStorage.getItem('rlh_log_font') || 'gothic';
+                    }
                     ensureD66StateConsistency();
                 } 
                 catch(e) { console.error(e); } 
@@ -1723,6 +1780,7 @@
                 });
             }
             applyTheme(appState.theme || 'colorful');
+            applyLogFont(appState.settings.logFont || 'gothic');
             renderAll();
             applyDisplaySettings(); // 表示設定の適用
             // ヘッダーの静的な数字入力フィールドに自動全選択機能を適用
@@ -1976,7 +2034,8 @@
 
     // シナリオのタイプによってボタンの有効/無効を切り替える
     function updateScenarioButtonStates() {
-        const items = document.querySelectorAll('.scenario-menu-item, .scenario-shortcut-btn, button[data-scenario-type]');
+        // サブメニュー内の全項目は均一スタイルを維持するため、ショートカットボタンのみを制御対象にする
+        const items = document.querySelectorAll('.scenario-shortcut-btn, button[data-scenario-type]:not(.scenario-menu-item)');
         if (items.length === 0) return;
 
         if (!scenarioMaster || scenarioMaster.length === 0) {
@@ -2013,6 +2072,15 @@
                     btn.classList.add('opacity-40', 'cursor-not-allowed');
                 }
             }
+        });
+
+        // サブメニュー内アイテムのスタイル初期化（完全統一の保証）
+        document.querySelectorAll('.scenario-menu-item').forEach(btn => {
+            btn.style.opacity = "";
+            btn.style.filter = "";
+            btn.disabled = false;
+            btn.style.pointerEvents = "";
+            btn.classList.remove('opacity-40', 'cursor-not-allowed');
         });
     }
 
@@ -4666,6 +4734,11 @@ function copyCocofoliaCharacterForCurrent() {
     function renderLogArea() {
         const logAreaEl = document.getElementById('logArea');
         const logListEl = document.getElementById('log-list'); // スクロールを制御する親要素を取得
+        const currentFont = (appState.settings && appState.settings.logFont) ? appState.settings.logFont : (localStorage.getItem('rlh_log_font') || 'gothic');
+        if (logAreaEl && !logAreaEl.classList.contains('font-' + currentFont)) {
+            logAreaEl.classList.remove('font-mincho', 'font-gothic');
+            logAreaEl.classList.add('font-' + currentFont);
+        }
         logAreaEl.innerHTML = appState.logEntries.map((e, idx) => {
                 if(e.type==='separator') return `<div class="border-t-2 border-purple-200 my-4 relative group"><button onclick="deleteLog(${idx})" class="absolute -top-3 right-0 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] hidden group-hover:block">×</button></div>`;
                 // ログテキストからHTMLタグを除去して読み上げ用に準備
@@ -5342,6 +5415,10 @@ window.onload = loadData; // ←ここにつながるようにする
                 const radio = document.querySelector(`input[name="logFontSize"][value="${size}"]`);
                 if(radio) radio.checked = true;
 
+                const currentFont = (appState.settings && appState.settings.logFont) ? appState.settings.logFont : (localStorage.getItem('rlh_log_font') || 'gothic');
+                const fontRadio = document.querySelector(`input[name="logFont"][value="${currentFont}"]`);
+                if(fontRadio) fontRadio.checked = true;
+
                 document.getElementById('toastToggle').checked = appState.showToastNotifications !== false;
                 document.getElementById('dice3DToggle').checked = appState.settings.dice3DEnabled !== false;
                 document.getElementById('soundToggle').checked = appState.settings.soundEnabled !== false;
@@ -5381,6 +5458,32 @@ window.onload = loadData; // ←ここにつながるようにする
         appState.settings.logFontSize = size;
         saveData();
         renderLogArea();
+    }
+
+    // ログフォント設定
+    function setLogFont(font) {
+        if (!appState.settings) appState.settings = {};
+        appState.settings.logFont = font;
+        try {
+            localStorage.setItem('rlh_log_font', font);
+        } catch(e) {
+            console.error("Failed to save log font:", e);
+        }
+        saveData();
+        applyLogFont(font);
+    }
+
+    function applyLogFont(font) {
+        const logAreaEl = document.getElementById('logArea');
+        const f = (font === 'mincho') ? 'mincho' : 'gothic';
+        const removeCls = (f === 'mincho') ? 'font-gothic' : 'font-mincho';
+        const addCls = (f === 'mincho') ? 'font-mincho' : 'font-gothic';
+        if (logAreaEl) {
+            logAreaEl.classList.remove(removeCls);
+            logAreaEl.classList.add(addCls);
+        }
+        const radio = document.querySelector(`input[name="logFont"][value="${f}"]`);
+        if (radio) radio.checked = true;
     }
     function deleteLog(i){ appState.logEntries.splice(i,1); renderLogArea(); saveData(); }
     function editLog(i){ const n=prompt("編集",appState.logEntries[i].content); if(n!==null){appState.logEntries[i].content=n; renderLogArea(); saveData();}}
@@ -7285,6 +7388,19 @@ ${treasureText}
                 <label class="flex-1 text-center cursor-pointer">
                     <input type="radio" name="logFontSize" value="large" onchange="setLogFontSize('large')" class="hidden peer">
                     <span class="block py-2 rounded text-xs font-bold text-gray-600 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all hover:bg-gray-100">大</span>
+                </label>
+            </div>
+        </div>
+        <div class="mb-6">
+            <h3 class="font-bold mb-2 text-sm text-gray-700">ログのフォント</h3>
+            <div class="flex gap-2 bg-gray-50 p-1 rounded border border-gray-200">
+                <label class="flex-1 text-center cursor-pointer">
+                    <input type="radio" name="logFont" value="gothic" onchange="setLogFont('gothic')" class="hidden peer">
+                    <span class="block py-2 rounded text-xs font-bold text-gray-600 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all hover:bg-gray-100">ゴシック体 (Gothic)</span>
+                </label>
+                <label class="flex-1 text-center cursor-pointer">
+                    <input type="radio" name="logFont" value="mincho" onchange="setLogFont('mincho')" class="hidden peer">
+                    <span class="block py-2 rounded text-xs font-bold text-gray-600 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all hover:bg-gray-100">明朝体 (Mincho)</span>
                 </label>
             </div>
         </div>
