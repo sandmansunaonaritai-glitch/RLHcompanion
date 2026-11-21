@@ -19,14 +19,169 @@
         .markdown-preview ol { list-style-type: decimal; padding-left: 1.5em; margin-bottom: 0.8em; }
         .markdown-preview blockquote { border-left: 4px solid #ccc; padding-left: 1em; color: #666; margin-bottom: 0.8em; }
         .markdown-preview strong { font-weight: bold; } /* 強調を赤っぽく */
-        .markdown-preview em { font-style: italic; background-color: #fef3c7; }
+        .markdown-preview em { font-style: italic; }
+
+        /* フォント切替スタイル（明朝体・ゴシック体） */
+        .font-mincho,
+        .markdown-preview.font-mincho,
+        .markdown-preview.font-mincho p,
+        .markdown-preview.font-mincho h1,
+        .markdown-preview.font-mincho h2,
+        .markdown-preview.font-mincho h3,
+        .markdown-preview.font-mincho li,
+        .markdown-preview.font-mincho blockquote,
+        .markdown-preview.font-mincho td,
+        .markdown-preview.font-mincho th {
+            font-family: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", "Noto Serif JP", Georgia, serif !important;
+        }
+        .font-gothic,
+        .markdown-preview.font-gothic,
+        .markdown-preview.font-gothic p,
+        .markdown-preview.font-gothic h1,
+        .markdown-preview.font-gothic h2,
+        .markdown-preview.font-gothic h3,
+        .markdown-preview.font-gothic li,
+        .markdown-preview.font-gothic blockquote,
+        .markdown-preview.font-gothic td,
+        .markdown-preview.font-gothic th {
+            font-family: 'Inter', "Hiragino Sans", "Yu Gothic", "YuGothic", Meiryo, sans-serif !important;
+        }
 
         /* Shared BOX Styles */
         .rlh-box { padding: 0.8rem; border-radius: 0.25rem; margin-bottom: 0.5rem; }
         .rlh-box-grey { background-color: #e5e7eb; color: #000000; }
         .rlh-box-black { background-color: #000000; color: #ffffff; }
         .rlh-box-border { background-color: #ffffff; border: 2px solid #274cb1; color: #000000; } /* ここをメインアプリと合わせるように変更してください */
-        
+
+        /* --- クリーチャーカード共通スタイル --- */
+        .creature-card {
+            border: 1px solid #222;
+            background-color: #ffffff;
+            color: #222222;
+            font-family: sans-serif;
+            width: 100%;
+            max-width: 440px;
+            margin: 8px 0;
+            border-radius: 6px;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        /* --- クリーチャーカードの上下の空白を強制的に詰める --- */
+       .markdown-preview p:has(> .creature-card),
+       .markdown-preview div:has(> .creature-card),
+       .markdown-preview .creature-card {
+           margin-top: 2px !important;
+           margin-bottom: 2px !important;
+        }
+        /* 万が一MarkdownのPタグがカードを挟んでいる場合の余白削除 */
+        .markdown-preview p:has(.creature-card) {
+           margin-top: 0 !important;
+           margin-bottom: 0 !important;
+           padding: 0 !important;
+        }      
+        /* ヘッダー */
+        .creature-header {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 8px 12px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 4px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* タグが0個でも creature-tags エリアが折れない */
+        .creature-tags:empty {
+            display: none;
+        }
+
+        .creature-tags {
+            display: flex;
+            gap: 4px;
+        }
+
+        .creature-tag {
+            background-color: #333333;
+            color: #ffffff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            border: 1px solid #555555;
+        }
+
+        /* 基本スペック行 */
+        .creature-stats span:empty { display: none; }
+        .creature-stats {
+            padding: 6px 10px;
+            font-size: 12px;
+            background-color: #f7f7f7;
+            border-bottom: 1px solid #cccccc;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            color: #333333;
+        }
+
+        /* 反応表（1d6の出目分割数 1〜6分割に対応する可変グリッド） */
+        .creature-table {
+            display: grid;
+            border-bottom: 1px solid #cccccc;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .creature-table-1cols { grid-template-columns: 65px repeat(1, 1fr); }
+        .creature-table-2cols { grid-template-columns: 65px repeat(2, 1fr); }
+        .creature-table-3cols { grid-template-columns: 65px repeat(3, 1fr); }
+        .creature-table-4cols { grid-template-columns: 65px repeat(4, 1fr); }
+        .creature-table-5cols { grid-template-columns: 65px repeat(5, 1fr); }
+        .creature-table-6cols { grid-template-columns: 65px repeat(6, 1fr); }
+
+        .table-side-title {
+            background-color: #e5e5e5;
+            font-weight: bold;
+            color: #111111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-right: 1px solid #cccccc;
+            padding: 4px;
+        }
+
+        .creature-cell {
+            border-right: 1px solid #cccccc;
+            padding: 5px 4px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .creature-cell:last-child {
+            border-right: none;
+        }
+
+        .cell-dice {
+            font-weight: bold;
+            color: #555555;
+            background-color: #fafafa;
+            border-bottom: 1px dashed #dddddd;
+            width: 100%;
+            padding-bottom: 2px;
+            margin-bottom: 2px;
+        }
+
+        /* 本文説明 */
+        .creature-body {
+            padding: 8px 10px;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #222222;
+        }
+
         /* Table Styles */
         .markdown-preview table { width: 100%; border-collapse: collapse; margin-bottom: 1em; font-size: 0.9em; }
         .markdown-preview th, .markdown-preview td { border: 1px solid #d1d5db; padding: 6px; text-align: left; }
@@ -54,12 +209,73 @@
         }
         .scenario-card-item * { pointer-events: none; }
         .locked-overlay { position: absolute; inset: 0; background: rgba(243, 244, 246, 0.4); z-index: 40; cursor: not-allowed; display: none; }
+
+        /* =============================================
+           マルチシナリオ ポータル スタイル
+           ============================================= */
+        #scenario-portal {
+            position: fixed; inset: 0;
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            z-index: 200; display: flex; flex-direction: column; overflow: hidden;
+        }
+        #scenario-portal.hidden { display: none !important; }
+        .portal-card {
+            background: #ffffff; border-radius: 10px;
+            box-shadow: 0 4px 18px rgba(0,0,0,0.13);
+            transition: transform 0.15s, box-shadow 0.15s;
+            overflow: hidden;
+        }
+        .portal-card:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(0,0,0,0.20); }
     </style>
 </head>
 <body class="text-gray-800">
 
+<!-- ======================================================
+     シナリオ選択ポータル（全画面オーバーレイ）
+     ====================================================== -->
+<div id="scenario-portal" class="">
+  <div class="flex flex-col h-full">
+    <!-- Portal Header -->
+    <div class="shrink-0 px-6 pt-8 pb-4 flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
+          <span class="text-3xl">📜</span> RLH Scenario Editor
+        </h1>
+        <p class="text-slate-400 text-xs mt-1">シナリオを選択して編集を開始してください</p>
+      </div>
+      <div class="flex gap-2">
+        <label class="cursor-pointer bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 shadow">
+          <span>📂 インポート (JSON/CSV)</span>
+          <input type="file" id="portal-import-file" accept=".json,.csv" class="hidden" onchange="portalImportFile(event)">
+        </label>
+        <button onclick="portalCreateNew()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2 rounded-lg text-sm font-bold transition flex items-center gap-2 shadow-lg">
+          <span class="text-lg font-black">＋</span> 新規シナリオを作成
+        </button>
+      </div>
+    </div>
+
+    <!-- Portal Body: Scenario Cards Grid -->
+    <div class="flex-1 overflow-y-auto px-6 pb-8">
+      <!-- Empty state -->
+      <div id="portal-empty" class="hidden flex-col items-center justify-center h-full text-center py-20">
+        <div class="text-6xl mb-4">📝</div>
+        <div class="text-white text-xl font-bold mb-2">シナリオがまだありません</div>
+        <div class="text-slate-400 text-sm mb-6">「＋ 新規シナリオを作成」ボタンから始めましょう</div>
+        <button onclick="portalCreateNew()" class="bg-indigo-600 hover:bg-indigo-500 text-white px-6 py-3 rounded-xl text-base font-bold transition shadow-lg">
+          ＋ 新規シナリオを作成
+        </button>
+      </div>
+      <!-- Cards grid -->
+      <div id="portal-cards-grid" class="grid gap-4" style="grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));"></div>
+    </div>
+  </div>
+</div>
+
 <header class="bg-slate-800 text-white p-3 flex justify-between items-center shadow-md shrink-0 relative z-50">
     <div class="flex items-center gap-4">
+        <button onclick="backToPortal()" class="bg-slate-600 hover:bg-slate-500 px-2.5 py-1.5 rounded text-xs font-bold transition flex items-center gap-1 border border-slate-500" title="シナリオ一覧へ戻る">
+            ◀ <span class="hidden sm:inline">一覧</span>
+        </button>
         <button onclick="toggleIdeaDrawer()" class="bg-yellow-600 hover:bg-yellow-500 px-3 py-1.5 rounded text-xs font-bold transition flex items-center gap-1">
             💡 <span class="hidden sm:inline">ネタ帳</span>
         </button>
@@ -104,6 +320,7 @@
                     </div>
                 </div>
 
+                <button onclick="openSettingsModal(); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100 border-t border-gray-100 flex items-center justify-between"><span>⚙️ 設定</span></button>
                 <button onclick="openHelpModal(); closeMainMenu()" class="block w-full text-left px-4 py-2 text-xs hover:bg-gray-100 border-t border-gray-100">ヘルプ</button>
             </div>
         </div>
@@ -297,8 +514,57 @@
                         </div>
 
                     </div>
-                    <textarea id="edit-text" class="w-full border rounded p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-mono leading-relaxed resize-y" 
-                                 style="min-height: 300px; height: 600px;" placeholder="ここにシナリオ本文を入力..." oninput="updateCurrentEntry('text', this.value)" onscroll="syncScroll()"></textarea> 
+                    <!-- インタラクティブ・カードエディタ -->
+                    <div id="creature-card-editor-container" class="hidden mb-3 border-2 border-indigo-400 bg-indigo-50/20 rounded-lg p-3 shadow-md">
+                        <div class="flex justify-between items-center mb-2 pb-1.5 border-b border-indigo-200">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-indigo-900 flex items-center gap-1">
+                                    <span>🃏 クリーチャーカード編集</span>
+                                </span>
+                                <span class="text-[10px] bg-white text-indigo-700 px-1.5 py-0.5 rounded font-bold border border-indigo-200 shadow-sm">カード直接編集</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" onclick="toggleCardHtmlMode()" id="btn-toggle-card-html" class="text-[10px] bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 px-2 py-0.5 rounded font-bold shadow-sm transition" title="本文テキストエリアのHTMLコード表示切り替え">
+                                    &lt;/&gt; HTML確認
+                                </button>
+                                <button type="button" onclick="removeCreatureCardFromEntry()" class="text-[10px] bg-white hover:bg-red-50 text-red-600 border border-red-200 px-2 py-0.5 rounded font-bold shadow-sm transition" title="本文からカードを削除">
+                                    🗑️ カード削除
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- カードUI本体 -->
+                        <div id="creature-visual-card" class="creature-card shadow-md my-1">
+                            <!-- ヘッダー -->
+                            <div class="creature-header" style="flex-wrap:wrap; gap:4px;">
+                                <input type="text" id="card-input-name" class="bg-transparent border-b border-white/30 focus:border-white text-white font-bold text-sm outline-none px-1 flex-1 mr-2 placeholder-gray-400" style="min-width:80px;" placeholder="〈クリーチャー名〉" oninput="onVisualCardNameChange(this.value)">
+                                <div class="creature-tags items-center flex-wrap" id="card-tags-list" style="gap:3px; flex:1 1 auto;"></div>
+                                <input type="text" id="card-tag-inline-input" class="bg-gray-800 text-white text-[10px] px-1.5 py-0.5 rounded border border-gray-600 outline-none placeholder-gray-400" style="width:70px; min-width:50px;" placeholder="＋タグ追加" title="入力してEnterでタグ追加。TAG▼からも挿入可" onkeydown="if(event.key==='Enter'){addCardTagFromInlineInput();event.preventDefault();}">
+                            </div>
+                            <!-- 基本スペック行（空欄自動非表示） -->
+                            <div class="creature-stats" id="card-stats-list"></div>
+                            
+                            <!-- 反応表（＋/−ボタン付き可変グリッド） -->
+                            <div class="creature-table" id="card-table-grid">
+                                <div class="table-side-title flex-col gap-1 py-1 shrink-0">
+                                    <span class="text-[10px] font-bold">反応表</span>
+                                    <div class="flex gap-1 items-center justify-center">
+                                        <button type="button" onclick="adjustReactionCells(-1)" class="w-4 h-4 flex items-center justify-center bg-gray-300 hover:bg-gray-400 rounded text-gray-800 font-bold text-xs shadow-sm transition" title="列を減らす">−</button>
+                                        <button type="button" onclick="adjustReactionCells(1)" class="w-4 h-4 flex items-center justify-center bg-gray-300 hover:bg-gray-400 rounded text-gray-800 font-bold text-xs shadow-sm transition" title="列を増やす">＋</button>
+                                    </div>
+                                    <span id="card-col-count-label" class="text-[9px] text-gray-500 font-normal">2分割</span>
+                                </div>
+                            </div>
+                            
+                            <!-- 本文説明 -->
+                            <div class="creature-body p-2 bg-white">
+                                <textarea id="card-input-body" class="w-full text-xs text-gray-800 border border-gray-200 rounded p-1.5 focus:border-indigo-400 outline-none leading-relaxed resize-y" rows="3" placeholder="(見た目など説明)&#10;このクリーチャーは【】【】である。..." oninput="onVisualCardBodyChange(this.value)"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <textarea id="edit-text" class="w-full border rounded p-3 text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-mono leading-relaxed resize-y"
+                                 style="min-height: 300px; height: 600px;" placeholder="ここにシナリオ本文を入力..." oninput="updateCurrentEntry('text', this.value); checkAndRenderCreatureCardEditor(this.value);" onscroll="syncScroll()"></textarea>
                     </div>
 
                 <div class="border-t pt-4 shrink-0">
@@ -378,8 +644,17 @@
 
             <!-- Preview Panel -->
             <div id="preview-container" class="right-panel-content relative active">
-                <div class="absolute top-0 right-0 bg-gray-100 text-gray-500 text-[10px] px-2 py-1 rounded-bl">PREVIEW</div>
-                <div id="preview-area" class="markdown-preview text-sm p-6">
+                <div class="absolute top-0 right-0 bg-gray-100 text-gray-500 text-[10px] px-2 py-1 rounded-bl flex items-center gap-2 border-b border-l border-gray-200 z-10">
+                    <span class="font-bold">PREVIEW</span>
+                    <label class="text-[10px] text-gray-500 flex items-center gap-1 font-normal cursor-pointer">
+                        <span>フォント:</span>
+                        <select id="preview-font-select" onchange="setPreviewFont(this.value)" class="bg-white border border-gray-300 rounded px-1.5 py-0.5 text-[10px] font-bold text-gray-700 outline-none focus:border-indigo-400 cursor-pointer">
+                            <option value="gothic">ゴシック体</option>
+                            <option value="mincho">明朝体</option>
+                        </select>
+                    </label>
+                </div>
+                <div id="preview-area" class="markdown-preview text-sm p-6 pt-8">
                     <!-- Preview Rendered Here -->
                 </div>
                 <div id="preview-choices" class="mt-4 flex flex-wrap gap-2 p-6"></div>
@@ -522,17 +797,145 @@
 </main>
 
 <script>
+    // ─── マルチシナリオ管理 ───────────────────────────────────
+    const MULTI_INDEX_KEY = 'rlh_scenarios_index';          // シナリオ一覧インデックス
+    const MULTI_DATA_PREFIX = 'rlh_scenario_data_';         // 各シナリオデータのプレフィックス
+    let currentScenarioId = null;                            // 現在編集中のシナリオID
+    // ─── 旧キー (後方互換) ────────────────────────────────────
     const STORAGE_KEY = 'rlh_scenario_editor_data';
     const STORAGE_KEY_TITLE = 'rlh_scenario_editor_title';
     const STORAGE_KEY_IDEAS = 'rlh_scenario_editor_ideas';
     const STORAGE_KEY_LOCKED = 'rlh_scenario_editor_locked';
     const STORAGE_KEY_PASSWORD = 'rlh_scenario_editor_password';
     const STORAGE_KEY_CONFIG = 'rlh_scenario_editor_config'; // シナリオシステム設定のストレージキー
+    const STORAGE_KEY_FONT = 'rlh_scenario_editor_font'; // フォント設定のストレージキー
+    let currentFont = 'gothic';
+
+    function setPreviewFont(font) {
+        currentFont = (font === 'mincho') ? 'mincho' : 'gothic';
+        try {
+            localStorage.setItem(STORAGE_KEY_FONT, currentFont);
+        } catch (e) {
+            console.error("Font save error:", e);
+        }
+        applyPreviewFont(currentFont);
+    }
+
+    function applyPreviewFont(font) {
+        const previewArea = document.getElementById('preview-area');
+        const selectEl = document.getElementById('preview-font-select');
+        const radioEls = document.querySelectorAll('input[name="editorFontOption"]');
+
+        if (selectEl) selectEl.value = font;
+        radioEls.forEach(r => {
+            if (r.value === font) r.checked = true;
+        });
+
+        const removeCls = font === 'mincho' ? 'font-gothic' : 'font-mincho';
+        const addCls = font === 'mincho' ? 'font-mincho' : 'font-gothic';
+
+        if (previewArea) {
+            previewArea.classList.remove(removeCls);
+            previewArea.classList.add(addCls);
+        }
+    }
+
+    function openSettingsModal() {
+        const modal = document.getElementById('settings-modal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            applyPreviewFont(currentFont);
+        }
+    }
+
+    function closeSettingsModal() {
+        const modal = document.getElementById('settings-modal');
+        if (modal) {
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+    }
     // グローバル設定の初期値
     let scenarioConfig = { rows: 6, cols: 6, minTiles: 6, maxTiles: 8 }; // デフォルトの最大通過数を13から8に変更
     const DEFAULT_CREATURE_TEMPLATES = [
-        { name: "弱いクリーチャー", text: "〈弱いクリーチャー〉\n出現数：♪　　レベル：♪　　宝物：♪\n≪反応表≫　１-３【♪】　４-６【♪】\n\n（見た目など説明）\n\nこのクリーチャーは【】【】である。このクリーチャーは【打撃】【斬撃】の攻撃特性を持つ。\n" },
-        { name: "強いクリーチャー", text: "〈強いクリーチャー〉\nレベル：♪　　生命点：♪　　攻撃回数：♪　　宝物：♪\n≪反応表≫　１-３【♪】　４-６【♪】\n\n（見た目など説明）\n\nこのクリーチャーは【】【】である。このクリーチャーは【打撃】【斬撃】の攻撃特性を持つ。\n" }
+        {
+            name: "〈弱いクリーチャー〉TEXT",
+            text: "〈弱いクリーチャー〉\n出現数：♪　　レベル：♪　　宝物：♪\n≪反応表≫　１-３【♪】　４-６【♪】\n\n（見た目など説明）\n\nこのクリーチャーは【】【】である。このクリーチャーは【打撃】【斬撃】の攻撃特性を持つ。\n"
+        },
+        {
+            name: "〈弱いクリーチャー〉CSS",
+            text: `<div class="creature-card">
+    <div class="creature-header">
+        <span>〈弱いクリーチャー名〉</span>
+        <div class="creature-tags">
+            <span class="creature-tag">【タグ】</span>
+        </div>
+    </div>
+    <div class="creature-stats">
+        <span>出現数: <strong>♪</strong></span>
+        <span>レベル: <strong>♪</strong></span>
+        <span>宝物: <strong>♪</strong></span>
+    </div>
+    <div class="creature-table creature-table-2cols">
+        <div class="table-side-title">反応表</div>
+        <div class="creature-cell">
+            <div class="cell-dice">1 - 3</div>
+            <div>【♪】</div>
+        </div>
+        <div class="creature-cell">
+            <div class="cell-dice">4 - 6</div>
+            <div>【♪】</div>
+        </div>
+    </div>
+    <div class="creature-body">
+        (見た目など説明)<br>
+        このクリーチャーは【】【】である。このクリーチャーは【打撃】【斬撃】の攻撃特性を持つ。
+    </div>
+</div>\n`
+        },
+        {
+            name: "〈強いクリーチャー〉TEXT",
+            text: "〈強いクリーチャー〉\nレベル：♪　　生命点：♪　　攻撃回数：♪　　宝物：♪\n≪反応表≫　１-３【♪】　４-６【♪】\n\n（見た目など説明）\n\nこのクリーチャーは【】【】である。このクリーチャーは【打撃】【斬撃】の攻撃特性を持つ。\n"
+        },
+        {
+            name: "〈強いクリーチャー〉CSS",
+            text: `<div class="creature-card">
+    <div class="creature-header">
+        <span>〈強いクリーチャー名〉</span>
+        <div class="creature-tags">
+            <span class="creature-tag">【タグ1】</span>
+            <span class="creature-tag">【タグ2】</span>
+        </div>
+    </div>
+    <div class="creature-stats">
+        <span>レベル: <strong>♪</strong></span>
+        <span>生命点: <strong>♪</strong></span>
+        <span>攻撃回数: <strong>♪</strong></span>
+        <span>防御点: <strong>♪</strong></span>
+        <span>宝物: <strong>♪</strong></span>
+    </div>
+    <div class="creature-table creature-table-3cols">
+        <div class="table-side-title">反応表</div>
+        <div class="creature-cell">
+            <div class="cell-dice">1</div>
+            <div>【♪】</div>
+        </div>
+        <div class="creature-cell">
+            <div class="cell-dice">2 - 3</div>
+            <div>【♪】</div>
+        </div>
+        <div class="creature-cell">
+            <div class="cell-dice">4 - 6</div>
+            <div>【♪】</div>
+        </div>
+    </div>
+    <div class="creature-body">
+        (見た目など説明)<br>
+        このクリーチャーは【】【】である。このクリーチャーは【打撃】【斬撃】の攻撃特性を持つ。
+    </div>
+</div>\n`
+        }
     ];
     const DEFAULT_REACTIONS = ["歓待", "友好的", "中立", "逃走", "劣勢であれば逃走", "ワイロ", "敵対的", "死ぬまで戦う"];
     const DEFAULT_CLASSIFICATIONS = ["善の種族", "悪の種族", "少数種族", "人間型", "アンデッド", "ゴーレム", "混沌", "悪魔", "家畜", "騎乗生物", "巨大生物", "植物", "精霊", "怪物", "神霊", "動物", "鳥類", "龍族", "虫類", "水中", "兵器", "建造物", "魔法使い"];
@@ -554,6 +957,451 @@
     let draggedIdeaId = null;
     let draggedUuid = null;
     let editingTagTarget = null; // { type: 'scenario'|'idea', id: string }
+
+    // ========================================================
+    // --- インタラクティブ・クリーチャーカードエディタ ---
+    // ========================================================
+    let currentCardData = null;
+    let isUpdatingCardFromVisual = false;
+    let isCardHtmlMode = false;
+    let focusedCardCellIndex = -1; // RE▼メニュー連動用: 最後にフォーカスされた反応表セルのインデックス
+
+    const WEAK_CREATURE_DATA = {
+        name: "〈弱いクリーチャー名〉",
+        tags: ["【タグ】"],
+        stats: [
+            { label: "出現数", value: "♪" },
+            { label: "レベル", value: "♪" },
+            { label: "生命点", value: "" },
+            { label: "攻撃回数", value: "" },
+            { label: "防御点", value: "" },
+            { label: "宝物", value: "♪" }
+        ],
+        tableCells: [
+            { dice: "1 - 3", action: "【♪】" },
+            { dice: "4 - 6", action: "【♪】" }
+        ],
+        body: "(見た目など説明)\nこのクリーチャーは【】【】である。このクリーチャーは【打撃】【斬撃】の攻撃特性を持つ。"
+    };
+
+    const STRONG_CREATURE_DATA = {
+        name: "〈強いクリーチャー名〉",
+        tags: ["【タグ1】", "【タグ2】"],
+        stats: [
+            { label: "出現数", value: "" },
+            { label: "レベル", value: "♪" },
+            { label: "生命点", value: "♪" },
+            { label: "攻撃回数", value: "♪" },
+            { label: "防御点", value: "♪" },
+            { label: "宝物", value: "♪" }
+        ],
+        tableCells: [
+            { dice: "1", action: "【♪】" },
+            { dice: "2 - 3", action: "【♪】" },
+            { dice: "4 - 6", action: "【♪】" }
+        ],
+        body: "(見た目など説明)\nこのクリーチャーは【】【】である。このクリーチャーは【打撃】【斬撃】の攻撃特性を持つ。"
+    };
+
+    const REACTION_PRESETS = {
+        1: [{ dice: "1 - 6", action: "【♪】" }],
+        2: [{ dice: "1 - 3", action: "【♪】" }, { dice: "4 - 6", action: "【♪】" }],
+        3: [{ dice: "1", action: "【♪】" }, { dice: "2 - 3", action: "【♪】" }, { dice: "4 - 6", action: "【♪】" }],
+        4: [{ dice: "1", action: "【♪】" }, { dice: "2 - 3", action: "【♪】" }, { dice: "4 - 5", action: "【♪】" }, { dice: "6", action: "【♪】" }],
+        5: [{ dice: "1", action: "【♪】" }, { dice: "2", action: "【♪】" }, { dice: "3", action: "【♪】" }, { dice: "4", action: "【♪】" }, { dice: "5 - 6", action: "【♪】" }],
+        6: [{ dice: "1", action: "【♪】" }, { dice: "2", action: "【♪】" }, { dice: "3", action: "【♪】" }, { dice: "4", action: "【♪】" }, { dice: "5", action: "【♪】" }, { dice: "6", action: "【♪】" }]
+    };
+
+    function extractCreatureCardBlock(text) {
+        if (!text) return null;
+        const startIdx = text.indexOf('<div class="creature-card">');
+        if (startIdx === -1) return null;
+
+        let depth = 0;
+        let pos = startIdx;
+        while (pos < text.length) {
+            if (text.substr(pos, 4) === '<div') {
+                depth++;
+                pos += 4;
+            } else if (text.substr(pos, 6) === '</div>') {
+                depth--;
+                pos += 6;
+                if (depth === 0) {
+                    return {
+                        start: startIdx,
+                        end: pos,
+                        html: text.substring(startIdx, pos)
+                    };
+                }
+            } else {
+                pos++;
+            }
+        }
+        return null;
+    }
+
+    function parseCreatureCardHtml(cardHtml) {
+        try {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(cardHtml, 'text/html');
+            const cardEl = doc.querySelector('.creature-card');
+            if (!cardEl) return null;
+
+            const nameEl = cardEl.querySelector('.creature-header > span');
+            const name = nameEl ? nameEl.textContent.trim() : '';
+
+            const tagEls = cardEl.querySelectorAll('.creature-tags .creature-tag');
+            const tags = Array.from(tagEls).map(el => el.textContent.trim()).filter(t => t);
+
+            const statMap = {};
+            const statSpans = cardEl.querySelectorAll('.creature-stats > span');
+            statSpans.forEach(span => {
+                const strong = span.querySelector('strong');
+                const val = strong ? strong.textContent.trim() : '';
+                const clone = span.cloneNode(true);
+                const s = clone.querySelector('strong');
+                if (s) s.remove();
+                const label = clone.textContent.replace(/[:：]/g, '').trim();
+                if (label) statMap[label] = val;
+            });
+
+            const standardLabels = ['出現数', 'レベル', '生命点', '攻撃回数', '防御点', '宝物'];
+            const stats = standardLabels.map(l => ({
+                label: l,
+                value: statMap[l] !== undefined ? statMap[l] : ''
+            }));
+            Object.keys(statMap).forEach(l => {
+                if (!standardLabels.includes(l)) {
+                    stats.push({ label: l, value: statMap[l] });
+                }
+            });
+
+            const cellEls = cardEl.querySelectorAll('.creature-table .creature-cell');
+            const tableCells = [];
+            cellEls.forEach(cell => {
+                const diceEl = cell.querySelector('.cell-dice');
+                const dice = diceEl ? diceEl.textContent.trim() : '';
+                const clone = cell.cloneNode(true);
+                const d = clone.querySelector('.cell-dice');
+                if (d) d.remove();
+                const action = clone.textContent.trim();
+                tableCells.push({ dice, action });
+            });
+            if (tableCells.length === 0) {
+                tableCells.push({ dice: '1 - 3', action: '【♪】' }, { dice: '4 - 6', action: '【♪】' });
+            }
+
+            const bodyEl = cardEl.querySelector('.creature-body');
+            let body = bodyEl ? bodyEl.innerHTML.trim() : '';
+            body = body.replace(/<br\s*[\/]?>/gi, '\n');
+
+            return { name, tags, stats, tableCells, body };
+        } catch (e) {
+            console.error("Failed to parse creature card html", e);
+            return null;
+        }
+    }
+
+    function generateCreatureCardHtml(card) {
+        const tagsArr = (card.tags || []).filter(t => t && t.trim() !== "");
+        const tagsHtml = tagsArr.length > 0
+            ? `\n        <div class="creature-tags">\n${tagsArr.map(t => `            <span class="creature-tag">${t.trim()}</span>`).join('\n')}\n        </div>`
+            : '';
+
+        const statsArr = (card.stats || []).filter(s => s && s.value !== undefined && s.value !== null && String(s.value).trim() !== "");
+        const statsHtml = statsArr.length > 0
+            ? `\n    <div class="creature-stats">\n${statsArr.map(s => `        <span>${s.label}: <strong>${String(s.value).trim()}</strong></span>`).join('\n')}\n    </div>`
+            : '';
+
+        const cols = Math.min(6, Math.max(1, (card.tableCells || []).length));
+        const cellsHtml = (card.tableCells || []).map(c => `        <div class="creature-cell">\n            <div class="cell-dice">${c.dice || ''}</div>\n            <div>${c.action || ''}</div>\n        </div>`).join('\n');
+
+        const bodyHtml = (card.body || '').replace(/\r?\n/g, '<br>');
+
+        return `<div class="creature-card">\n    <div class="creature-header">\n        <span>${card.name || ''}</span>${tagsHtml}\n    </div>${statsHtml}\n    <div class="creature-table creature-table-${cols}cols">\n        <div class="table-side-title">反応表</div>\n${cellsHtml}\n    </div>\n    <div class="creature-body">\n        ${bodyHtml}\n    </div>\n</div>`;
+    }
+
+    function renderVisualCardEditor() {
+        const container = document.getElementById('creature-card-editor-container');
+        if (!currentCardData) {
+            if (container) container.classList.add('hidden');
+            return;
+        }
+
+        if (container) container.classList.remove('hidden');
+
+        const nameInput = document.getElementById('card-input-name');
+        if (nameInput) nameInput.value = currentCardData.name || '';
+
+        const tagsContainer = document.getElementById('card-tags-list');
+        if (tagsContainer) {
+            // タグ0個でも崩れないよう、タグチップのみレンダリング（入力欄はHTML固定）
+            tagsContainer.innerHTML = (currentCardData.tags || []).map((tag, idx) => `
+                <span class="creature-tag inline-flex items-center gap-1" style="white-space:nowrap;">
+                    <span>${tag}</span>
+                    <button type="button" onclick="removeCardTag(${idx})" class="text-white hover:text-red-300 font-bold leading-none ml-0.5" title="削除" style="font-size:11px; line-height:1;">×</button>
+                </span>
+            `).join('');
+        }
+
+        const statsContainer = document.getElementById('card-stats-list');
+        if (statsContainer) {
+            const standardLabels = ['出現数', 'レベル', '生命点', '攻撃回数', '防御点', '宝物'];
+            let statsHtml = (currentCardData.stats || []).map((s, idx) => {
+                const isCustom = !standardLabels.includes(s.label);
+                return `
+                <div class="flex items-center gap-1 bg-white border border-gray-300 rounded px-1.5 py-0.5 text-[11px] shadow-sm">
+                    <span class="text-gray-600 font-bold whitespace-nowrap">${s.label}:</span>
+                    <input type="text" value="${s.value || ''}" class="w-10 text-center font-bold text-gray-800 bg-transparent border-b border-gray-300 focus:border-indigo-500 outline-none text-[11px]" placeholder="空で非表示" oninput="onVisualCardStatChange(${idx}, this.value)">
+                    ${isCustom ? `<button type="button" onclick="removeCardStat(${idx})" class="text-gray-400 hover:text-red-500 text-xs px-0.5 font-bold" title="項目削除">×</button>` : ''}
+                </div>`;
+            }).join('');
+            statsHtml += `<button type="button" onclick="addCustomCardStat()" class="text-[10px] bg-white hover:bg-gray-100 text-indigo-600 border border-indigo-200 px-1.5 py-0.5 rounded font-bold shadow-sm" title="新しいスペック項目を追加">＋項目</button>`;
+            statsContainer.innerHTML = statsHtml;
+        }
+
+        renderCardTableEditor();
+
+        const bodyInput = document.getElementById('card-input-body');
+        if (bodyInput) bodyInput.value = currentCardData.body || '';
+    }
+
+    function renderCardTableEditor() {
+        const tableGrid = document.getElementById('card-table-grid');
+        if (!tableGrid || !currentCardData) return;
+
+        const cells = currentCardData.tableCells || [];
+        const cols = Math.min(6, Math.max(1, cells.length));
+        tableGrid.className = `creature-table creature-table-${cols}cols`;
+
+        let html = `
+            <div class="table-side-title flex-col gap-1 py-1 shrink-0">
+                <span class="text-[10px] font-bold">反応表</span>
+                <div class="flex gap-1 items-center justify-center">
+                    <button type="button" onclick="adjustReactionCells(-1)" class="w-4 h-4 flex items-center justify-center bg-gray-300 hover:bg-gray-400 rounded text-gray-800 font-bold text-xs shadow-sm transition" title="列を減らす">−</button>
+                    <button type="button" onclick="adjustReactionCells(1)" class="w-4 h-4 flex items-center justify-center bg-gray-300 hover:bg-gray-400 rounded text-gray-800 font-bold text-xs shadow-sm transition" title="列を増やす">＋</button>
+                </div>
+                <span id="card-col-count-label" class="text-[9px] text-gray-500 font-normal">${cols}分割</span>
+            </div>`;
+
+        cells.forEach((c, idx) => {
+            html += `
+            <div class="creature-cell bg-white">
+                <div class="cell-dice w-full">
+                    <input type="text" value="${c.dice || ''}" class="w-full text-center font-bold text-gray-700 bg-transparent outline-none text-[11px] border-b border-transparent focus:border-indigo-400" placeholder="出目" oninput="onVisualCardCellChange(${idx}, 'dice', this.value)">
+                </div>
+                <div class="w-full mt-1">
+                    <input type="text" value="${c.action || ''}" class="w-full text-center text-gray-800 bg-transparent outline-none text-[11px] border-b border-transparent focus:border-indigo-400" placeholder="行動" onfocus="focusedCardCellIndex=${idx}" oninput="onVisualCardCellChange(${idx}, 'action', this.value)">
+                </div>
+            </div>`;
+        });
+        tableGrid.innerHTML = html;
+    }
+
+    function adjustReactionCells(delta) {
+        if (!currentCardData) return;
+        const currentCount = (currentCardData.tableCells || []).length;
+        const newCount = Math.min(6, Math.max(1, currentCount + delta));
+        if (newCount === currentCount) return;
+
+        const oldCells = currentCardData.tableCells || [];
+        const preset = REACTION_PRESETS[newCount];
+        const newCells = preset.map((p, i) => ({
+            dice: p.dice,
+            action: (oldCells[i] && oldCells[i].action) ? oldCells[i].action : p.action
+        }));
+
+        currentCardData.tableCells = newCells;
+        renderCardTableEditor();
+        syncCardToText();
+    }
+
+    function onVisualCardNameChange(val) {
+        if (!currentCardData) return;
+        currentCardData.name = val;
+        syncCardToText();
+    }
+
+    function onVisualCardBodyChange(val) {
+        if (!currentCardData) return;
+        currentCardData.body = val;
+        syncCardToText();
+    }
+
+    function onVisualCardStatChange(idx, val) {
+        if (!currentCardData || !currentCardData.stats[idx]) return;
+        currentCardData.stats[idx].value = val;
+        syncCardToText();
+    }
+
+    function onVisualCardCellChange(idx, field, val) {
+        if (!currentCardData || !currentCardData.tableCells[idx]) return;
+        currentCardData.tableCells[idx][field] = val;
+        syncCardToText();
+    }
+
+    // カードのタグをインライン入力欄から追加（Enterキー or TAG▼から）
+    function addCardTagFromInlineInput() {
+        const input = document.getElementById('card-tag-inline-input');
+        if (!input) return;
+        let val = input.value.trim();
+        if (!val) return;
+        if (!currentCardData) return;
+        // 【】で囲まれていない場合は自動付与
+        if (!val.startsWith('【')) val = '【' + val;
+        if (!val.endsWith('】')) val = val + '】';
+        if (!currentCardData.tags) currentCardData.tags = [];
+        currentCardData.tags.push(val);
+        input.value = '';
+        renderVisualCardEditor();
+        syncCardToText();
+    }
+
+    // TAG▼メニュー連動: カードエディタ起動中→タグ追加、通常時→テキストエリアへ挿入
+    function insertTagToCardOrText(tagText) {
+        if (currentCardData) {
+            // カードエディタが起動中ならカードのタグリストに追加
+            if (!currentCardData.tags) currentCardData.tags = [];
+            if (!currentCardData.tags.includes(tagText)) {
+                currentCardData.tags.push(tagText);
+                renderVisualCardEditor();
+                syncCardToText();
+            }
+            // インライン入力欄を空にしてフォーカス
+            const input = document.getElementById('card-tag-inline-input');
+            if (input) { input.value = ''; }
+        } else {
+            insertMarkdown(tagText, '');
+        }
+    }
+
+    // RE▼メニュー連動: カードエディタ起動中→フォーカス中セルに挿入、通常時→テキストエリアへ挿入
+    function insertReactionToCardOrText(reactionText) {
+        if (currentCardData && focusedCardCellIndex >= 0 && focusedCardCellIndex < (currentCardData.tableCells || []).length) {
+            // フォーカスされているセルの action に追加
+            currentCardData.tableCells[focusedCardCellIndex].action = reactionText;
+            renderCardTableEditor();
+            syncCardToText();
+            // 再フォーカスを試みる
+            setTimeout(() => {
+                const inputs = document.querySelectorAll('#card-table-grid .creature-cell input[placeholder="行動"]');
+                if (inputs[focusedCardCellIndex]) inputs[focusedCardCellIndex].focus();
+            }, 50);
+        } else {
+            insertMarkdown(reactionText, '');
+        }
+    }
+
+    function promptAddCardTag() {
+        // 後方互換のため残す（インライン入力欄にフォーカスを移す）
+        const input = document.getElementById('card-tag-inline-input');
+        if (input) { input.focus(); input.select(); }
+    }
+
+    function removeCardTag(idx) {
+        if (!currentCardData || !currentCardData.tags) return;
+        currentCardData.tags.splice(idx, 1);
+        renderVisualCardEditor();
+        syncCardToText();
+    }
+
+    function addCustomCardStat() {
+        if (!currentCardData) return;
+        const label = prompt("新しいスペック項目の名前を入力してください（例: 防御点、移動力）:");
+        if (!label || !label.trim()) return;
+        if (!currentCardData.stats) currentCardData.stats = [];
+        currentCardData.stats.push({ label: label.trim(), value: "♪" });
+        renderVisualCardEditor();
+        syncCardToText();
+    }
+
+    function removeCardStat(idx) {
+        if (!currentCardData || !currentCardData.stats) return;
+        currentCardData.stats.splice(idx, 1);
+        renderVisualCardEditor();
+        syncCardToText();
+    }
+
+    function syncCardToText() {
+        if (!currentCardData) return;
+        isUpdatingCardFromVisual = true;
+
+        const newCardHtml = generateCreatureCardHtml(currentCardData);
+        const textarea = document.getElementById('edit-text');
+        if (!textarea) return;
+
+        const currentText = textarea.value;
+        const block = extractCreatureCardBlock(currentText);
+
+        let newText = '';
+        if (block) {
+            newText = currentText.substring(0, block.start) + newCardHtml + currentText.substring(block.end);
+        } else {
+            const newline = (currentText.length > 0 && !currentText.endsWith('\n')) ? '\n\n' : '';
+            newText = currentText + newline + newCardHtml;
+        }
+
+        textarea.value = newText;
+        updateCurrentEntry('text', newText);
+        isUpdatingCardFromVisual = false;
+    }
+
+    function checkAndRenderCreatureCardEditor(text) {
+        if (isUpdatingCardFromVisual) return;
+        const block = extractCreatureCardBlock(text);
+        if (block) {
+            const parsed = parseCreatureCardHtml(block.html);
+            if (parsed) {
+                currentCardData = parsed;
+                renderVisualCardEditor();
+                return;
+            }
+        }
+        currentCardData = null;
+        const container = document.getElementById('creature-card-editor-container');
+        if (container) container.classList.add('hidden');
+    }
+
+    function toggleCardHtmlMode() {
+        const visualCard = document.getElementById('creature-visual-card');
+        const btn = document.getElementById('btn-toggle-card-html');
+        isCardHtmlMode = !isCardHtmlMode;
+        if (isCardHtmlMode) {
+            if (visualCard) visualCard.classList.add('hidden');
+            if (btn) {
+                btn.textContent = '🃏 カードUI表示';
+                btn.classList.add('bg-indigo-100', 'text-indigo-800');
+            }
+        } else {
+            if (visualCard) visualCard.classList.remove('hidden');
+            if (btn) {
+                btn.textContent = '</> HTML確認';
+                btn.classList.remove('bg-indigo-100', 'text-indigo-800');
+            }
+        }
+    }
+
+    function removeCreatureCardFromEntry() {
+        if (!confirm("本文からクリーチャーカードを削除しますか？")) return;
+        isInputting = false;
+        clearTimeout(debounceTimer);
+        saveHistory();
+
+        const textarea = document.getElementById('edit-text');
+        if (!textarea) return;
+        const currentText = textarea.value;
+        const block = extractCreatureCardBlock(currentText);
+        if (block) {
+            const before = currentText.substring(0, block.start).trimEnd();
+            const after = currentText.substring(block.end).trimStart();
+            const newText = before + (before && after ? '\n\n' : '') + after;
+            textarea.value = newText;
+            updateCurrentEntry('text', newText);
+        }
+        currentCardData = null;
+        const container = document.getElementById('creature-card-editor-container');
+        if (container) container.classList.add('hidden');
+    }
 
     // Undo / Redo stacks and states
     let undoStack = [];
@@ -909,77 +1757,443 @@
         }
     });
 
-    // --- Core Logic ---
-    function init() {
-        // ローカルストレージから読み込み
-        const stored = localStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            try {
-                scenarioData = JSON.parse(stored);
-                // 既存データにUUIDを付与
-                scenarioData.forEach(e => {
-                    if (!e._uuid) e._uuid = generateUuid();
-                });
-            } catch (e) { console.error("Data load error", e); }
-        }
+    // ============================================================
+    // --- マルチシナリオ管理関数 ---
+    // ============================================================
 
-        // 並び替え設定の復元
-        const storedSort = localStorage.getItem('rlh_scenario_editor_sort');
-        if (storedSort) {
-            const sortSelect = document.getElementById('sort-select');
-            if(sortSelect) sortSelect.value = storedSort;
-        }
+    /** シナリオインデックス（一覧）を取得する */
+    function getScenariosIndex() {
+        try {
+            const raw = localStorage.getItem(MULTI_INDEX_KEY);
+            return raw ? JSON.parse(raw) : [];
+        } catch(e) { return []; }
+    }
 
-        // ネタ帳データの読み込み
-        const storedIdeas = localStorage.getItem(STORAGE_KEY_IDEAS);
-        if (storedIdeas) {
-            ideaData = JSON.parse(storedIdeas);
-            // タグデータのマイグレーション（文字列 -> 配列）
-            ideaData.forEach(idea => {
-                if (typeof idea.tags === 'string') {
-                    idea.tags = idea.tags.split(',').map(t => t.trim()).filter(t => t);
-                } else if (!Array.isArray(idea.tags)) {
-                    idea.tags = [];
-                }
-            });
-        }
-        
-        const storedTitle = localStorage.getItem(STORAGE_KEY_TITLE);
-        if (storedTitle) {
-            document.getElementById('scenario-title').value = storedTitle;
-        }
+    /** シナリオインデックスを保存する */
+    function saveScenariosIndex(index) {
+        localStorage.setItem(MULTI_INDEX_KEY, JSON.stringify(index));
+    }
 
-        isScenarioLocked = localStorage.getItem(STORAGE_KEY_LOCKED) === 'true';
-        scenarioPassword = localStorage.getItem(STORAGE_KEY_PASSWORD) || "";
-        const storedConfig = localStorage.getItem(STORAGE_KEY_CONFIG);
-        if (storedConfig) {
-            scenarioConfig = JSON.parse(storedConfig);
-        }
-        creatureTemplates = JSON.parse(localStorage.getItem('rlh_creature_templates')) || [...DEFAULT_CREATURE_TEMPLATES];
-        reactionTemplates = JSON.parse(localStorage.getItem('rlh_reaction_templates')) || [...DEFAULT_REACTIONS];
-        classificationTags = JSON.parse(localStorage.getItem('rlh_classification_tags')) || [...DEFAULT_CLASSIFICATIONS];
-        const storedNpcs = localStorage.getItem('rlh_scenario_npcs');
-        if (storedNpcs) {
-            try {
-                scenarioNpcs = JSON.parse(storedNpcs);
-            } catch (e) { console.error("NPC load error", e); }
-        }
+    /** シナリオIDから個別データを取得する */
+    function getScenarioData(id) {
+        try {
+            const raw = localStorage.getItem(MULTI_DATA_PREFIX + id);
+            return raw ? JSON.parse(raw) : null;
+        } catch(e) { return null; }
+    }
 
-        const storedSynopsis = localStorage.getItem('rlh_scenario_synopsis');
-        if (storedSynopsis) {
-            scenarioSynopsis = storedSynopsis;
-        }
+    /** 現在のエディタ状態を指定シナリオIDへ保存する */
+    function saveScenarioData(id) {
+        const payload = {
+            scenarioData: scenarioData,
+            ideaData: ideaData,
+            scenarioNpcs: scenarioNpcs,
+            scenarioSynopsis: scenarioSynopsis,
+            isScenarioLocked: isScenarioLocked,
+            scenarioPassword: scenarioPassword,
+            scenarioConfig: scenarioConfig,
+            creatureTemplates: creatureTemplates,
+            reactionTemplates: reactionTemplates,
+            classificationTags: classificationTags,
+            sortMode: document.getElementById('sort-select')?.value || 'default'
+        };
+        localStorage.setItem(MULTI_DATA_PREFIX + id, JSON.stringify(payload));
+    }
 
-        // 初期データ（サンプル）
-        if(scenarioData.length === 0) {
-            scenarioData.push({ _uuid: generateUuid(), id: "11", type: "d66", turn: 1, text: "### サンプルイベント\n森の中で**奇妙なキノコ**を見つけた。\n\nどうする？", choice1_label: "食べる", choice1_next_id: "11-a", listTitle: "森の探索" });
+    /** インデックスのメタデータを更新する */
+    function updateScenarioMeta(id, title) {
+        const index = getScenariosIndex();
+        const existing = index.find(s => s.id === id);
+        const meta = {
+            id: id,
+            title: title || '（無題のシナリオ）',
+            updatedAt: new Date().toISOString(),
+            itemCount: scenarioData.filter(e => !e.isPlaceholder).length
+        };
+        if (existing) {
+            Object.assign(existing, meta);
+        } else {
+            index.unshift(meta);
         }
+        saveScenariosIndex(index);
+    }
+
+    /** ポータルを表示する */
+    function showPortal() {
+        // 現在のシナリオを自動保存してからポータルへ
+        if (currentScenarioId) {
+            saveData();
+        }
+        const portal = document.getElementById('scenario-portal');
+        portal.classList.remove('hidden');
+        renderPortalCards();
+    }
+
+    /** ポータルを閉じる（エディタを表示する） */
+    function hidePortal() {
+        const portal = document.getElementById('scenario-portal');
+        portal.classList.add('hidden');
+    }
+
+    /** ヘッダーの「一覧」ボタンからポータルへ戻る */
+    function backToPortal() {
+        if (currentScenarioId) {
+            saveData(); // 自動保存
+        }
+        showPortal();
+    }
+
+    /** ポータルのカード一覧を描画する */
+    function renderPortalCards() {
+        const index = getScenariosIndex();
+        const grid = document.getElementById('portal-cards-grid');
+        const empty = document.getElementById('portal-empty');
+
+        if (index.length === 0) {
+            grid.innerHTML = '';
+            if (empty) { empty.classList.remove('hidden'); empty.classList.add('flex'); }
+            return;
+        }
+        if (empty) { empty.classList.add('hidden'); empty.classList.remove('flex'); }
+
+        grid.innerHTML = index.map(meta => {
+            const updatedDate = meta.updatedAt ? new Date(meta.updatedAt).toLocaleString('ja-JP', {
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit'
+            }) : '—';
+            const isActive = meta.id === currentScenarioId;
+            const activeBorder = isActive ? 'border-2 border-indigo-400' : 'border border-gray-100';
+            return `
+            <div class="portal-card ${activeBorder} flex flex-col">
+                <div class="p-4 flex-1">
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                        <div class="flex-1 min-w-0">
+                            <div class="font-bold text-gray-800 text-sm truncate">${escapeHtml(meta.title)}</div>
+                            ${isActive ? '<span class="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded font-bold">編集中</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="text-xs text-gray-400 mt-1 flex items-center gap-3">
+                        <span>📋 ${meta.itemCount || 0}件</span>
+                        <span>🕐 ${updatedDate}</span>
+                    </div>
+                </div>
+                <div class="bg-gray-50 border-t border-gray-100 px-3 py-2 flex gap-2">
+                    <button onclick="portalOpenScenario('${meta.id}')" class="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white py-1.5 rounded text-xs font-bold transition">編集する</button>
+                    <button onclick="portalDuplicateScenario('${meta.id}')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded text-xs font-bold transition" title="複製">複製</button>
+                    <button onclick="portalDeleteScenario('${meta.id}')" class="bg-red-50 hover:bg-red-100 text-red-500 px-3 py-1.5 rounded text-xs font-bold transition" title="削除">削除</button>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    function escapeHtml(str) {
+        return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    /** ポータルからシナリオを開いてエディタへ遷移する */
+    function portalOpenScenario(id) {
+        const data = getScenarioData(id);
+        if (!data) { alert('データを読み込めませんでした。'); return; }
+
+        currentScenarioId = id;
+
+        // エディタ状態に復元
+        scenarioData = (data.scenarioData || []).map(e => { if (!e._uuid) e._uuid = generateUuid(); return e; });
+        ideaData = data.ideaData || [];
+        scenarioNpcs = data.scenarioNpcs || [];
+        scenarioSynopsis = data.scenarioSynopsis || '';
+        isScenarioLocked = !!data.isScenarioLocked;
+        scenarioPassword = data.scenarioPassword || '';
+        scenarioConfig = data.scenarioConfig || { rows: 6, cols: 6, minTiles: 6, maxTiles: 8 };
+        if (data.creatureTemplates) creatureTemplates = data.creatureTemplates;
+        if (data.reactionTemplates) reactionTemplates = data.reactionTemplates;
+        if (data.classificationTags) classificationTags = data.classificationTags;
+
+        // タイトルを設定
+        const index = getScenariosIndex();
+        const meta = index.find(s => s.id === id);
+        document.getElementById('scenario-title').value = meta ? meta.title : '';
+
+        // ソート設定を復元
+        const sortSelect = document.getElementById('sort-select');
+        if (sortSelect && data.sortMode) sortSelect.value = data.sortMode;
+
+        // UI更新
+        currentUuid = null;
+        undoStack = [];
+        redoStack = [];
+        updateUndoRedoButtons();
         renderList();
         renderIdeaList();
+        renderNpcList();
         applyLockUI();
         renderTemplateMenus();
-        initResizer();
+        document.getElementById('editor-form').classList.add('hidden');
+        document.getElementById('no-selection').classList.remove('hidden');
+
+        hidePortal();
+    }
+
+    /** ポータルから新規シナリオを作成する */
+    function portalCreateNew() {
+        const id = 'sc_' + generateUuid();
+        currentScenarioId = id;
+
+        // 新規データで初期化
+        scenarioData = [
+            { _uuid: generateUuid(), id: "", type: "title", turn: 1, text: "# シナリオタイトル ## サブタイトル 作者名", listTitle: "" },
+            { _uuid: generateUuid(), id: "", type: "overview", turn: 1, text: OVERVIEW_TEMPLATE, listTitle: "" },
+            { _uuid: generateUuid(), id: "11", type: "d66", turn: 1, text: "### 新規イベント イベント内容を記述...", listTitle: "" }
+        ];
+        ideaData = [];
+        scenarioNpcs = [];
+        scenarioSynopsis = '';
+        isScenarioLocked = false;
+        scenarioPassword = '';
+        scenarioConfig = { rows: 6, cols: 6, minTiles: 6, maxTiles: 8 };
+        creatureTemplates = [...DEFAULT_CREATURE_TEMPLATES];
+        reactionTemplates = [...DEFAULT_REACTIONS];
+        classificationTags = [...DEFAULT_CLASSIFICATIONS];
+
+        document.getElementById('scenario-title').value = '';
+        currentUuid = null;
+        undoStack = [];
+        redoStack = [];
+        updateUndoRedoButtons();
+
+        // 保存してインデックスに追加
+        saveScenarioData(id);
+        updateScenarioMeta(id, '');
+
+        renderList();
+        renderIdeaList();
         renderNpcList();
+        applyLockUI();
+        renderTemplateMenus();
+        document.getElementById('editor-form').classList.add('hidden');
+        document.getElementById('no-selection').classList.remove('hidden');
+
+        hidePortal();
+    }
+
+    /** ポータルからシナリオを複製する */
+    function portalDuplicateScenario(srcId) {
+        const data = getScenarioData(srcId);
+        if (!data) { alert('データを読み込めませんでした。'); return; }
+
+        const newId = 'sc_' + generateUuid();
+        const index = getScenariosIndex();
+        const srcMeta = index.find(s => s.id === srcId);
+        const newTitle = (srcMeta ? srcMeta.title : '無題') + ' (コピー)';
+
+        // 複製データを保存
+        localStorage.setItem(MULTI_DATA_PREFIX + newId, JSON.stringify(data));
+
+        // インデックスに追加
+        const newMeta = {
+            id: newId,
+            title: newTitle,
+            updatedAt: new Date().toISOString(),
+            itemCount: srcMeta ? srcMeta.itemCount : 0
+        };
+        index.unshift(newMeta);
+        saveScenariosIndex(index);
+
+        renderPortalCards();
+    }
+
+    /** ポータルからシナリオを削除する */
+    function portalDeleteScenario(id) {
+        const index = getScenariosIndex();
+        const meta = index.find(s => s.id === id);
+        const title = meta ? meta.title || '（無題）' : id;
+        if (!confirm(`「${title}」を削除しますか？
+この操作は元に戻せません。`)) return;
+
+        // データ削除
+        localStorage.removeItem(MULTI_DATA_PREFIX + id);
+        const newIndex = index.filter(s => s.id !== id);
+        saveScenariosIndex(newIndex);
+
+        // 編集中のシナリオが削除された場合はリセット
+        if (currentScenarioId === id) {
+            currentScenarioId = null;
+        }
+
+        renderPortalCards();
+    }
+
+    /** ポータルからJSON/CSVファイルをインポートする */
+    function portalImportFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const isCsv = file.name.toLowerCase().endsWith('.csv');
+        const fileName = file.name.replace(/\.(json|csv)$/i, '');
+        const reader = new FileReader();
+
+        reader.onload = function(e) {
+            try {
+                // 新しいシナリオIDを発行
+                const newId = 'sc_' + generateUuid();
+                currentScenarioId = newId;
+
+                let items = [];
+                if (isCsv) {
+                    const rows = parseCSV(e.target.result);
+                    if (rows.length < 2) { alert('データが空か、ヘッダー行がありません。'); return; }
+                    const headers = rows[0].map(h => h.trim());
+                    items = rows.slice(1).map(row => {
+                        const obj = { _uuid: generateUuid() };
+                        headers.forEach((h, i) => {
+                            let val = row[i] !== undefined ? row[i] : '';
+                            if (h === 'turn') val = parseInt(val) || 1;
+                            if (h === 'tags') val = val ? val.split('|') : [];
+                            if (h === 'cost') val = parseInt(val) || 0;
+                            obj[h] = val;
+                        });
+                        if (!obj.type) obj.type = 'd66';
+                        return obj;
+                    });
+                    scenarioData = items;
+                    ideaData = [];
+                    scenarioNpcs = [];
+                    scenarioSynopsis = '';
+                    isScenarioLocked = false;
+                    scenarioPassword = '';
+                    scenarioConfig = { rows: 6, cols: 6, minTiles: 6, maxTiles: 8 };
+                    creatureTemplates = [...DEFAULT_CREATURE_TEMPLATES];
+                    reactionTemplates = [...DEFAULT_REACTIONS];
+                    classificationTags = [...DEFAULT_CLASSIFICATIONS];
+                } else {
+                    const data = JSON.parse(e.target.result);
+                    if (data.items && Array.isArray(data.items)) {
+                        items = data.items;
+                        scenarioSynopsis = data.synopsis || '';
+                        isScenarioLocked = !!data.isLocked;
+                        scenarioPassword = data.password || '';
+                        if (data.config) scenarioConfig = data.config;
+                        else scenarioConfig = { rows: 6, cols: 6, minTiles: 6, maxTiles: 8 };
+                        creatureTemplates = data.creatureTemplates || [...DEFAULT_CREATURE_TEMPLATES];
+                        reactionTemplates = data.reactionTemplates || [...DEFAULT_REACTIONS];
+                        classificationTags = data.classificationTags || [...DEFAULT_CLASSIFICATIONS];
+                        scenarioNpcs = data.npcs || [];
+                    } else if (Array.isArray(data)) {
+                        items = data;
+                        scenarioSynopsis = '';
+                        isScenarioLocked = false;
+                        scenarioPassword = '';
+                        scenarioConfig = { rows: 6, cols: 6, minTiles: 6, maxTiles: 8 };
+                        creatureTemplates = [...DEFAULT_CREATURE_TEMPLATES];
+                        reactionTemplates = [...DEFAULT_REACTIONS];
+                        classificationTags = [...DEFAULT_CLASSIFICATIONS];
+                        scenarioNpcs = [];
+                    } else {
+                        alert('無効なファイル形式です。'); return;
+                    }
+                    items.forEach(e => { if (!e._uuid) e._uuid = generateUuid(); });
+                    scenarioData = items;
+                    ideaData = [];
+                }
+
+                document.getElementById('scenario-title').value = fileName;
+                currentUuid = null;
+                undoStack = [];
+                redoStack = [];
+
+                // 保存
+                saveScenarioData(newId);
+                updateScenarioMeta(newId, fileName);
+
+                renderList();
+                renderIdeaList();
+                renderNpcList();
+                applyLockUI();
+                renderTemplateMenus();
+                document.getElementById('editor-form').classList.add('hidden');
+                document.getElementById('no-selection').classList.remove('hidden');
+                updateUndoRedoButtons();
+                hidePortal();
+                alert('読み込み完了: ' + items.length + '件');
+            } catch(err) {
+                alert('読み込みエラー: ' + err);
+            }
+        };
+        reader.readAsText(file, 'UTF-8');
+        event.target.value = '';
+    }
+
+    // --- Core Logic ---
+    function init() {
+        // フォント設定の復元
+        const storedFont = localStorage.getItem(STORAGE_KEY_FONT);
+        if (storedFont) currentFont = storedFont;
+        applyPreviewFont(currentFont);
+
+        // ──────────────────────────────────────────────────────────
+        // マルチシナリオ: 旧形式データのマイグレーション
+        // ──────────────────────────────────────────────────────────
+        const legacyData = localStorage.getItem(STORAGE_KEY);
+        const index = getScenariosIndex();
+        if (legacyData && index.length === 0) {
+            // 旧形式が存在し、まだインデックスが空の場合はマイグレーション
+            const migratedId = 'sc_' + generateUuid();
+            const legacyTitle = localStorage.getItem(STORAGE_KEY_TITLE) || '（移行済みシナリオ）';
+            try {
+                const legacyItems = JSON.parse(legacyData) || [];
+                legacyItems.forEach(e => { if (!e._uuid) e._uuid = generateUuid(); });
+                const migratedPayload = {
+                    scenarioData: legacyItems,
+                    ideaData: JSON.parse(localStorage.getItem(STORAGE_KEY_IDEAS) || '[]'),
+                    scenarioNpcs: JSON.parse(localStorage.getItem('rlh_scenario_npcs') || '[]'),
+                    scenarioSynopsis: localStorage.getItem('rlh_scenario_synopsis') || '',
+                    isScenarioLocked: localStorage.getItem(STORAGE_KEY_LOCKED) === 'true',
+                    scenarioPassword: localStorage.getItem(STORAGE_KEY_PASSWORD) || '',
+                    scenarioConfig: JSON.parse(localStorage.getItem(STORAGE_KEY_CONFIG) || 'null') || { rows: 6, cols: 6, minTiles: 6, maxTiles: 8 },
+                    creatureTemplates: JSON.parse(localStorage.getItem('rlh_creature_templates') || 'null') || [...DEFAULT_CREATURE_TEMPLATES],
+                    reactionTemplates: JSON.parse(localStorage.getItem('rlh_reaction_templates') || 'null') || [...DEFAULT_REACTIONS],
+                    classificationTags: JSON.parse(localStorage.getItem('rlh_classification_tags') || 'null') || [...DEFAULT_CLASSIFICATIONS],
+                };
+                localStorage.setItem(MULTI_DATA_PREFIX + migratedId, JSON.stringify(migratedPayload));
+                const migratedMeta = [{
+                    id: migratedId,
+                    title: legacyTitle,
+                    updatedAt: new Date().toISOString(),
+                    itemCount: legacyItems.length
+                }];
+                saveScenariosIndex(migratedMeta);
+            } catch(e) { console.error('Migration error', e); }
+        }
+
+        // ──────────────────────────────────────────────────────────
+        // ポータルを最初に表示する
+        // ──────────────────────────────────────────────────────────
+        const freshIndex = getScenariosIndex();
+        if (freshIndex.length === 0) {
+            // 初回起動: サンプルシナリオを作成してポータルへ
+            const sampleId = 'sc_' + generateUuid();
+            scenarioData = [
+                { _uuid: generateUuid(), id: "", type: "title", turn: 1, text: "# シナリオタイトル ## サブタイトル 作者名", listTitle: "" },
+                { _uuid: generateUuid(), id: "", type: "overview", turn: 1, text: OVERVIEW_TEMPLATE, listTitle: "" },
+                { _uuid: generateUuid(), id: "11", type: "d66", turn: 1, text: "### サンプルイベント 森の中で**奇妙なキノコ**を見つけた。どうする？", choice1_label: "食べる", choice1_next_id: "11-a", listTitle: "森の探索" }
+            ];
+            ideaData = []; scenarioNpcs = []; scenarioSynopsis = '';
+            creatureTemplates = [...DEFAULT_CREATURE_TEMPLATES];
+            reactionTemplates = [...DEFAULT_REACTIONS];
+            classificationTags = [...DEFAULT_CLASSIFICATIONS];
+            scenarioConfig = { rows: 6, cols: 6, minTiles: 6, maxTiles: 8 };
+            saveScenarioData(sampleId);
+            const sampleMeta = [{ id: sampleId, title: 'サンプルシナリオ', updatedAt: new Date().toISOString(), itemCount: 3 }];
+            saveScenariosIndex(sampleMeta);
+        }
+
+        // 初期化共通UI
+        applyPreviewFont(currentFont);
+        renderTemplateMenus();
+        initResizer();
+
+        // ポータルを表示
+        showPortal();
 
         // 本文エリアでの「♪」記号へのTabジャンプ機能
         const textarea = document.getElementById('edit-text');
@@ -1102,35 +2316,12 @@
     }
 
     function createNewScenario() {
-        if(!confirm("現在の編集内容を破棄して、新規シナリオを作成しますか？\n（未保存のデータは失われます）")) return;
-        
-        isInputting = false;
-        clearTimeout(debounceTimer);
-        saveHistory();
-
-        scenarioData = [];
-        scenarioData.push({ _uuid: generateUuid(), id: "", type: "title", turn: 1, text: "# シナリオタイトル\n\n## サブタイトル\n\n作者名", choice1_label: "", choice1_next_id: "", listTitle: "" });
-        scenarioData.push({ _uuid: generateUuid(), id: "", type: "overview", turn: 1, text: OVERVIEW_TEMPLATE, choice1_label: "", choice1_next_id: "", listTitle: "" });
-        scenarioData.push({ _uuid: generateUuid(), id: "11", type: "d66", turn: 1, text: "### 新規イベント\n\nイベント内容を記述...", choice1_label: "", choice1_next_id: "", listTitle: "" });
-        currentUuid = null;
-        
-        document.getElementById('scenario-title').value = "";
-        localStorage.removeItem(STORAGE_KEY_TITLE);
-        
-        renderList();
-        creatureTemplates = [...DEFAULT_CREATURE_TEMPLATES];
-        reactionTemplates = [...DEFAULT_REACTIONS];
-        classificationTags = [...DEFAULT_CLASSIFICATIONS];
-        isScenarioLocked = false;
-        scenarioPassword = "";
-        applyLockUI();
-        renderTemplateMenus();
-        saveData();
-        document.getElementById('editor-form').classList.add('hidden');
-        document.getElementById('no-selection').classList.remove('hidden');
+        // ポータルへ移動して新規作成
+        backToPortal();
     }
 
     function saveData() {
+        // 旧形式キーにも書き込む（後方互換）
         localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarioData));
         localStorage.setItem(STORAGE_KEY_LOCKED, isScenarioLocked);
         localStorage.setItem(STORAGE_KEY_PASSWORD, scenarioPassword);
@@ -1139,6 +2330,12 @@
         localStorage.setItem('rlh_classification_tags', JSON.stringify(classificationTags));
         localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(scenarioConfig));
         localStorage.setItem('rlh_scenario_npcs', JSON.stringify(scenarioNpcs));
+        // マルチシナリオ: 個別キーに保存
+        if (currentScenarioId) {
+            saveScenarioData(currentScenarioId);
+            const title = document.getElementById('scenario-title')?.value || '';
+            updateScenarioMeta(currentScenarioId, title);
+        }
     }
 
     function renderTemplateMenus() {
@@ -1150,18 +2347,18 @@
         crHtml += `<button onclick="openTemplateEditor('creature')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-indigo-50 text-indigo-600 font-bold border-t border-gray-100">⚙ 編集...</button>`;
         crMenu.innerHTML = crHtml;
 
-        // Reaction Menu
+        // Reaction Menu (カードエディタ起動中はフォーカス中セルへ、通常時はテキストエリアへ挿入)
         const reMenu = document.getElementById('reaction-template-menu');
         let reHtml = reactionTemplates.map(r => 
-            `<button onclick="insertMarkdown('【${r}】', '')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-gray-100 text-gray-800 font-bold whitespace-nowrap">${r}</button>`
+            `<button onclick="insertReactionToCardOrText('【${r}】')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-gray-100 text-gray-800 font-bold whitespace-nowrap">${r}</button>`
         ).join('');
         reHtml += `<button onclick="openTemplateEditor('reaction')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-indigo-50 text-indigo-600 font-bold border-t border-gray-100">⚙ 編集...</button>`;
         reMenu.innerHTML = reHtml;
 
-        // Tag Menu
+        // Tag Menu (カードエディタ起動中はカードタグへ、通常時はテキストエリアへ挿入)
         const tagMenu = document.getElementById('tag-template-menu');
         let tagHtml = classificationTags.map(t => 
-            `<button onclick="insertMarkdown('【${t}】', '')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-gray-100 text-gray-800 font-bold whitespace-nowrap">${t}</button>`
+            `<button onclick="insertTagToCardOrText('【${t}】')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-gray-100 text-gray-800 font-bold whitespace-nowrap">${t}</button>`
         ).join('');
         tagHtml += `<button onclick="openTemplateEditor('tag')" class="block w-full text-left px-3 py-2 text-[10px] hover:bg-indigo-50 text-indigo-600 font-bold border-t border-gray-100">⚙ 編集...</button>`;
         tagMenu.innerHTML = tagHtml;
@@ -1760,6 +2957,7 @@
         renderChoicesInputs(entry);
         renderRelations(entry);
         updatePreview(entry);
+        checkAndRenderCreatureCardEditor(entry.text);
         renderList();
     }
 
@@ -1909,6 +3107,7 @@
         }
 
         updatePreview(entry);
+        checkAndRenderCreatureCardEditor(entry.text);
         // リストのID表示更新などは遅延させるか、ID変更時のみ再描画
         if(key === 'id' || key === 'text' || key === 'type' || key === 'listTitle' || key === 'image' || key === 'turn') renderList(); 
         renderRelations(entry); // ID変更時などに関係図を更新
@@ -1940,6 +3139,7 @@
         }
 
         updatePreview(entry);
+        checkAndRenderCreatureCardEditor(entry.text);
         renderRelations(entry); // 遷移先変更時に関係図を更新
         saveData();
     }
@@ -1996,11 +3196,30 @@ function updatePreview(entry) {
             finalPrefix += `![挿絵](${entry.image})\n\n`;
         }
 
+        // クリーチャーカードを一時退避（入れ子divの破壊およびMarkdownパーサー誤パースの防止）
+        const savedCards = [];
+        let safeContent = '';
+        let remaining = contentToParse;
+        while (remaining) {
+            const block = extractCreatureCardBlock(remaining);
+            if (!block) {
+                safeContent += remaining;
+                break;
+            }
+            safeContent += remaining.substring(0, block.start);
+            const placeholder = `%%CREATURE_CARD_PLACEHOLDER_${savedCards.length}%%`;
+            savedCards.push(block.html);
+            safeContent += `\n\n${placeholder}\n\n`;
+            remaining = remaining.substring(block.end);
+        }
+        contentToParse = safeContent;
+
         // ルビ記法変換 (|文字《ルビ》 -> <ruby>文字<rt>ルビ</rt></ruby>)
         contentToParse = contentToParse.replace(/[\|｜]([^\|｜《》\n]+?)《([^《》\n]+?)》/g, '<ruby>$1<rt>$2</rt></ruby>');
 
         // BOX内Markdown対応: div内のテキストを個別にパースする (classとstyleの両方に対応)
         contentToParse = contentToParse.replace(/<div[^>]*(class|style)=(['"])(.*?)\2[^>]*>([\s\S]*?)<\/div>/g, function(match, attr, quote, value, innerContent) {
+            if (value.includes('creature')) return match;
             return `<div ${attr}="${value}">${marked.parse(innerContent, { breaks: true })}</div>`;
         });
 
@@ -2029,8 +3248,13 @@ function updatePreview(entry) {
         const processedContent = (finalPrefix + contentToParse).replace(/\n{3,}/g, m => '\n\n' + '&nbsp;\n\n'.repeat(m.length - 2));
 
         // プレビューエリアにレンダリング
-        previewArea.innerHTML = marked.parse(finalPrefix + contentToParse, { breaks: true });
-        previewArea.innerHTML = marked.parse(processedContent, { breaks: true });
+        let renderedHtml = marked.parse(processedContent, { breaks: true });
+        savedCards.forEach((cardHtml, idx) => {
+            const placeholder = `%%CREATURE_CARD_PLACEHOLDER_${idx}%%`;
+            const pRegex = new RegExp(`<p>\\s*${placeholder}\\s*<\\/p>|${placeholder}`, 'g');
+            renderedHtml = renderedHtml.replace(pRegex, cardHtml);
+        });
+        previewArea.innerHTML = renderedHtml;
 
         // 選択肢ボタンのレンダリング（ここは既存通り）
         const choiceArea = document.getElementById('preview-choices');
@@ -2126,6 +3350,26 @@ function insertMarkdown(before, after) {
     function insertCreatureTemplate(index) {
         const templateObj = creatureTemplates[index];
         if (!templateObj) return;
+
+        // CSSカード形式の場合、インタラクティブ・カードエディタを起動
+        if (templateObj.name && templateObj.name.includes('CSS')) {
+            isInputting = false;
+            clearTimeout(debounceTimer);
+            saveHistory();
+
+            const isStrong = templateObj.name.includes('強い');
+            const initialData = JSON.parse(JSON.stringify(isStrong ? STRONG_CREATURE_DATA : WEAK_CREATURE_DATA));
+            currentCardData = initialData;
+            renderVisualCardEditor();
+            syncCardToText();
+            const cardContainer = document.getElementById('creature-card-editor-container');
+            if (cardContainer) {
+                cardContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                const nameInput = document.getElementById('card-input-name');
+                if (nameInput) nameInput.focus();
+            }
+            return;
+        }
         const template = templateObj.text;
         
         isInputting = false;
@@ -2237,7 +3481,7 @@ function insertMarkdown(before, after) {
         return data;
     }
 
-    function exportJson(lock = false) {
+    async function exportJson(lock = false) {
         let password = "";
         if (lock) {
             const input = prompt("このシナリオをロックするためのパスワードを設定してください（任意）\n未入力の場合はパスワードなしでロックされます。");
@@ -2268,10 +3512,10 @@ function insertMarkdown(before, after) {
         title = title.replace(/[\\/:*?"<>|]/g, "_"); // ファイル名に使えない文字を置換
 
         const prefix = lock ? "RLH_LockedScenario_" : "RLH_EditorScenario_";
-        downloadFile(prefix + title + ".json", JSON.stringify(exportData, null, 2), "application/json");
+        await downloadFile(prefix + title + ".json", JSON.stringify(exportData, null, 2), "application/json");
     }
 
-    function exportDistributionArray() {
+    async function exportDistributionArray() {
         const data = getSortedData()
             .filter(e => !e.isPlaceholder)
             .map(e => {
@@ -2286,7 +3530,7 @@ function insertMarkdown(before, after) {
         if (!title) title = "rlh_scenario";
         title = "RLH_Scenario_" + title.replace(/[\\/:*?"<>|]/g, "_");
 
-        downloadFile(title + ".json", JSON.stringify(data, null, 2), "application/json");
+        await downloadFile(title + ".json", JSON.stringify(data, null, 2), "application/json");
     }
 
     function importJson(event) {
@@ -2337,6 +3581,8 @@ function insertMarkdown(before, after) {
                     currentUuid = null;
                     renderList();
                     applyLockUI();
+                    // 新しいシナリオIDを割り当てて保存
+                    if (!currentScenarioId) currentScenarioId = 'sc_' + generateUuid();
                     saveData();
                     document.getElementById('editor-form').classList.add('hidden');
                     document.getElementById('no-selection').classList.remove('hidden');
@@ -2353,7 +3599,7 @@ function insertMarkdown(before, after) {
     }
 
     // --- CSV Import / Export ---
-    function exportCsv() {
+    async function exportCsv() {
         const data = getSortedData();
         if (data.length === 0) return;
         // CSV Headers
@@ -2387,7 +3633,7 @@ function insertMarkdown(before, after) {
         if (!title) title = "rlh_scenario";
         title = title.replace(/[\\/:*?"<>|]/g, "_");
 
-        downloadFile(title + ".csv", csvContent, "text/csv;charset=utf-8;");
+        await downloadFile(title + ".csv", csvContent, "text/csv;charset=utf-8;");
     }
 
     function importCsv(event) {
@@ -2863,7 +4109,7 @@ function insertMarkdown(before, after) {
         return result;
     }
 
-    function exportMarkdown() {
+    async function exportMarkdown() {
         const data = getSortedData();
         if (data.length === 0) return;
 
@@ -2893,10 +4139,10 @@ function insertMarkdown(before, after) {
             md += "---\n\n";
         });
 
-        downloadFile(title + ".md", md, "text/markdown;charset=utf-8;");
+        await downloadFile(title + ".md", md, "text/markdown;charset=utf-8;");
     }
 
-    function exportText() {
+    async function exportText() {
         const data = getSortedData();
         if (data.length === 0) return;
 
@@ -2921,13 +4167,65 @@ function insertMarkdown(before, after) {
             txt += "\n--------------------\n\n";
         });
 
-        downloadFile(title + ".txt", txt, "text/plain;charset=utf-8;");
+        await downloadFile(title + ".txt", txt, "text/plain;charset=utf-8;");
     }
 
-    function downloadFile(filename, content, mimeType) {
+    /**
+     * ファイルを保存する。
+     * File System Access API が利用可能な場合は「名前を付けて保存」ダイアログを表示し、
+     * 保存先を選択できる。非対応ブラウザは従来のダウンロード方式にフォールバック。
+     *
+     * @param {string} filename  デフォルトのファイル名（拡張子込み）
+     * @param {string|Uint8Array} content  保存するコンテンツ
+     * @param {string} mimeType  MIMEタイプ（例: "application/json"）
+     */
+    async function downloadFile(filename, content, mimeType) {
+        // ─── 拡張子 → ファイルピッカー用フィルタ マッピング ─────────────
+        const EXT_MAP = {
+            '.json': [{ description: 'JSON ファイル', accept: { 'application/json': ['.json'] } }],
+            '.csv':  [{ description: 'CSV ファイル',  accept: { 'text/csv': ['.csv'] } }],
+            '.md':   [{ description: 'Markdown ファイル', accept: { 'text/markdown': ['.md'] } }],
+            '.txt':  [{ description: 'テキスト ファイル', accept: { 'text/plain': ['.txt'] } }],
+        };
+
+        const ext = filename.includes('.')
+            ? '.' + filename.split('.').pop().toLowerCase()
+            : '';
+        const types = EXT_MAP[ext] || [{ description: 'ファイル', accept: { [mimeType]: [ext || '*'] } }];
+
+        // ─── File System Access API (showSaveFilePicker) ───────────────
+        if (window.showSaveFilePicker) {
+            try {
+                const handle = await window.showSaveFilePicker({
+                    suggestedName: filename,
+                    types: types
+                });
+                const writable = await handle.createWritable();
+                const blob = content instanceof Uint8Array
+                    ? new Blob([content], { type: mimeType })
+                    : new Blob([content], { type: mimeType });
+                await writable.write(blob);
+                await writable.close();
+                // 保存成功: ステータスバーに一時表示
+                const statusEl = document.getElementById('save-status');
+                if (statusEl) {
+                    const prev = statusEl.textContent;
+                    statusEl.textContent = `✅ ${handle.name} に保存しました`;
+                    setTimeout(() => { statusEl.textContent = prev; }, 3000);
+                }
+                return;
+            } catch (err) {
+                // ユーザーがキャンセルした場合 (AbortError) は何もしない
+                if (err && err.name === 'AbortError') return;
+                // その他のエラーはフォールバックへ
+                console.warn('showSaveFilePicker failed, falling back to download:', err);
+            }
+        }
+
+        // ─── フォールバック: 従来の <a download> 方式 ─────────────────
         const blob = new Blob([content], { type: mimeType });
         const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = url;
         link.download = filename;
         link.click();
@@ -4056,6 +5354,37 @@ function insertMarkdown(before, after) {
         
         <div class="mt-auto pt-2 text-right">
             <button onclick="closeTagModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded text-xs font-bold">閉じる</button>
+        </div>
+    </div>
+</div>
+
+<!-- Settings Modal -->
+<div id="settings-modal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50" onclick="closeSettingsModal()">
+    <div class="bg-white p-6 rounded shadow-lg max-w-md w-full flex flex-col gap-4" onclick="event.stopPropagation()">
+        <h2 class="text-base font-bold text-gray-800 border-b pb-2 flex justify-between items-center">
+            <span>⚙️ 設定</span>
+            <button onclick="closeSettingsModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+        </h2>
+        
+        <div class="space-y-4">
+            <div>
+                <h3 class="font-bold mb-2 text-xs text-gray-700">プレビュー表示フォント</h3>
+                <div class="flex gap-2 bg-gray-50 p-1 rounded border border-gray-200">
+                    <label class="flex-1 text-center cursor-pointer">
+                        <input type="radio" name="editorFontOption" value="gothic" onchange="setPreviewFont('gothic')" class="hidden peer">
+                        <span class="block py-2 rounded text-xs font-bold text-gray-600 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all hover:bg-gray-100">ゴシック体 (Gothic)</span>
+                    </label>
+                    <label class="flex-1 text-center cursor-pointer">
+                        <input type="radio" name="editorFontOption" value="mincho" onchange="setPreviewFont('mincho')" class="hidden peer">
+                        <span class="block py-2 rounded text-xs font-bold text-gray-600 peer-checked:bg-white peer-checked:text-indigo-600 peer-checked:shadow-sm transition-all hover:bg-gray-100">明朝体 (Mincho)</span>
+                    </label>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-1.5 leading-relaxed">※選択したフォントはプレビュー領域に即時反映され、次回起動時にも保持されます。</p>
+            </div>
+        </div>
+        
+        <div class="pt-3 border-t text-right">
+            <button onclick="closeSettingsModal()" class="bg-gray-800 text-white px-4 py-2 rounded text-xs font-bold hover:bg-gray-700 transition-colors">閉じる</button>
         </div>
     </div>
 </div>
